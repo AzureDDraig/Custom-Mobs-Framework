@@ -62,6 +62,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
     public static final EntityDataAccessor<Boolean> IS_ELITE = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<String> BILLBOARD_NAME = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<String> ACTIVE_ANIMATION = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.STRING);
+    public static final EntityDataAccessor<Integer> SUMMONER_ID = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> IS_STAGGERED = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.BOOLEAN);
+
+    public float staggerDamageMultiplier = 1.0f;
+    public int portalLifetime = -1;
 
     private final AnimatableInstanceCache geckolibCache = GeckoLibUtil.createInstanceCache(this);
     private final Map<String, Integer> abilityCooldowns = new HashMap<>();
@@ -155,6 +160,24 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
         this.entityData.define(IS_ELITE, false);
         this.entityData.define(BILLBOARD_NAME, "");
         this.entityData.define(ACTIVE_ANIMATION, "");
+        this.entityData.define(SUMMONER_ID, -1);
+        this.entityData.define(IS_STAGGERED, false);
+    }
+
+    public int getSummonerId() {
+        return this.entityData.get(SUMMONER_ID);
+    }
+
+    public void setSummonerId(int id) {
+        this.entityData.set(SUMMONER_ID, id);
+    }
+
+    public boolean isStaggered() {
+        return this.entityData.get(IS_STAGGERED);
+    }
+
+    public void setStaggered(boolean staggered) {
+        this.entityData.set(IS_STAGGERED, staggered);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -252,9 +275,9 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
         for (MobData.AIGoalData goal : data.aiGoals) {
             String type = goal.type.toUpperCase();
             if (type.startsWith("MELEE") || type.startsWith("KNOCKBACK") || type.equals("DELAY")
-                    || type.equals("RANGED") || type.startsWith("SUMMON_GROUND_ATTACK")
+                    || type.equals("RANGED") || type.startsWith("SUMMON_")
                     || type.startsWith("AERIAL_RANGED") || type.equals("SHOTGUN_ATTACK")
-                    || type.equals("ORBITING_SHIELD")) {
+                    || type.equals("ORBITING_SHIELD") || type.equals("STAGGER")) {
                 this.combatSequence.add(goal.type);
             }
         }
@@ -266,7 +289,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
         this.setHealth((float) (data.stats.maxHealth * healthMult));
         Objects.requireNonNull(this.getAttribute(Attributes.MOVEMENT_SPEED)).setBaseValue(data.stats.movementSpeed);
         double fRange = data.stats.followRange;
-        if (hasGoalType("RANGED") || hasGoalType("SUMMON_GROUND_ATTACK") || hasGoalType("AERIAL_RANGED_ATTACK")
+        if (hasGoalType("RANGED") || hasAnyGoalTypeStartingWith("SUMMON_") || hasGoalType("AERIAL_RANGED_ATTACK")
             || hasGoalType("SHOTGUN_ATTACK") || hasAnyGoalTypeStartingWith("SUMMON_GROUND_ATTACK_AOE")
             || hasAnyGoalTypeStartingWith("AERIAL_RANGED_AOE") || hasGoalType("ORBITING_SHIELD")) {
             fRange = Math.max(fRange, 64.0);
@@ -326,6 +349,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
 
     @Override
     public void tick() {
+        if (!this.level().isClientSide && this.portalLifetime > 0) {
+            this.portalLifetime--;
+            if (this.portalLifetime == 0) {
+                this.discard();
+                return;
+            }
+        }
         super.tick();
 
         if (this.level().isClientSide) {
@@ -837,6 +867,9 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
     public boolean hurt(DamageSource source, float amount) {
         if (source.getEntity() == this || source.getDirectEntity() == this) {
             return false;
+        }
+        if (this.isStaggered()) {
+            amount *= this.staggerDamageMultiplier;
         }
         if (source.getDirectEntity() instanceof net.minecraft.world.entity.projectile.Projectile proj && proj.getOwner() == this) {
             return false;
@@ -1592,6 +1625,34 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
             }
         });
 
+        String[] summonGoalTypes = {
+            "SUMMON_GROUND_LINE", "SUMMON_AERIAL_LINE",
+            "SUMMON_GROUND_LINES", "SUMMON_AERIAL_LINES",
+            "SUMMON_GROUND_LINE_LAYERED", "SUMMON_AERIAL_LINE_LAYERED",
+            "SUMMON_GROUND_LINES_LAYERED", "SUMMON_AERIAL_LINES_LAYERED",
+            "SUMMON_GROUND_SPIRAL", "SUMMON_AERIAL_SPIRAL",
+            "SUMMON_GROUND_SPIRALS", "SUMMON_AERIAL_SPIRALS",
+            "SUMMON_GROUND_SPIRAL_LAYERED", "SUMMON_AERIAL_SPIRAL_LAYERED",
+            "SUMMON_GROUND_SPIRALS_LAYERED", "SUMMON_AERIAL_SPIRALS_LAYERED",
+            "SUMMON_DOME",
+            "SUMMON_GROUND_CROSS", "SUMMON_AERIAL_CROSS",
+            "SUMMON_GROUND_CROSS_LAYERED", "SUMMON_AERIAL_CROSS_LAYERED",
+            "SUMMON_GROUND_X", "SUMMON_AERIAL_X",
+            "SUMMON_GROUND_X_LAYERED", "SUMMON_AERIAL_X_LAYERED",
+            "SUMMON_GROUND_SHOCKWAVE", "SUMMON_AERIAL_SHOCKWAVE",
+            "SUMMON_GROUND_SHOCKWAVE_LAYERED", "SUMMON_AERIAL_SHOCKWAVE_LAYERED",
+            "SUMMON_GROUND_CRUNCH", "SUMMON_AERIAL_CRUNCH",
+            "SUMMON_GROUND_CRUNCH_LAYERED", "SUMMON_AERIAL_CRUNCH_LAYERED",
+            "SUMMON_TETHER_DRAIN", "SUMMON_CHASE_SNAKE",
+            "SUMMON_GALE_VORTEX_PULL", "SUMMON_GALE_VORTEX_PUSH",
+            "SUMMON_MINION_PORTAL"
+        };
+        for (String type : summonGoalTypes) {
+            this.goalSelector.addGoal(2, new CustomSummonAttackGoal(this, type));
+        }
+        this.goalSelector.addGoal(2, new CustomStaggerGoal(this));
+        this.goalSelector.addGoal(2, new SpawnMinionsGoal(this));
+
         this.goalSelector.addGoal(5, new WaterAvoidingRandomStrollGoal(this, 1.0D) {
             @Override
             public boolean canUse() {
@@ -1901,6 +1962,39 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
 
     public void stopGoalAnimation() {
         this.setActiveAnimation("");
+    }
+
+    public static void spawnProjectileAt(ServerLevel serverLevel, CustomMobEntity mob, String projId, double x, double y, double z, double dx, double dy, double dz, float speed, float damage, float divergence, boolean isGroundSummon, double maxHeight) {
+        if (projId == null || projId.isEmpty()) return;
+
+        if (MobRegistry.loadedProjectiles.containsKey(projId)) {
+            CustomProjectileEntity proj = new CustomProjectileEntity(serverLevel, mob);
+            proj.setProjectileId(projId);
+            proj.setDamage(damage);
+            proj.setMaxHeight(maxHeight);
+            proj.isGroundSummon = isGroundSummon;
+            proj.setPos(x, y, z);
+            proj.shoot(dx, dy, dz, speed, divergence);
+            serverLevel.addFreshEntity(proj);
+        } else {
+            ResourceLocation resLoc = ResourceLocation.tryParse(projId);
+            if (resLoc != null) {
+                net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getOptional(resLoc).ifPresent(entityType -> {
+                    Entity entity = entityType.create(serverLevel);
+                    if (entity != null) {
+                        entity.setPos(x, y, z);
+                        if (entity instanceof net.minecraft.world.entity.projectile.Projectile proj) {
+                            proj.setOwner(mob);
+                            proj.shoot(dx, dy, dz, speed, divergence);
+                            if (proj instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
+                                arrow.setBaseDamage(damage);
+                            }
+                        }
+                        serverLevel.addFreshEntity(entity);
+                    }
+                });
+            }
+        }
     }
 
     private void fireProjectile(LivingEntity target) {
@@ -5127,4 +5221,693 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
             this.timer++;
         }
     }
+
+    private static class CustomSummonAttackGoal extends Goal {
+        private final CustomMobEntity mob;
+        private final String goalType;
+        private int attackTime = 0;
+        private int currentStep = 0;
+        private int delayBetweenSteps = 2;
+        private int stepTimer = 0;
+        private boolean hasAttacked = false;
+        
+        private LivingEntity tetherTarget = null;
+        private int siphoningTicks = 0;
+        private final java.util.Queue<Vec3> snakeTrailQueue = new java.util.LinkedList<>();
+
+        public CustomSummonAttackGoal(CustomMobEntity mob, String goalType) {
+            this.mob = mob;
+            this.goalType = goalType;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (mob.hasGoalType("STALK") && mob.stalkGoalInstance != null) {
+                if (!mob.stalkGoalInstance.isStalkingComplete()) {
+                    return false;
+                }
+            }
+            if (!mob.checkCombatSequence(goalType)) {
+                return false;
+            }
+            return mob.hasGoalType(goalType) && mob.getTarget() != null && !mob.isStaggered();
+        }
+
+        @Override
+        public void start() {
+            this.attackTime = 0;
+            this.currentStep = 0;
+            this.stepTimer = 0;
+            this.hasAttacked = false;
+            this.tetherTarget = null;
+            this.siphoningTicks = 0;
+            this.snakeTrailQueue.clear();
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null) {
+                if (!aiGoal.animation.isEmpty()) {
+                    mob.setActiveAnimation(aiGoal.animation);
+                }
+                try {
+                    if (goalType.contains("LINES_LAYERED")) {
+                        this.delayBetweenSteps = Integer.parseInt(aiGoal.params.getOrDefault("delayTicks", "2"));
+                    } else if (goalType.contains("LINE_LAYERED")) {
+                        this.delayBetweenSteps = Integer.parseInt(aiGoal.params.getOrDefault("delay", "2"));
+                    } else {
+                        this.delayBetweenSteps = Integer.parseInt(aiGoal.params.getOrDefault("delayTicks", "2"));
+                    }
+                } catch (Exception ignored) {
+                    this.delayBetweenSteps = 2;
+                }
+            }
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            if (mob.isStaggered()) return false;
+            
+            boolean isLayered = goalType.contains("LAYERED") || goalType.equals("SUMMON_TETHER_DRAIN")
+                    || goalType.equals("SUMMON_CHASE_SNAKE") || goalType.equals("SUMMON_GALE_VORTEX_PULL")
+                    || goalType.equals("SUMMON_GALE_VORTEX_PUSH");
+            if (isLayered) {
+                return !hasAttacked && mob.getTarget() != null;
+            }
+            return !hasAttacked && mob.getTarget() != null;
+        }
+
+        @Override
+        public void stop() {
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null && mob.getActiveAnimation().equals(aiGoal.animation)) {
+                mob.setActiveAnimation("");
+            }
+            if (hasAttacked && !mob.combatSequence.isEmpty()) {
+                mob.advanceCombatSequence();
+            }
+            this.tetherTarget = null;
+            this.hasAttacked = false;
+        }
+
+        private net.minecraft.core.particles.ParticleOptions getParticleOptions(String id) {
+            if (id != null && !id.isEmpty()) {
+                try {
+                    var type = net.minecraft.core.registries.BuiltInRegistries.PARTICLE_TYPE.get(new ResourceLocation(id));
+                    if (type instanceof net.minecraft.core.particles.ParticleOptions opt) {
+                        return opt;
+                    }
+                } catch (Exception ignored) {}
+            }
+            return ParticleTypes.PORTAL;
+        }
+
+        private Vec3 rotateY(Vec3 v, double degrees) {
+            double rad = Math.toRadians(degrees);
+            double cos = Math.cos(rad);
+            double sin = Math.sin(rad);
+            return new Vec3(v.x * cos - v.z * sin, v.y, v.x * sin + v.z * cos);
+        }
+
+        @Override
+        public void tick() {
+            LivingEntity target = mob.getTarget();
+            if (target == null) return;
+
+            mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
+
+            if (goalType.equals("SUMMON_TETHER_DRAIN")) {
+                mob.getNavigation().stop();
+                executeTetherDrain(target);
+                return;
+            }
+
+            double distSqr = mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+            if (distSqr > 15.0 * 15.0) {
+                mob.getNavigation().moveTo(target, 1.0D);
+            } else if (distSqr < 8.0 * 8.0) {
+                Vec3 awayPos = net.minecraft.world.entity.ai.util.DefaultRandomPos.getPosAway(mob, 16, 7, target.position());
+                if (awayPos != null) {
+                    mob.getNavigation().moveTo(awayPos.x, awayPos.y, awayPos.z, 1.2D);
+                } else {
+                    mob.getNavigation().stop();
+                }
+            } else {
+                mob.getNavigation().stop();
+            }
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal == null) return;
+
+            int count = 5;
+            try {
+                count = Integer.parseInt(aiGoal.params.getOrDefault("count", "5"));
+            } catch (Exception ignored) {}
+
+            int castDelay = 20;
+            try {
+                castDelay = Integer.parseInt(aiGoal.params.getOrDefault("delay", "20"));
+            } catch (Exception ignored) {}
+
+            if (goalType.equals("SUMMON_CHASE_SNAKE")) {
+                executeChaseSnake(target, aiGoal, count);
+                return;
+            }
+
+            if (goalType.equals("SUMMON_GALE_VORTEX_PULL") || goalType.equals("SUMMON_GALE_VORTEX_PUSH")) {
+                executeVortexSpawn(target, aiGoal);
+                return;
+            }
+
+            if (goalType.equals("SUMMON_MINION_PORTAL")) {
+                executeMinionPortal(target, aiGoal);
+                return;
+            }
+
+            attackTime++;
+            if (attackTime >= castDelay) {
+                boolean isLayered = goalType.contains("LAYERED");
+                if (isLayered) {
+                    stepTimer++;
+                    if (stepTimer >= delayBetweenSteps) {
+                        stepTimer = 0;
+                        executeSummonStep(target, aiGoal, currentStep, count);
+                        currentStep++;
+                        if (currentStep >= count) {
+                            mob.swing(InteractionHand.MAIN_HAND);
+                            this.hasAttacked = true;
+                        }
+                    }
+                } else {
+                    for (int step = 0; step < count; step++) {
+                        executeSummonStep(target, aiGoal, step, count);
+                    }
+                    mob.swing(InteractionHand.MAIN_HAND);
+                    this.hasAttacked = true;
+                }
+            }
+        }
+
+        private List<Vec3> getSpawnPositions(int step, Vec3 casterPos, Vec3 targetPos, Vec3 dir, double spacing, int count, MobData.AIGoalData aiGoal) {
+            List<Vec3> positions = new ArrayList<>();
+            String type = goalType.toUpperCase();
+            
+            int linesCount = 1;
+            try {
+                linesCount = Integer.parseInt(aiGoal.params.getOrDefault("linesCount", "1"));
+            } catch (Exception ignored) {}
+            
+            double angle = 60.0D;
+            try {
+                angle = Double.parseDouble(aiGoal.params.getOrDefault("angle", "60.0"));
+            } catch (Exception ignored) {}
+            
+            double spiralFactor = 15.0D;
+            try {
+                spiralFactor = Double.parseDouble(aiGoal.params.getOrDefault("spiralFactor", "15.0"));
+            } catch (Exception ignored) {}
+            
+            if (type.contains("LINE")) {
+                double dist = 1.0D + step * spacing;
+                if (type.contains("LINES")) {
+                    if (linesCount <= 1) {
+                        positions.add(casterPos.add(dir.scale(dist)));
+                    } else {
+                        for (int j = 0; j < linesCount; j++) {
+                            double offset = -angle / 2.0D + (j * angle / (linesCount - 1));
+                            Vec3 rotDir = rotateY(dir, offset);
+                            positions.add(casterPos.add(rotDir.scale(dist)));
+                        }
+                    }
+                } else {
+                    positions.add(casterPos.add(dir.scale(dist)));
+                }
+            } else if (type.contains("SPIRAL")) {
+                double dist = 1.0D + step * spacing;
+                if (type.contains("SPIRALS")) {
+                    if (linesCount <= 1) {
+                        double rotAngle = step * spiralFactor;
+                        positions.add(casterPos.add(rotateY(dir, rotAngle).scale(dist)));
+                    } else {
+                        for (int j = 0; j < linesCount; j++) {
+                            double startAngle = j * (360.0D / linesCount);
+                            double rotAngle = startAngle + (step * spiralFactor);
+                            positions.add(casterPos.add(rotateY(dir, rotAngle).scale(dist)));
+                        }
+                    }
+                } else {
+                    double rotAngle = step * spiralFactor;
+                    positions.add(casterPos.add(rotateY(dir, rotAngle).scale(dist)));
+                }
+            } else if (type.contains("CROSS") || type.contains("X")) {
+                double dist = 1.0D + step * spacing;
+                double baseAngle = type.contains("X") ? 45.0D : 0.0D;
+                for (int j = 0; j < 4; j++) {
+                    double rotAngle = baseAngle + j * 90.0D;
+                    positions.add(targetPos.add(rotateY(dir, rotAngle).scale(dist)));
+                }
+            } else if (type.contains("SHOCKWAVE")) {
+                double ringRadius = 1.0D + step * spacing;
+                double circumference = 2.0D * Math.PI * ringRadius;
+                int numProj = Math.max(8, (int) (circumference / spacing));
+                for (int j = 0; j < numProj; j++) {
+                    double rotAngle = j * (360.0D / numProj);
+                    positions.add(casterPos.add(rotateY(dir, rotAngle).scale(ringRadius)));
+                }
+            } else if (type.contains("CRUNCH")) {
+                int stepInverse = count - 1 - step;
+                double ringRadius = 1.0D + stepInverse * spacing;
+                double circumference = 2.0D * Math.PI * ringRadius;
+                int numProj = Math.max(8, (int) (circumference / spacing));
+                for (int j = 0; j < numProj; j++) {
+                    double rotAngle = j * (360.0D / numProj);
+                    positions.add(targetPos.add(rotateY(dir, rotAngle).scale(ringRadius)));
+                }
+            }
+            
+            return positions;
+        }
+
+        private void executeSummonStep(LivingEntity target, MobData.AIGoalData aiGoal, int step, int count) {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            String soundId = aiGoal.params.getOrDefault("sound", "");
+            String projId = aiGoal.params.getOrDefault("projectileId", "fireball");
+            float damage = 4.0f;
+            try {
+                damage = Float.parseFloat(aiGoal.params.getOrDefault("damage", "4.0"));
+            } catch (Exception ignored) {}
+            float speed = 1.0f;
+            try {
+                speed = Float.parseFloat(aiGoal.params.getOrDefault("speed", "1.0"));
+            } catch (Exception ignored) {}
+
+            if (!soundId.isEmpty() && step == 0) {
+                try {
+                    var sound = BuiltInRegistries.SOUND_EVENT.get(new ResourceLocation(soundId));
+                    if (sound != null) {
+                        serverLevel.playSound(null, mob.blockPosition(), sound, SoundSource.HOSTILE, 1.0F, 1.0F);
+                    }
+                } catch (Exception ignored) {}
+            }
+
+            double projSize = 0.5D;
+            if (MobRegistry.loadedProjectiles.containsKey(projId)) {
+                projSize = MobRegistry.loadedProjectiles.get(projId).hitboxWidth;
+            } else {
+                ResourceLocation resLoc = ResourceLocation.tryParse(projId);
+                if (resLoc != null) {
+                    var entityType = BuiltInRegistries.ENTITY_TYPE.get(resLoc);
+                    if (entityType != null) {
+                        projSize = entityType.getWidth();
+                    }
+                }
+            }
+            double spacing = projSize * 1.5D;
+
+            Vec3 casterPos = mob.position();
+            Vec3 targetPos = target.position();
+            Vec3 dir = new Vec3(targetPos.x - casterPos.x, 0.0D, targetPos.z - casterPos.z).normalize();
+            if (dir.lengthSqr() < 1E-4) {
+                dir = Vec3.directionFromRotation(0.0F, mob.getYRot());
+            }
+
+            boolean isGround = goalType.contains("GROUND");
+            
+            if (goalType.equals("SUMMON_DOME")) {
+                double radius = 5.0D;
+                try {
+                    radius = Double.parseDouble(aiGoal.params.getOrDefault("radius", "5.0"));
+                } catch (Exception ignored) {}
+                
+                int linesCount = 12;
+                try {
+                    linesCount = Integer.parseInt(aiGoal.params.getOrDefault("linesCount", "12"));
+                } catch (Exception ignored) {}
+
+                double theta = (step * 90.0D) / Math.max(1, count - 1);
+                double r = radius * Math.cos(Math.toRadians(theta));
+                double h = radius * Math.sin(Math.toRadians(theta));
+                int numProj = Math.max(1, (int) (linesCount * Math.cos(Math.toRadians(theta))));
+
+                for (int j = 0; j < numProj; j++) {
+                    double phi = j * (360.0D / numProj);
+                    double px = casterPos.x + r * Math.cos(Math.toRadians(phi));
+                    double py = casterPos.y + h;
+                    double pz = casterPos.z + r * Math.sin(Math.toRadians(phi));
+                    Vec3 shootDir = new Vec3(Math.cos(Math.toRadians(phi)), 0.1D, Math.sin(Math.toRadians(phi))).normalize();
+                    
+                    spawnProjectileAt(serverLevel, mob, projId, px, py, pz, shootDir.x, shootDir.y, shootDir.z, speed, damage, 0.0f, false, -1.0D);
+                }
+                return;
+            }
+
+            List<Vec3> positions = getSpawnPositions(step, casterPos, targetPos, dir, spacing, count, aiGoal);
+            for (Vec3 pos : positions) {
+                double sy = isGround ? pos.y + 0.125D : mob.getY() + mob.getBbHeight() * 0.8D;
+                double dx = isGround ? 0.0D : dir.x;
+                double dy = isGround ? 1.0D : 0.0D;
+                double dz = isGround ? 0.0D : dir.z;
+                
+                spawnProjectileAt(serverLevel, mob, projId, pos.x, sy, pos.z, dx, dy, dz, speed, damage, 0.0f, isGround, -1.0D);
+            }
+        }
+
+        private void executeTetherDrain(LivingEntity target) {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal == null) return;
+
+            float damage = 0.2f;
+            try {
+                damage = Float.parseFloat(aiGoal.params.getOrDefault("damage", "0.2"));
+            } catch (Exception ignored) {}
+
+            int maxDuration = 200;
+            try {
+                maxDuration = Integer.parseInt(aiGoal.params.getOrDefault("maxDuration", "200"));
+            } catch (Exception ignored) {}
+
+            double maxDistance = 16.0D;
+            try {
+                maxDistance = Double.parseDouble(aiGoal.params.getOrDefault("maxDistance", "16.0"));
+            } catch (Exception ignored) {}
+
+            int slownessLevel = 1;
+            try {
+                slownessLevel = Integer.parseInt(aiGoal.params.getOrDefault("slownessLevel", "1"));
+            } catch (Exception ignored) {}
+
+            float healAmount = 1.0f;
+            try {
+                healAmount = Float.parseFloat(aiGoal.params.getOrDefault("healAmount", "1.0"));
+            } catch (Exception ignored) {}
+
+            String particleId = aiGoal.params.getOrDefault("projectileId", "minecraft:portal");
+
+            double dist = mob.distanceTo(target);
+            if (dist > maxDistance || siphoningTicks >= maxDuration || !target.isAlive()) {
+                serverLevel.playSound(null, mob.blockPosition(), SoundEvents.CONDUIT_DEACTIVATE, SoundSource.HOSTILE, 1.0F, 1.0F);
+                this.hasAttacked = true;
+                return;
+            }
+
+            Vec3 start = mob.getEyePosition(1.0F);
+            Vec3 end = target.getEyePosition(1.0F);
+            double chainDist = start.distanceTo(end);
+            int steps = (int) (chainDist / 0.2D);
+            net.minecraft.core.particles.ParticleOptions opt = getParticleOptions(particleId);
+            for (int i = 0; i <= steps; i++) {
+                Vec3 p = start.lerp(end, (double) i / Math.max(1, steps));
+                serverLevel.sendParticles(opt, p.x, p.y, p.z, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+
+            if (siphoningTicks % 10 == 0) {
+                target.hurt(mob.damageSources().indirectMagic(mob, mob), damage);
+                target.addEffect(new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.MOVEMENT_SLOWDOWN, 30, slownessLevel - 1));
+                mob.heal(healAmount);
+            }
+
+            siphoningTicks++;
+        }
+
+        private void executeChaseSnake(LivingEntity target, MobData.AIGoalData aiGoal, int count) {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            int spawnInterval = 5;
+            try {
+                spawnInterval = Integer.parseInt(aiGoal.params.getOrDefault("spawnInterval", "5"));
+            } catch (Exception ignored) {}
+
+            String projId = aiGoal.params.getOrDefault("projectileId", "fireball");
+            float damage = 4.0f;
+            try {
+                damage = Float.parseFloat(aiGoal.params.getOrDefault("damage", "4.0"));
+            } catch (Exception ignored) {}
+            float speed = 1.0f;
+            try {
+                speed = Float.parseFloat(aiGoal.params.getOrDefault("speed", "1.0"));
+            } catch (Exception ignored) {}
+            String particleId = aiGoal.params.getOrDefault("particleType", "minecraft:smoke");
+
+            if (mob.tickCount % spawnInterval == 0 && snakeTrailQueue.size() < count) {
+                snakeTrailQueue.offer(target.position());
+            }
+
+            stepTimer++;
+            if (stepTimer >= spawnInterval && !snakeTrailQueue.isEmpty()) {
+                stepTimer = 0;
+                Vec3 spawnPos = snakeTrailQueue.poll();
+                if (spawnPos != null) {
+                    boolean isGround = goalType.contains("GROUND");
+                    double sy = isGround ? spawnPos.y + 0.125D : mob.getY() + mob.getBbHeight() * 0.8D;
+                    double dx = isGround ? 0.0D : 0.0D;
+                    double dy = isGround ? 1.0D : -1.0D;
+                    double dz = isGround ? 0.0D : 0.0D;
+
+                    spawnProjectileAt(serverLevel, mob, projId, spawnPos.x, sy, spawnPos.z, dx, dy, dz, speed, damage, 0.0f, isGround, -1.0D);
+                    
+                    net.minecraft.core.particles.ParticleOptions opt = getParticleOptions(particleId);
+                    serverLevel.sendParticles(opt, spawnPos.x, sy, spawnPos.z, 20, 0.25D, 0.25D, 0.25D, 0.05D);
+                    
+                    if (snakeTrailQueue.isEmpty()) {
+                        this.hasAttacked = true;
+                    }
+                }
+            }
+        }
+
+        private void executeVortexSpawn(LivingEntity target, MobData.AIGoalData aiGoal) {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            String projId = aiGoal.params.getOrDefault("projectileId", "fireball");
+            float damage = 1.0f;
+            try {
+                damage = Float.parseFloat(aiGoal.params.getOrDefault("damage", "1.0"));
+            } catch (Exception ignored) {}
+            
+            float pullSpeed = 0.2f;
+            try {
+                pullSpeed = Float.parseFloat(aiGoal.params.getOrDefault("pullSpeed", "0.2"));
+            } catch (Exception ignored) {}
+
+            int duration = 100;
+            try {
+                duration = Integer.parseInt(aiGoal.params.getOrDefault("duration", "100"));
+            } catch (Exception ignored) {}
+
+            float radius = 5.0f;
+            try {
+                radius = Float.parseFloat(aiGoal.params.getOrDefault("radius", "5.0"));
+            } catch (Exception ignored) {}
+
+            CustomProjectileEntity vortex = new CustomProjectileEntity(serverLevel, mob);
+            vortex.setProjectileId(projId);
+            vortex.setDamage(0.0f);
+            vortex.isGroundSummon = goalType.contains("GROUND");
+            vortex.setPos(target.getX(), target.getY() + 0.125D, target.getZ());
+            
+            vortex.setVortex(true);
+            vortex.setVortexRadius(radius);
+            vortex.setVortexSpeed(pullSpeed);
+            vortex.setVortexPull(goalType.equals("SUMMON_GALE_VORTEX_PULL"));
+            vortex.setVortexDuration(duration);
+            vortex.setVortexDamage(damage);
+            
+            serverLevel.addFreshEntity(vortex);
+            
+            mob.swing(InteractionHand.MAIN_HAND);
+            this.hasAttacked = true;
+        }
+
+        private void executeMinionPortal(LivingEntity target, MobData.AIGoalData aiGoal) {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            String portalMobId = aiGoal.params.getOrDefault("portalMobId", "minion_portal");
+            String minionMobId = aiGoal.params.getOrDefault("minionMobId", "zombie");
+            
+            int portalDuration = 600;
+            try {
+                portalDuration = Integer.parseInt(aiGoal.params.getOrDefault("portalDuration", "600"));
+            } catch (Exception ignored) {}
+
+            double px = mob.getX() + (mob.getRandom().nextDouble() - 0.5D) * 8.0D;
+            double py = mob.getY();
+            double pz = mob.getZ() + (mob.getRandom().nextDouble() - 0.5D) * 8.0D;
+            
+            CustomMobEntity portal = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(serverLevel);
+            if (portal != null) {
+                portal.setTemplateId(portalMobId);
+                portal.setSummonerId(mob.getId());
+                portal.setPos(px, py, pz);
+                portal.portalLifetime = portalDuration;
+                serverLevel.addFreshEntity(portal);
+                
+                serverLevel.sendParticles(ParticleTypes.PORTAL, px, py + 1.0D, pz, 50, 0.5D, 1.0D, 0.5D, 0.1D);
+                serverLevel.playSound(null, portal.blockPosition(), SoundEvents.PORTAL_TRIGGER, SoundSource.HOSTILE, 1.0F, 1.0F);
+            }
+
+            this.hasAttacked = true;
+        }
+    }
+
+    private static class CustomStaggerGoal extends Goal {
+        private final CustomMobEntity mob;
+        private int timer = 0;
+        private int durationTicks = 80;
+        private boolean hasTriggered = false;
+        private double threshold = 0.5D;
+        private float multiplier = 2.0f;
+        private String animation = "";
+
+        public CustomStaggerGoal(CustomMobEntity mob) {
+            this.mob = mob;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            MobData.AIGoalData aiGoal = mob.getGoalData("STAGGER");
+            if (aiGoal == null) return false;
+            
+            try {
+                this.threshold = Double.parseDouble(aiGoal.params.getOrDefault("hpThreshold", "50.0")) / 100.0D;
+            } catch (Exception ignored) {}
+
+            double currentHpPct = mob.getHealth() / mob.getMaxHealth();
+            if (currentHpPct <= threshold && !hasTriggered) {
+                return true;
+            }
+            return false;
+        }
+
+        @Override
+        public void start() {
+            this.timer = 0;
+            this.hasTriggered = true;
+            mob.setStaggered(true);
+            mob.getNavigation().stop();
+
+            MobData.AIGoalData aiGoal = mob.getGoalData("STAGGER");
+            if (aiGoal != null) {
+                this.animation = aiGoal.animation;
+                if (!this.animation.isEmpty()) {
+                    mob.setActiveAnimation(this.animation);
+                }
+                try {
+                    this.durationTicks = (int) (Double.parseDouble(aiGoal.params.getOrDefault("duration", "4.0")) * 20.0D);
+                } catch (Exception ignored) {}
+                try {
+                    this.multiplier = Float.parseFloat(aiGoal.params.getOrDefault("damageMultiplier", "2.0"));
+                } catch (Exception ignored) {}
+            }
+            
+            mob.staggerDamageMultiplier = this.multiplier;
+            
+            if (mob.level() instanceof ServerLevel serverLevel) {
+                serverLevel.playSound(null, mob.blockPosition(), SoundEvents.SHIELD_BREAK, SoundSource.HOSTILE, 1.5F, 0.8F);
+                serverLevel.sendParticles(ParticleTypes.CRIT, mob.getX(), mob.getY() + mob.getBbHeight() / 2.0D, mob.getZ(), 30, 0.5D, 0.5D, 0.5D, 0.2D);
+            }
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.timer < this.durationTicks;
+        }
+
+        @Override
+        public void stop() {
+            mob.setStaggered(false);
+            mob.staggerDamageMultiplier = 1.0f;
+            if (!this.animation.isEmpty() && mob.getActiveAnimation().equals(this.animation)) {
+                mob.setActiveAnimation("");
+            }
+            mob.currentSequenceIndex = 0;
+        }
+
+        @Override
+        public void tick() {
+            this.timer++;
+            mob.getNavigation().stop();
+            if (mob.level() instanceof ServerLevel serverLevel) {
+                double angle = (this.timer * 0.4D);
+                double px = mob.getX() + Math.cos(angle) * 0.4D;
+                double pz = mob.getZ() + Math.sin(angle) * 0.4D;
+                double py = mob.getY() + mob.getBbHeight() + 0.1D;
+                serverLevel.sendParticles(ParticleTypes.WAX_OFF, px, py, pz, 1, 0.0D, 0.0D, 0.0D, 0.0D);
+            }
+        }
+    }
+
+    private static class SpawnMinionsGoal extends Goal {
+        private final CustomMobEntity mob;
+        private int cooldown = 0;
+
+        public SpawnMinionsGoal(CustomMobEntity mob) {
+            this.mob = mob;
+        }
+
+        @Override
+        public boolean canUse() {
+            return mob.hasGoalType("SPAWN_MINIONS") && !mob.isStaggered();
+        }
+
+        @Override
+        public void start() {
+            this.cooldown = 0;
+        }
+
+        @Override
+        public void tick() {
+            if (!(mob.level() instanceof ServerLevel serverLevel)) return;
+
+            MobData.AIGoalData aiGoal = mob.getGoalData("SPAWN_MINIONS");
+            if (aiGoal == null) return;
+
+            String minionMobId = aiGoal.params.getOrDefault("minionMobId", "zombie");
+            
+            int spawnInterval = 100;
+            try {
+                spawnInterval = Integer.parseInt(aiGoal.params.getOrDefault("spawnInterval", "100"));
+            } catch (Exception ignored) {}
+
+            int maxMinions = 3;
+            try {
+                maxMinions = Integer.parseInt(aiGoal.params.getOrDefault("maxMinions", "3"));
+            } catch (Exception ignored) {}
+
+            float spawnRadius = 3.0f;
+            try {
+                spawnRadius = Float.parseFloat(aiGoal.params.getOrDefault("spawnRadius", "3.0"));
+            } catch (Exception ignored) {}
+
+            this.cooldown++;
+            if (this.cooldown >= spawnInterval) {
+                this.cooldown = 0;
+
+                net.minecraft.world.phys.AABB aabb = mob.getBoundingBox().inflate(16.0D);
+                List<CustomMobEntity> activeMinions = serverLevel.getEntitiesOfClass(CustomMobEntity.class, aabb, entity -> {
+                    return entity != mob && entity.getSummonerId() == mob.getSummonerId() && entity.getTemplateId().equals(minionMobId);
+                });
+
+                if (activeMinions.size() < maxMinions) {
+                    double mx = mob.getX() + (mob.getRandom().nextDouble() - 0.5D) * spawnRadius * 2.0D;
+                    double my = mob.getY();
+                    double mz = mob.getZ() + (mob.getRandom().nextDouble() - 0.5D) * spawnRadius * 2.0D;
+
+                    CustomMobEntity minion = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(serverLevel);
+                    if (minion != null) {
+                        minion.setTemplateId(minionMobId);
+                        minion.setSummonerId(mob.getSummonerId());
+                        minion.setPos(mx, my, mz);
+                        serverLevel.addFreshEntity(minion);
+
+                        serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, mx, my + 0.5D, mz, 15, 0.2D, 0.5D, 0.2D, 0.02D);
+                        serverLevel.playSound(null, minion.blockPosition(), net.minecraft.sounds.SoundEvents.EVOKER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.0F);
+                    }
+                }
+            }
+        }
+    }
 }
+

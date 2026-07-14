@@ -64,6 +64,71 @@ public class CustomMobRenderer extends MobRenderer<CustomMobEntity, CowModel<Cus
         MobData data = MobRegistry.loadedMobs.get(templateId);
 
         if (data != null) {
+            if (data.id.toLowerCase().contains("portal") || data.name.toLowerCase().contains("portal") || templateId.toLowerCase().contains("portal")) {
+                poseStack.pushPose();
+                
+                // Billboard towards camera
+                net.minecraft.client.renderer.entity.EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+                poseStack.mulPose(dispatcher.cameraOrientation());
+                poseStack.mulPose(com.mojang.math.Axis.YP.rotationDegrees(180.0F));
+                
+                // Scale based on size
+                float scaleVal = data.scale;
+                poseStack.scale(scaleVal, scaleVal, scaleVal);
+                
+                // Get dominant color from summoner or boss texture
+                int color = 0xFFFFFF; // fallback
+                int summonerId = entity.getSummonerId();
+                if (summonerId != -1) {
+                    Entity summoner = entity.level().getEntity(summonerId);
+                    if (summoner instanceof CustomMobEntity boss) {
+                        ResourceLocation bossTex = getTextureLocation(boss);
+                        color = TextureColorExtractor.getDominantColor(bossTex);
+                    }
+                } else {
+                    ResourceLocation portalTex = getTextureLocation(entity);
+                    color = TextureColorExtractor.getDominantColor(portalTex);
+                }
+                
+                float r = ((color >> 16) & 0xFF) / 255.0F;
+                float g = ((color >> 8) & 0xFF) / 255.0F;
+                float b = (color & 0xFF) / 255.0F;
+                
+                ResourceLocation portalTex = new ResourceLocation("minecraft", "textures/entity/end_portal.png");
+                
+                // Render billboarded oval
+                com.mojang.blaze3d.vertex.VertexConsumer consumer = buffer.getBuffer(net.minecraft.client.renderer.RenderType.entityTranslucent(portalTex));
+                
+                int segments = 24;
+                float radiusX = data.hitboxWidth * 0.7f;
+                float radiusY = data.hitboxHeight * 0.8f;
+                
+                float centerU = 0.5f;
+                float centerV = 0.5f;
+                
+                for (int i = 0; i < segments; i++) {
+                    float angle = (float) (i * 2.0 * Math.PI / segments);
+                    float angleNext = (float) ((i + 1) * 2.0 * Math.PI / segments);
+                    
+                    float x1 = (float) (Math.cos(angle) * radiusX);
+                    float y1 = (float) (Math.sin(angle) * radiusY) + (radiusY / 2.0f);
+                    float u1 = (float) (Math.cos(angle) * 0.5f + 0.5f);
+                    float v1 = (float) (Math.sin(angle) * 0.5f + 0.5f);
+                    
+                    float x2 = (float) (Math.cos(angleNext) * radiusX);
+                    float y2 = (float) (Math.sin(angleNext) * radiusY) + (radiusY / 2.0f);
+                    float u2 = (float) (Math.cos(angleNext) * 0.5f + 0.5f);
+                    float v2 = (float) (Math.sin(angleNext) * 0.5f + 0.5f);
+                    
+                    consumer.vertex(poseStack.last().pose(), 0.0f, radiusY / 2.0f, 0.0f).color(r, g, b, 0.85f).uv(centerU, centerV).overlayCoords(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(poseStack.last().normal(), 0.0f, 0.0f, -1.0f).endVertex();
+                    consumer.vertex(poseStack.last().pose(), x1, y1, 0.0f).color(r, g, b, 0.85f).uv(u1, v1).overlayCoords(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(poseStack.last().normal(), 0.0f, 0.0f, -1.0f).endVertex();
+                    consumer.vertex(poseStack.last().pose(), x2, y2, 0.0f).color(r, g, b, 0.85f).uv(u2, v2).overlayCoords(net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(poseStack.last().normal(), 0.0f, 0.0f, -1.0f).endVertex();
+                }
+                
+                poseStack.popPose();
+                return;
+            }
+
             if (entity.isPreview && showHitboxDebug) {
                 float scale = data.scale;
                 float w = data.hitboxWidth * scale;

@@ -93,6 +93,8 @@ public class MobCreatorScreen extends Screen {
     // Suggestions Autocomplete dropdown state
     private boolean showSuggestions = false;
     private List<String> activeSuggestions = new ArrayList<>();
+    private EditBox behaviorSearchField;
+    private final List<String> filteredBehaviors = new ArrayList<>();
     private EditBox activeField = null;
     private int suggestionsYOffset = 0;
     private int suggestionsScrollOffset = 0;
@@ -237,11 +239,64 @@ public class MobCreatorScreen extends Screen {
         "SUMMON_GROUND_ATTACK_AOE", "SUMMON_GROUND_ATTACK_AOE_2", "SUMMON_GROUND_ATTACK_AOE_3", "SUMMON_GROUND_ATTACK_AOE_4",
         "AERIAL_RANGED_AOE", "AERIAL_RANGED_AOE_2", "AERIAL_RANGED_AOE_3", "AERIAL_RANGED_AOE_4",
         "SHOTGUN_ATTACK", "ORBITING_SHIELD",
-        "KNOCKBACK_ATTACK", "KNOCKBACK_ATTACK_2"
+        "KNOCKBACK_ATTACK", "KNOCKBACK_ATTACK_2",
+        "SUMMON_GROUND_LINE", "SUMMON_AERIAL_LINE", "SUMMON_GROUND_LINES", "SUMMON_AERIAL_LINES",
+        "SUMMON_GROUND_LINE_LAYERED", "SUMMON_AERIAL_LINE_LAYERED", "SUMMON_GROUND_LINES_LAYERED", "SUMMON_AERIAL_LINES_LAYERED",
+        "SUMMON_GROUND_SPIRAL", "SUMMON_AERIAL_SPIRAL", "SUMMON_GROUND_SPIRALS", "SUMMON_AERIAL_SPIRALS",
+        "SUMMON_GROUND_SPIRAL_LAYERED", "SUMMON_AERIAL_SPIRAL_LAYERED", "SUMMON_GROUND_SPIRALS_LAYERED", "SUMMON_AERIAL_SPIRALS_LAYERED",
+        "SUMMON_DOME",
+        "SUMMON_GROUND_CROSS", "SUMMON_AERIAL_CROSS", "SUMMON_GROUND_CROSS_LAYERED", "SUMMON_AERIAL_CROSS_LAYERED",
+        "SUMMON_GROUND_X", "SUMMON_AERIAL_X", "SUMMON_GROUND_X_LAYERED", "SUMMON_AERIAL_X_LAYERED",
+        "SUMMON_GROUND_SHOCKWAVE", "SUMMON_AERIAL_SHOCKWAVE", "SUMMON_GROUND_SHOCKWAVE_LAYERED", "SUMMON_AERIAL_SHOCKWAVE_LAYERED",
+        "SUMMON_GROUND_CRUNCH", "SUMMON_AERIAL_CRUNCH", "SUMMON_GROUND_CRUNCH_LAYERED", "SUMMON_AERIAL_CRUNCH_LAYERED",
+        "SUMMON_TETHER_DRAIN", "SUMMON_CHASE_SNAKE", "SUMMON_GALE_VORTEX_PULL", "SUMMON_GALE_VORTEX_PUSH",
+        "SUMMON_MINION_PORTAL", "SPAWN_MINIONS", "STAGGER"
     };
 
     private static final Map<String, String> GOAL_DESCS = new HashMap<>();
     static {
+        java.util.Arrays.sort(POSSIBLE_GOALS);
+        GOAL_DESCS.put("SUMMON_GROUND_LINE", "Summons ground projectiles in a line towards the target.");
+        GOAL_DESCS.put("SUMMON_AERIAL_LINE", "Summons aerial projectiles in a line towards the target.");
+        GOAL_DESCS.put("SUMMON_GROUND_LINES", "Summons ground projectiles in multiple diverging lines.");
+        GOAL_DESCS.put("SUMMON_AERIAL_LINES", "Summons aerial projectiles in multiple diverging lines.");
+        GOAL_DESCS.put("SUMMON_GROUND_LINE_LAYERED", "Summons ground projectiles sequentially in a line.");
+        GOAL_DESCS.put("SUMMON_AERIAL_LINE_LAYERED", "Summons aerial projectiles sequentially in a line.");
+        GOAL_DESCS.put("SUMMON_GROUND_LINES_LAYERED", "Summons ground projectiles sequentially in multiple lines.");
+        GOAL_DESCS.put("SUMMON_AERIAL_LINES_LAYERED", "Summons aerial projectiles sequentially in multiple lines.");
+        GOAL_DESCS.put("SUMMON_GROUND_SPIRAL", "Summons ground projectiles in a spiral pattern.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SPIRAL", "Summons aerial projectiles in a spiral pattern.");
+        GOAL_DESCS.put("SUMMON_GROUND_SPIRALS", "Summons ground projectiles in multiple spiral lines.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SPIRALS", "Summons aerial projectiles in multiple spiral lines.");
+        GOAL_DESCS.put("SUMMON_GROUND_SPIRAL_LAYERED", "Summons ground projectiles sequentially in a spiral pattern.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SPIRAL_LAYERED", "Summons aerial projectiles sequentially in a spiral pattern.");
+        GOAL_DESCS.put("SUMMON_GROUND_SPIRALS_LAYERED", "Summons ground projectiles sequentially in multiple spirals.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SPIRALS_LAYERED", "Summons aerial projectiles sequentially in multiple spirals.");
+        GOAL_DESCS.put("SUMMON_DOME", "Summons a defensive dome ring of projectiles around itself.");
+        GOAL_DESCS.put("SUMMON_GROUND_CROSS", "Summons ground projectiles in a cross (+) around target.");
+        GOAL_DESCS.put("SUMMON_AERIAL_CROSS", "Summons aerial projectiles in a cross (+) around target.");
+        GOAL_DESCS.put("SUMMON_GROUND_CROSS_LAYERED", "Summons ground projectiles sequentially expanding in a cross (+).");
+        GOAL_DESCS.put("SUMMON_AERIAL_CROSS_LAYERED", "Summons aerial projectiles sequentially expanding in a cross (+).");
+        GOAL_DESCS.put("SUMMON_GROUND_X", "Summons ground projectiles in an X pattern around target.");
+        GOAL_DESCS.put("SUMMON_AERIAL_X", "Summons aerial projectiles in an X pattern around target.");
+        GOAL_DESCS.put("SUMMON_GROUND_X_LAYERED", "Summons ground projectiles sequentially expanding in an X pattern.");
+        GOAL_DESCS.put("SUMMON_AERIAL_X_LAYERED", "Summons aerial projectiles sequentially expanding in an X pattern.");
+        GOAL_DESCS.put("SUMMON_GROUND_SHOCKWAVE", "Summons ground projectiles expanding in a concentric shockwave ring.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SHOCKWAVE", "Summons aerial projectiles expanding in a concentric shockwave ring.");
+        GOAL_DESCS.put("SUMMON_GROUND_SHOCKWAVE_LAYERED", "Summons ground projectiles sequentially in expanding concentric rings.");
+        GOAL_DESCS.put("SUMMON_AERIAL_SHOCKWAVE_LAYERED", "Summons aerial projectiles sequentially in expanding concentric rings.");
+        GOAL_DESCS.put("SUMMON_GROUND_CRUNCH", "Summons ground projectiles closing in on target's feet.");
+        GOAL_DESCS.put("SUMMON_AERIAL_CRUNCH", "Summons aerial projectiles closing in on target.");
+        GOAL_DESCS.put("SUMMON_GROUND_CRUNCH_LAYERED", "Summons ground projectiles sequentially closing in on target.");
+        GOAL_DESCS.put("SUMMON_AERIAL_CRUNCH_LAYERED", "Summons aerial projectiles sequentially closing in on target.");
+        GOAL_DESCS.put("SUMMON_TETHER_DRAIN", "Siphons health, slows players, and heals boss via a tether link.");
+        GOAL_DESCS.put("SUMMON_CHASE_SNAKE", "Spawns homing trail of projectile explosions chasing target's feet.");
+        GOAL_DESCS.put("SUMMON_GALE_VORTEX_PULL", "Summons vortex pull hazard that sucks entities in and damages them.");
+        GOAL_DESCS.put("SUMMON_GALE_VORTEX_PUSH", "Summons vortex push hazard that repels entities and damages them.");
+        GOAL_DESCS.put("SUMMON_MINION_PORTAL", "Summons a minion portal entity at a nearby location.");
+        GOAL_DESCS.put("SPAWN_MINIONS", "Minion portal AI logic that spawns mini servants up to a maximum count.");
+        GOAL_DESCS.put("STAGGER", "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage.");
+
         GOAL_DESCS.put("KNOCKBACK_ATTACK", "Deals melee strikes with massive knockback distance.");
         GOAL_DESCS.put("KNOCKBACK_ATTACK_2", "Deals second melee strikes with massive knockback distance.");
         GOAL_DESCS.put("MELEE", "Attacks targets using melee strikes.");
@@ -661,6 +716,16 @@ public class MobCreatorScreen extends Screen {
         this.goalParam8Field = new EditBox(this.font, formX + formW / 2 + 10, formY + 307, leftW - 18, 10, Component.literal("Param 8"));
         this.goalParam8Field.setValue("");
 
+        int rightW = formW / 2 - 5;
+        this.behaviorSearchField = new EditBox(this.font, formX + formW / 2 + 5, formY + 18, rightW, 12, Component.literal("Search Behavior"));
+        this.behaviorSearchField.setValue("");
+        this.behaviorSearchField.setResponder(s -> {
+            this.availableBehaviorsScroll = 0;
+            updateFilteredBehaviors();
+        });
+        applyBorderless(this.behaviorSearchField);
+        updateFilteredBehaviors();
+
         // Loot item search field
         int popW = 220;
         int popX = (this.width - popW) / 2;
@@ -759,6 +824,7 @@ public class MobCreatorScreen extends Screen {
         this.addRenderableWidget(this.goalAnimationField);
         this.addRenderableWidget(this.goalGroupField);
         this.addRenderableWidget(this.goalDelayField);
+        this.addRenderableWidget(this.behaviorSearchField);
         this.addRenderableWidget(this.lootChanceField);
         this.addRenderableWidget(this.lootMinField);
         this.addRenderableWidget(this.lootMaxField);
@@ -880,6 +946,7 @@ public class MobCreatorScreen extends Screen {
         maxGroupField.tick();
         naturalWeightField.tick();
         biomeSearchField.tick();
+        behaviorSearchField.tick();
         structureField.tick();
         goalAnimationField.tick();
         goalGroupField.tick();
@@ -1098,7 +1165,7 @@ public class MobCreatorScreen extends Screen {
                     int maxScroll = Math.max(0, selectedMob.aiGoals.size() - 5);
                     activeGoalsScroll = Math.max(0, Math.min(maxScroll, activeGoalsScroll - (int) amount));
                 } else if (mouseX > formX + formW / 2 && mouseX <= formX + formW) {
-                    int maxScroll = Math.max(0, POSSIBLE_GOALS.length - 5);
+                    int maxScroll = Math.max(0, filteredBehaviors.size() - 5);
                     availableBehaviorsScroll = Math.max(0, Math.min(maxScroll, availableBehaviorsScroll - (int) amount));
                 }
             } else if (mouseY >= formY + 136 && mouseY <= formY + formH && selectedGoalIndex >= 0) {
@@ -1220,6 +1287,11 @@ public class MobCreatorScreen extends Screen {
         boolean aiGoalSelected = activeTab.equals("AI") && selectedGoalIndex >= 0;
         goalAnimationField.visible = aiGoalSelected; goalAnimationField.active = aiGoalSelected;
         goalDelayField.visible = aiGoalSelected; goalDelayField.active = aiGoalSelected;
+        if (behaviorSearchField != null) {
+            boolean ai = activeTab.equals("AI");
+            behaviorSearchField.visible = ai;
+            behaviorSearchField.active = ai;
+        }
         
         boolean showGroupField = aiGoalSelected && isGroupGoal(selectedMob.aiGoals.get(selectedGoalIndex).type);
         goalGroupField.visible = showGroupField; goalGroupField.active = showGroupField;
@@ -2099,6 +2171,7 @@ public class MobCreatorScreen extends Screen {
         drawEditBoxBackground(graphics, goalAnimationField, borderC, slotC);
         drawEditBoxBackground(graphics, goalGroupField, borderC, slotC);
         drawEditBoxBackground(graphics, goalDelayField, borderC, slotC);
+        drawEditBoxBackground(graphics, behaviorSearchField, borderC, slotC);
         drawEditBoxBackground(graphics, lootChanceField, borderC, slotC);
         drawEditBoxBackground(graphics, lootMinField, borderC, slotC);
         drawEditBoxBackground(graphics, lootMaxField, borderC, slotC);
@@ -2555,15 +2628,22 @@ public class MobCreatorScreen extends Screen {
                 graphics.fill(activeBarX, formY + 20 + barOffset, activeBarX + 3, formY + 20 + barOffset + barH, 0xFFDFD0A0);
             }
 
-            // Render Available Behaviors list (decreased height to 95 to prevent overflow and overlap)
+            // Render Available Behaviors list (decreased height to 76 to fit search field)
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.add_ai"), formX + formW / 2 + 5, formY + 6, labelC);
-            UIHelper.drawRecessedSlot(graphics, formX + formW / 2 + 5, formY + 18, rightW, 95, borderC, slotC);
+            
+            if (behaviorSearchField != null) {
+                behaviorSearchField.setX(formX + formW / 2 + 5);
+                behaviorSearchField.setY(formY + 18);
+                behaviorSearchField.setWidth(rightW);
+            }
+            
+            UIHelper.drawRecessedSlot(graphics, formX + formW / 2 + 5, formY + 34, rightW, 76, borderC, slotC);
 
-            int availY = formY + 22;
+            int availY = formY + 37;
             for (int i = 0; i < 5; i++) {
                 int idx = i + availableBehaviorsScroll;
-                if (idx >= POSSIBLE_GOALS.length) break;
-                String pGoal = POSSIBLE_GOALS[idx];
+                if (idx >= filteredBehaviors.size()) break;
+                String pGoal = filteredBehaviors.get(idx);
 
                 int rowX = formX + formW / 2 + 8;
                 int rowW = rightW - 16;
@@ -2588,10 +2668,11 @@ public class MobCreatorScreen extends Screen {
             }
 
             int availBarX = formX + formW - 6;
-            graphics.fill(availBarX, formY + 20, availBarX + 3, formY + 110, 0xFF111111);
-            int barH2 = Math.max(10, (int) (90 * (5.0 / POSSIBLE_GOALS.length)));
-            int barOffset2 = (int) (90 * ((double) availableBehaviorsScroll / POSSIBLE_GOALS.length));
-            graphics.fill(availBarX, formY + 20 + barOffset2, availBarX + 3, formY + 20 + barOffset2 + barH2, 0xFFDFD0A0);
+            graphics.fill(availBarX, formY + 36, availBarX + 3, formY + 108, 0xFF111111);
+            int totalItems = filteredBehaviors.size();
+            int barH2 = Math.max(10, (int) (72 * (5.0 / Math.max(1, totalItems))));
+            int barOffset2 = (int) (72 * ((double) availableBehaviorsScroll / Math.max(1, totalItems)));
+            graphics.fill(availBarX, formY + 36 + barOffset2, availBarX + 3, formY + 36 + barOffset2 + barH2, 0xFFDFD0A0);
 
             // Up / Down buttons
             boolean hoverUp = mouseX >= formX + 5 && mouseX <= formX + 35 && mouseY >= formY + 120 && mouseY <= formY + 132;
@@ -2650,33 +2731,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam1Field
                 if (isParamActive(type, 1)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl1 = Component.translatable("gui.custom_mobs.creator.goal.param1").getString();
-                        if (type.equals("WANDER")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.wander_radius").getString();
-                        else if (type.equals("HEAL_ALLIES")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.heal_amount").getString();
-                        else if (type.equals("AVOID_LIGHT")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.light_level").getString();
-                        else if (type.equals("AVOID_MOB")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.avoid_mob_id").getString();
-                        else if (type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("ATTACK_OTHERS")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.group_id").getString();
-                        else if (type.equals("AVOID_PLAYER_WEARING")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.item_id").getString();
-                        else if (type.startsWith("MELEE") || type.startsWith("KNOCKBACK") || type.equals("RANGED") || type.startsWith("SUMMON_GROUND_ATTACK") || type.startsWith("AERIAL_RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.sound_event").getString();
-                        else if (type.equals("USE_ABILITY")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.ability_to_use").getString();
-                        else if (type.equals("EXPLODE_ON_DEATH") || type.equals("EXPLODE_ON_CONTACT") || type.equals("EXPLODE_ON_LOW_HEALTH")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.explosion_power").getString();
-                        else if (type.equals("TELEPORT_ON_HIT")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.teleport_chance").getString();
-                        else if (type.equals("DAMAGE_ON_CONTACT")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.contact_damage").getString();
-                        else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.effect_id").getString();
-                        else if (type.equals("SPLIT_ON_DEATH") || type.equals("SUMMON_MINIONS")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.minion_mob_id").getString();
-                        else if (type.equals("SCARE_MOB")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.scare_target_id").getString();
-                        else if (type.equals("TELEPORT_ON_LOW_HEALTH")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.hp_threshold").getString();
-                        else if (type.equals("TELEPORT_BEHIND_TARGET") || type.equals("BURROW") || type.equals("IMITATE_SOUNDS")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.cooldown_ticks").getString();
-                        else if (type.equals("PULL_TARGET")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.cooldown_ticks").getString();
-                        else if (type.equals("RAGE_MODE")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.hp_threshold_percent").getString();
-                        else if (type.equals("AMBUSH")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.stalk_ticks").getString();
-                        else if (type.equals("FIRE_TRAIL") || type.equals("FROST_TOUCH")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.duration_ticks").getString();
-                        else if (type.equals("DISARM_STRIKE") || type.equals("STEAL_ITEM")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.chance_percent").getString();
-                        else if (type.equals("LIGHTNING_STRIKE")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.strike_chance").getString();
-                        else if (type.equals("GIFT_GIVER")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.gift_item_id").getString();
-                        else if (type.equals("CALL_HELP")) lbl1 = Component.translatable("gui.custom_mobs.creator.goal.call_range").getString();
-                        
-                        graphics.drawString(this.font, lbl1, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 1), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2684,18 +2739,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam2Field
                 if (isParamActive(type, 2)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl2 = Component.translatable("gui.custom_mobs.creator.goal.param2").getString();
-                        if (type.equals("RANGED") || type.startsWith("SUMMON_GROUND_ATTACK") || type.startsWith("AERIAL_RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.projectile_id").getString();
-                        else if (type.startsWith("MELEE") || type.startsWith("KNOCKBACK")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.melee_damage_delay").getString();
-                        else if (type.equals("EXPLODE_ON_DEATH") || type.equals("EXPLODE_ON_CONTACT") || type.equals("EXPLODE_ON_LOW_HEALTH")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.break_blocks").getString();
-                        else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.duration_ticks").getString();
-                        else if (type.equals("SPLIT_ON_DEATH") || type.equals("SUMMON_MINIONS")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.spawn_count").getString();
-                        else if (type.equals("PULL_TARGET")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.pull_strength").getString();
-                        else if (type.equals("RAGE_MODE") || type.equals("FROST_TOUCH")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.amplifier").getString();
-                        else if (type.equals("LIGHTNING_STRIKE")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.cooldown_ticks").getString();
-                        else if (type.equals("GIFT_GIVER")) lbl2 = Component.translatable("gui.custom_mobs.creator.goal.cooldown_ticks").getString();
-                        
-                        graphics.drawString(this.font, lbl2, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 2), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2703,15 +2747,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam3Field
                 if (isParamActive(type, 3)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl3 = Component.translatable("gui.custom_mobs.creator.goal.param3").getString();
-                        if (type.equals("EXPLODE_ON_DEATH") || type.equals("EXPLODE_ON_CONTACT") || type.equals("EXPLODE_ON_LOW_HEALTH")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.set_fire").getString();
-                        else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.amplifier").getString();
-                        else if (type.equals("SUMMON_MINIONS")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.cooldown_ticks").getString();
-                        else if (type.equals("RANGED") || type.startsWith("SUMMON_GROUND_ATTACK") || type.startsWith("AERIAL_RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.damage").getString();
-                        else if (type.startsWith("MELEE_AOE")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.reach").getString();
-                        else if (type.startsWith("KNOCKBACK")) lbl3 = Component.translatable("gui.custom_mobs.creator.goal.knockback_distance").getString();
-                        
-                        graphics.drawString(this.font, lbl3, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 3), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2719,13 +2755,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam4Field
                 if (isParamActive(type, 4)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl4 = Component.translatable("gui.custom_mobs.creator.goal.param4").getString();
-                        if (type.startsWith("SUMMON_GROUND_ATTACK")) lbl4 = Component.translatable("gui.custom_mobs.creator.goal.upward_knockback").getString();
-                        else if (type.startsWith("AERIAL_RANGED")) lbl4 = Component.translatable("gui.custom_mobs.creator.goal.drop_speed").getString();
-                        else if (type.equals("RANGED")) lbl4 = Component.translatable("gui.custom_mobs.creator.goal.accuracy").getString();
-                        else if (type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) lbl4 = Component.translatable("gui.custom_mobs.creator.goal.quantity").getString();
-                        else if (type.startsWith("MELEE_AOE")) lbl4 = Component.translatable("gui.custom_mobs.creator.goal.width").getString();
-                        graphics.drawString(this.font, lbl4, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 4), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2733,12 +2763,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam5Field
                 if (isParamActive(type, 5)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl5 = Component.translatable("gui.custom_mobs.creator.goal.param5").getString();
-                        if (type.startsWith("AERIAL_RANGED")) lbl5 = Component.translatable("gui.custom_mobs.creator.goal.quantity").getString();
-                        else if (type.startsWith("SUMMON_GROUND_ATTACK")) lbl5 = Component.translatable("gui.custom_mobs.creator.goal.upward_speed").getString();
-                        else if (type.equals("SHOTGUN_ATTACK")) lbl5 = Component.translatable("gui.custom_mobs.creator.goal.spread").getString();
-                        else if (type.equals("ORBITING_SHIELD")) lbl5 = Component.translatable("gui.custom_mobs.creator.goal.orbit_radius").getString();
-                        graphics.drawString(this.font, lbl5, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 5), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2746,12 +2771,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam6Field
                 if (isParamActive(type, 6)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl6 = Component.translatable("gui.custom_mobs.creator.goal.param6").getString();
-                        if (type.startsWith("AERIAL_RANGED")) lbl6 = Component.translatable("gui.custom_mobs.creator.goal.spread").getString();
-                        else if (type.startsWith("SUMMON_GROUND_ATTACK")) lbl6 = Component.translatable("gui.custom_mobs.creator.goal.max_height").getString();
-                        else if (type.equals("SHOTGUN_ATTACK")) lbl6 = Component.translatable("gui.custom_mobs.creator.goal.accuracy").getString();
-                        else if (type.equals("ORBITING_SHIELD")) lbl6 = Component.translatable("gui.custom_mobs.creator.goal.speed").getString();
-                        graphics.drawString(this.font, lbl6, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 6), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2759,10 +2779,7 @@ public class MobCreatorScreen extends Screen {
                 // goalParam7Field
                 if (isParamActive(type, 7)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl7 = Component.translatable("gui.custom_mobs.creator.goal.param7").getString();
-                        if (type.startsWith("AERIAL_RANGED") || type.startsWith("SUMMON_GROUND_ATTACK")) lbl7 = Component.translatable("gui.custom_mobs.creator.goal.accuracy").getString();
-                        else if (type.equals("ORBITING_SHIELD")) lbl7 = Component.translatable("gui.custom_mobs.creator.goal.duration").getString();
-                        graphics.drawString(this.font, lbl7, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 7), lblX, currentY, labelC);
                     }
                     currentY += rowHeight;
                 }
@@ -2770,10 +2787,9 @@ public class MobCreatorScreen extends Screen {
                 // goalParam8Field
                 if (isParamActive(type, 8)) {
                     if (currentY >= minY && currentY <= maxY) {
-                        String lbl8 = Component.translatable("gui.custom_mobs.creator.goal.param8").getString();
-                        if (type.startsWith("SUMMON_GROUND_ATTACK_AOE")) lbl8 = Component.translatable("gui.custom_mobs.creator.goal.radius").getString();
-                        graphics.drawString(this.font, lbl8, lblX, currentY, labelC);
+                        graphics.drawString(this.font, getParamLabel(type, 8), lblX, currentY, labelC);
                     }
+                    currentY += rowHeight;
                 }
 
                 // Draw parameter list scrollbar
@@ -3432,11 +3448,11 @@ public class MobCreatorScreen extends Screen {
             }
 
             // Click Available Behaviors List
-            int availY = formY + 22;
+            int availY = formY + 37;
             for (int i = 0; i < 5; i++) {
                 int idx = i + availableBehaviorsScroll;
-                if (idx >= POSSIBLE_GOALS.length) break;
-                String pGoal = POSSIBLE_GOALS[idx];
+                if (idx >= filteredBehaviors.size()) break;
+                String pGoal = filteredBehaviors.get(idx);
 
                 int rowX = formX + formW / 2 + 8;
                 int rowW = rightW - 16;
@@ -4158,6 +4174,15 @@ public class MobCreatorScreen extends Screen {
         if (paramNum == 1) {
             return true;
         }
+        if (type.startsWith("SUMMON_")) {
+            return paramNum <= 8;
+        }
+        if (type.equals("SPAWN_MINIONS")) {
+            return paramNum <= 4;
+        }
+        if (type.equals("STAGGER")) {
+            return paramNum <= 3;
+        }
         if (type.startsWith("SUMMON_GROUND_ATTACK_AOE")) {
             return paramNum <= 8;
         }
@@ -4371,5 +4396,76 @@ public class MobCreatorScreen extends Screen {
             goalParam8Field.visible = false;
             goalParam8Field.active = false;
         }
+    }
+
+    private void updateFilteredBehaviors() {
+        this.filteredBehaviors.clear();
+        String query = this.behaviorSearchField != null ? this.behaviorSearchField.getValue().trim().toLowerCase() : "";
+        for (String goal : POSSIBLE_GOALS) {
+            if (query.isEmpty()) {
+                this.filteredBehaviors.add(goal);
+            } else {
+                String descKey = "gui.custom_mobs.goal_desc." + goal.toLowerCase();
+                String desc = Component.translatable(descKey).getString().toLowerCase();
+                if (desc.equals(descKey.toLowerCase())) {
+                    desc = GOAL_DESCS.getOrDefault(goal, "").toLowerCase();
+                }
+                if (goal.toLowerCase().contains(query) || desc.contains(query)) {
+                    this.filteredBehaviors.add(goal);
+                }
+            }
+        }
+    }
+
+    private String getParamLabel(String type, int paramNum) {
+        String key = "gui.custom_mobs.creator.goal.param" + paramNum;
+        String fallback = "Param " + paramNum;
+        if (paramNum == 1) {
+            key = "gui.custom_mobs.creator.goal.param1";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_mob_id"; fallback = "Portal Mob ID"; }
+            else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
+            else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.hp_threshold_percent"; fallback = "HP Threshold (%)"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.sound_event"; fallback = "Sound Event"; }
+        } else if (paramNum == 2) {
+            key = "gui.custom_mobs.creator.goal.param2";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
+            else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
+            else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.stagger_duration_sec"; fallback = "Stagger Duration (Sec)"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.projectile_id"; fallback = "Projectile/Particle ID"; }
+        } else if (paramNum == 3) {
+            key = "gui.custom_mobs.creator.goal.param3";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_duration_ticks"; fallback = "Portal Duration (Ticks)"; }
+            else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.max_minions"; fallback = "Max Minions"; }
+            else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.damage_multiplier"; fallback = "Damage Multiplier"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage"; }
+        } else if (paramNum == 4) {
+            key = "gui.custom_mobs.creator.goal.param4";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
+            else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.spawn_radius"; fallback = "Spawn Radius"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.speed"; fallback = "Speed"; }
+        } else if (paramNum == 5) {
+            key = "gui.custom_mobs.creator.goal.param5";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.max_minions"; fallback = "Max Minions"; }
+            else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.max_distance"; fallback = "Max Distance"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.count"; fallback = "Count"; }
+        } else if (paramNum == 6) {
+            key = "gui.custom_mobs.creator.goal.param6";
+            if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_radius"; fallback = "Spawn Radius"; }
+            else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.slowness_level"; fallback = "Slowness Level"; }
+            else if (type.equals("SUMMON_GALE_VORTEX_PULL") || type.equals("SUMMON_GALE_VORTEX_PUSH")) { key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius"; }
+            else if (type.equals("SUMMON_CHASE_SNAKE")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.lines_count_or_radius"; fallback = "Lines Count / Radius"; }
+        } else if (paramNum == 7) {
+            key = "gui.custom_mobs.creator.goal.param7";
+            if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.heal_amount"; fallback = "Heal Amount"; }
+            else if (type.equals("SUMMON_CHASE_SNAKE")) { key = "gui.custom_mobs.creator.goal.warning_particle_type"; fallback = "Warning Particle Type"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.angle_or_spiral_factor"; fallback = "Angle / Spiral Factor"; }
+        } else if (paramNum == 8) {
+            key = "gui.custom_mobs.creator.goal.param8";
+            if (type.contains("LAYERED")) { key = "gui.custom_mobs.creator.goal.delay_ticks"; fallback = "Delay Ticks"; }
+            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.upward_knockback"; fallback = "Upward Knockback"; }
+        }
+        String translated = Component.translatable(key).getString();
+        return translated.equals(key) ? fallback : translated;
     }
 }

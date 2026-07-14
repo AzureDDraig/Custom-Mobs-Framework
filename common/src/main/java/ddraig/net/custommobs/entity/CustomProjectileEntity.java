@@ -42,6 +42,12 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
     public static final EntityDataAccessor<Float> ORBIT_RADIUS = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> ORBIT_SPEED = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
     public static final EntityDataAccessor<Float> ORBIT_ANGLE = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Boolean> IS_VORTEX = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Float> VORTEX_RADIUS = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Float> VORTEX_SPEED = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
+    public static final EntityDataAccessor<Boolean> VORTEX_PULL = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> VORTEX_DURATION = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Float> VORTEX_DAMAGE = SynchedEntityData.defineId(CustomProjectileEntity.class, EntityDataSerializers.FLOAT);
 
     private double spawnY = -1.0D;
     private double maxHeight = -1.0D;
@@ -97,6 +103,49 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
         this.entityData.define(IS_ORBITING, false);
         this.entityData.define(ORBIT_RADIUS, 1.5f);
         this.entityData.define(ORBIT_SPEED, 4.0f);
+        this.entityData.define(IS_VORTEX, false);
+        this.entityData.define(VORTEX_RADIUS, 5.0f);
+        this.entityData.define(VORTEX_SPEED, 0.2f);
+        this.entityData.define(VORTEX_PULL, true);
+        this.entityData.define(VORTEX_DURATION, 100);
+        this.entityData.define(VORTEX_DAMAGE, 1.0f);
+    }
+
+    public boolean isVortex() {
+        return this.entityData.get(IS_VORTEX);
+    }
+    public void setVortex(boolean isVortex) {
+        this.entityData.set(IS_VORTEX, isVortex);
+    }
+    public float getVortexRadius() {
+        return this.entityData.get(VORTEX_RADIUS);
+    }
+    public void setVortexRadius(float radius) {
+        this.entityData.set(VORTEX_RADIUS, radius);
+    }
+    public float getVortexSpeed() {
+        return this.entityData.get(VORTEX_SPEED);
+    }
+    public void setVortexSpeed(float speed) {
+        this.entityData.set(VORTEX_SPEED, speed);
+    }
+    public boolean isVortexPull() {
+        return this.entityData.get(VORTEX_PULL);
+    }
+    public void setVortexPull(boolean pull) {
+        this.entityData.set(VORTEX_PULL, pull);
+    }
+    public int getVortexDuration() {
+        return this.entityData.get(VORTEX_DURATION);
+    }
+    public void setVortexDuration(int duration) {
+        this.entityData.set(VORTEX_DURATION, duration);
+    }
+    public float getVortexDamage() {
+        return this.entityData.get(VORTEX_DAMAGE);
+    }
+    public void setVortexDamage(float damage) {
+        this.entityData.set(VORTEX_DAMAGE, damage);
     }
 
     private boolean isAlly(net.minecraft.world.entity.Entity entity) {
@@ -136,8 +185,90 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
         return (data == null || data.gravity) ? 0.03F : 0.0F;
     }
 
+    private void tickVortex() {
+        if (this.level().isClientSide) {
+            double age = this.tickCount;
+            float radius = this.getVortexRadius();
+            float rVal = 1.0f, gVal = 1.0f, bVal = 1.0f;
+            
+            ProjectileData pData = MobRegistry.loadedProjectiles.get(getProjectileId());
+            if (pData != null) {
+                if (getProjTextureMethod == null) {
+                    try {
+                        Class<?> extractorClass = Class.forName("ddraig.net.custommobs.client.renderer.TextureColorExtractor");
+                        getProjTextureMethod = extractorClass.getMethod("getProjectileTexture", ProjectileData.class);
+                        getDomColorMethod = extractorClass.getMethod("getDominantColor", ResourceLocation.class);
+                    } catch (Exception ignored) {}
+                }
+                if (getProjTextureMethod != null && getDomColorMethod != null) {
+                    try {
+                        ResourceLocation tex = (ResourceLocation) getProjTextureMethod.invoke(null, pData);
+                        int color = (Integer) getDomColorMethod.invoke(null, tex);
+                        rVal = ((color >> 16) & 0xFF) / 255.0F;
+                        gVal = ((color >> 8) & 0xFF) / 255.0F;
+                        bVal = (color & 0xFF) / 255.0F;
+                    } catch (Exception ignored) {}
+                }
+            }
+            net.minecraft.core.particles.DustParticleOptions dpo = new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(rVal, gVal, bVal), 1.0F);
+            
+            for (int h = 0; h < 20; h++) {
+                double pct = h / 20.0D;
+                double curRadius = radius * pct;
+                double height = h * 0.15D;
+                double angle = age * 0.2D + h * 0.5D;
+                
+                double px1 = this.getX() + Math.cos(angle) * curRadius;
+                double pz1 = this.getZ() + Math.sin(angle) * curRadius;
+                this.level().addParticle(dpo, px1, this.getY() + height, pz1, 0.0D, 0.0D, 0.0D);
+                
+                double px2 = this.getX() + Math.cos(angle + Math.PI) * curRadius;
+                double pz2 = this.getZ() + Math.sin(angle + Math.PI) * curRadius;
+                this.level().addParticle(dpo, px2, this.getY() + height, pz2, 0.0D, 0.0D, 0.0D);
+            }
+        } else {
+            double radius = this.getVortexRadius();
+            double speed = this.getVortexSpeed();
+            boolean pull = this.isVortexPull();
+            float damage = this.getVortexDamage();
+            
+            net.minecraft.world.phys.AABB aabb = this.getBoundingBox().inflate(radius);
+            java.util.List<net.minecraft.world.entity.LivingEntity> list = this.level().getEntitiesOfClass(net.minecraft.world.entity.LivingEntity.class, aabb);
+            for (net.minecraft.world.entity.LivingEntity entity : list) {
+                if (entity == this.getOwner()) continue;
+                if (isAlly(entity)) continue;
+
+                double dist = this.distanceTo(entity);
+                if (dist <= radius) {
+                    net.minecraft.world.phys.Vec3 vec = entity.position().subtract(this.position());
+                    if (vec.lengthSqr() > 1E-4) {
+                        vec = vec.normalize();
+                        if (pull) {
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(vec.scale(-speed)));
+                        } else {
+                            entity.setDeltaMovement(entity.getDeltaMovement().add(vec.scale(speed)));
+                        }
+                        entity.hurtMarked = true;
+                    }
+                    if (this.tickCount % 10 == 0 && damage > 0.0f) {
+                        entity.hurt(this.damageSources().indirectMagic(this, this.getOwner()), damage);
+                    }
+                }
+            }
+            
+            if (this.tickCount >= this.getVortexDuration()) {
+                this.discard();
+            }
+        }
+    }
+
     @Override
     public void tick() {
+        if (this.isVortex()) {
+            tickVortex();
+            return;
+        }
+
         if (this.ticksAfterLanding > 0) {
             this.ticksAfterLanding--;
             this.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
@@ -276,12 +407,46 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
         }
     }
 
+    private static java.lang.reflect.Method getProjTextureMethod = null;
+    private static java.lang.reflect.Method getDomColorMethod = null;
+
+    private void spawnHitParticles() {
+        try {
+            if (getProjTextureMethod == null) {
+                Class<?> extractorClass = Class.forName("ddraig.net.custommobs.client.renderer.TextureColorExtractor");
+                getProjTextureMethod = extractorClass.getMethod("getProjectileTexture", ProjectileData.class);
+                getDomColorMethod = extractorClass.getMethod("getDominantColor", ResourceLocation.class);
+            }
+            ProjectileData data = MobRegistry.loadedProjectiles.get(getProjectileId());
+            ResourceLocation texLoc = (ResourceLocation) getProjTextureMethod.invoke(null, data);
+            int color = (Integer) getDomColorMethod.invoke(null, texLoc);
+            
+            float r = ((color >> 16) & 0xFF) / 255.0F;
+            float g = ((color >> 8) & 0xFF) / 255.0F;
+            float b = (color & 0xFF) / 255.0F;
+            
+            net.minecraft.core.particles.DustParticleOptions dpo = new net.minecraft.core.particles.DustParticleOptions(new org.joml.Vector3f(r, g, b), 1.0F);
+            for (int i = 0; i < 12; i++) {
+                double rx = this.random.nextGaussian() * 0.15D;
+                double ry = this.random.nextGaussian() * 0.15D;
+                double rz = this.random.nextGaussian() * 0.15D;
+                this.level().addParticle(dpo, this.getX(), this.getY(), this.getZ(), rx, ry, rz);
+            }
+        } catch (Exception e) {
+            // Fallback
+        }
+    }
+
     @Override
     protected void onHit(HitResult result) {
         int stuckId = this.entityData.get(STUCK_ENTITY_ID);
         if (stuckId != -1 || this.ticksAfterLanding > -1) return;
 
         super.onHit(result);
+        
+        if (this.level().isClientSide) {
+            spawnHitParticles();
+        }
         
         if (!this.level().isClientSide) {
             ProjectileData data = MobRegistry.loadedProjectiles.get(getProjectileId());
