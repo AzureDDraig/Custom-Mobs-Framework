@@ -6,5 +6,6 @@ bin/
 out/
 .DS_Store
 build_number.txt.bak
+build_number.txt
 scratch/
 
