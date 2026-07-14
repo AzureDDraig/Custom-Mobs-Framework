@@ -1,0 +1,10 @@
+.gradle
+build/
+.idea/
+*.local
+bin/
+out/
+.DS_Store
+build_number.txt.bak
+scratch/
+

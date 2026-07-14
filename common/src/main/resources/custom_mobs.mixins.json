@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "package": "ddraig.net.custommobs.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "minVersion": "0.8",
+  "client": [
+    "LivingEntityRendererMixin",
+    "WalkAnimationStateAccessor"
+  ],
+  "mixins": [
+    "PackRepositoryMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
