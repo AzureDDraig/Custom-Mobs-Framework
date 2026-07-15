@@ -4899,22 +4899,19 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     return entity != mob && entity.isAlive() && (entity instanceof Player || (mob.getTarget() != null && entity == mob.getTarget()));
                 });
 
-                net.minecraft.world.phys.Vec3 lookVec = mob.getLookAngle();
-                double lookYaw = Math.atan2(lookVec.z, lookVec.x);
-                double radLimit = Math.toRadians(width / 2.0D);
-
                 for (LivingEntity target : targets) {
                     double tx = target.getX() - mob.getX();
                     double tz = target.getZ() - mob.getZ();
-                    double targetYaw = Math.atan2(tz, tx);
-
-                    double angleDiff = Math.abs(lookYaw - targetYaw);
-                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                    double targetYaw = Math.atan2(tz, tx) * (180.0D / Math.PI) - 90.0D;
+                    double diff = Math.abs(mob.getYRot() - targetYaw) % 360.0D;
+                    if (diff > 180.0D) {
+                        diff = 360.0D - diff;
+                    }
 
                     double distSqr = mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
                     double maxDist = mob.getBbWidth() * 0.5D + target.getBbWidth() * 0.5D + reach;
 
-                    if (distSqr <= maxDist * maxDist && angleDiff <= radLimit) {
+                    if (distSqr <= maxDist * maxDist && diff <= width / 2.0D) {
                         this.mob.doHurtTarget(target);
                     }
                 }

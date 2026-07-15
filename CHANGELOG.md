@@ -4,6 +4,14 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 108] - AOE Melee Sweep Damage Fix
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java` (`CustomMeleeAOEAttackGoal` inner class)**: Refactored the `performAOESweep()` method to calculate target angle differences using the mob's actual body yaw (`getYRot()`) instead of its look vector. This resolves an issue on the server where stale/un-synced look vector direction data caused targets within the sweep range to be missed.
+### Layman's Explanation
+*   **AOE Melee Attack Fix:** Fixed a bug where frontal sweep (AOE Melee) attacks were not dealing damage. They now correctly detect and hit all targets in front of the mob.
+
+---
+
 ## [Build 107] - RPG Mob Spawner Redstone & Cooldown Options
 ### Technical Changes (By Class)
 *   **`RPGMobSpawnerBlockEntity.java`**: Added fields `redstonePulseOnly`, `spawnerCooldown`, `cooldownTimer`, and `wasPowered`. Redesigned spawner ticking logic to support redstone-pulsed activation alongside normal periodic spawning, and implemented block neighbor power check helpers.
