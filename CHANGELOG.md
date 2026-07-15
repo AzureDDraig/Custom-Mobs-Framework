@@ -4,6 +4,17 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 109] - Loot Drop Parameter Editing Fix
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Separated the parsing of `lootChanceField`, `lootMinField`, `lootMaxField`, and `lootLevelField` inside `saveTextFieldsToActiveMob()` into individual `try-catch` blocks. This prevents an empty or temporarily invalid text field from blocking other fields from saving.
+    *   Invoked `saveTextFieldsToActiveMob()` at the start of all Loot tab click handling routines in `mouseClicked()`, preserving unsaved text field edits before the screen gets reinitialized or updated.
+    *   Added the missing background rendering call for `lootLevelField` inside `render()`.
+### Layman's Explanation
+*   **Loot Tab Edits Fix:** Fixed a bug where editing drop chance, minimum quantity, or maximum quantity in the Loot tab was non-functional or would constantly get reset when clicking other settings (like changing the item type or toggling Looting Required).
+
+---
+
 ## [Build 108] - AOE Melee Sweep Damage Fix
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java` (`CustomMeleeAOEAttackGoal` inner class)**: Refactored the `performAOESweep()` method to calculate target angle differences using the mob's actual body yaw (`getYRot()`) instead of its look vector. This resolves an issue on the server where stale/un-synced look vector direction data caused targets within the sweep range to be missed.

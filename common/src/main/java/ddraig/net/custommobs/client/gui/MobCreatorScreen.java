@@ -1898,11 +1898,15 @@ public class MobCreatorScreen extends Screen {
 
         if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
             var item = selectedMob.loot.items.get(selectedLootIndex);
+            try { item.chance = Double.parseDouble(lootChanceField.getValue()); } catch (Exception ignored) {}
+            try { item.minCount = Integer.parseInt(lootMinField.getValue()); } catch (Exception ignored) {}
+            try { item.maxCount = Integer.parseInt(lootMaxField.getValue()); } catch (Exception ignored) {}
             try {
-                item.chance = Double.parseDouble(lootChanceField.getValue());
-                item.minCount = Integer.parseInt(lootMinField.getValue());
-                item.maxCount = Integer.parseInt(lootMaxField.getValue());
-                item.lootingLevel = Integer.parseInt(lootLevelField.getValue());
+                if (!lootLevelField.getValue().isEmpty()) {
+                    item.lootingLevel = Integer.parseInt(lootLevelField.getValue());
+                } else {
+                    item.lootingLevel = 0;
+                }
             } catch (Exception ignored) {}
         }
     }
@@ -2175,6 +2179,7 @@ public class MobCreatorScreen extends Screen {
         drawEditBoxBackground(graphics, lootChanceField, borderC, slotC);
         drawEditBoxBackground(graphics, lootMinField, borderC, slotC);
         drawEditBoxBackground(graphics, lootMaxField, borderC, slotC);
+        drawEditBoxBackground(graphics, lootLevelField, borderC, slotC);
         drawEditBoxBackground(graphics, idleAnimField, borderC, slotC);
         drawEditBoxBackground(graphics, walkAnimField, borderC, slotC);
         drawEditBoxBackground(graphics, attackAnimField, borderC, slotC);
@@ -3479,6 +3484,7 @@ public class MobCreatorScreen extends Screen {
             }
 
         } else if (activeTab.equals("Loot")) {
+            saveTextFieldsToActiveMob();
             int dropY = formY + 52;
             int itemsCount = selectedMob.loot.items.size();
             for (int i = 0; i < 3; i++) {
