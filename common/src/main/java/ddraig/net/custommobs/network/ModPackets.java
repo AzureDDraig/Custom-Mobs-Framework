@@ -93,6 +93,8 @@ public class ModPackets {
             int playerDist = buf.readInt();
             String templateId = buf.readUtf();
             int eliteChance = buf.readInt();
+            boolean redstonePulseOnly = buf.readBoolean();
+            int spawnerCooldown = buf.readInt();
 
             ServerPlayer player = (ServerPlayer) context.getPlayer();
             context.queue(() -> {
@@ -106,6 +108,8 @@ public class ModPackets {
                         spawner.setPlayerDistance(playerDist);
                         spawner.setTemplateId(templateId);
                         spawner.setEliteChance(eliteChance);
+                        spawner.setRedstonePulseOnly(redstonePulseOnly);
+                        spawner.setSpawnerCooldown(spawnerCooldown);
                         
                         player.level().sendBlockUpdated(pos, spawner.getBlockState(), spawner.getBlockState(), 3);
                     }
@@ -206,6 +210,8 @@ public class ModPackets {
         buf.writeInt(spawner.getPlayerDistance());
         buf.writeUtf(spawner.getTemplateId());
         buf.writeInt(spawner.getEliteChance());
+        buf.writeBoolean(spawner.isRedstonePulseOnly());
+        buf.writeInt(spawner.getSpawnerCooldown());
 
         NetworkManager.sendToPlayer(player, S2C_OPEN_SPAWNER, buf);
     }

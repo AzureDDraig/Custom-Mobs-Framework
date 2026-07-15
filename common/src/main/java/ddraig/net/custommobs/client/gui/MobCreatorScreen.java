@@ -3787,18 +3787,23 @@ public class MobCreatorScreen extends Screen {
         private int playerDist;
         private String selectedTemplateId;
         private int eliteChance;
+        private boolean redstonePulseOnly;
+        private int spawnerCooldown;
 
         private EditBox rateField;
         private EditBox radiusField;
         private EditBox maxAliveField;
         private EditBox playerDistField;
         private EditBox eliteChanceField;
+        private EditBox spawnerCooldownField;
+
+        private List<Component> hoveredTooltip = null;
 
         private final List<String> availableTemplates = new ArrayList<>();
         private int templatesScroll = 0;
         private boolean isDraggingScrollbar = false;
 
-        public SpawnerEditScreen(BlockPos pos, int rate, int radius, int maxAlive, int dayNight, int playerDist, String templateId, int eliteChance) {
+        public SpawnerEditScreen(BlockPos pos, int rate, int radius, int maxAlive, int dayNight, int playerDist, String templateId, int eliteChance, boolean redstonePulseOnly, int spawnerCooldown) {
             super(Component.translatable("gui.custom_mobs.spawner_edit.title"));
             this.pos = pos;
             this.rate = rate;
@@ -3808,6 +3813,8 @@ public class MobCreatorScreen extends Screen {
             this.playerDist = playerDist;
             this.selectedTemplateId = templateId;
             this.eliteChance = eliteChance;
+            this.redstonePulseOnly = redstonePulseOnly;
+            this.spawnerCooldown = spawnerCooldown;
             for (String key : MobRegistry.loadedMobs.keySet()) {
                 if (!key.startsWith("__proj_preview_")) {
                     this.availableTemplates.add(key);
@@ -3846,18 +3853,22 @@ public class MobCreatorScreen extends Screen {
             this.playerDistField.setValue(String.valueOf(playerDist));
             this.eliteChanceField = new EditBox(this.font, left + 90, top + 110, 50, 12, Component.translatable("gui.custom_mobs.spawner_edit.elite_chance"));
             this.eliteChanceField.setValue(String.valueOf(eliteChance));
+            this.spawnerCooldownField = new EditBox(this.font, left + 90, top + 130, 50, 12, Component.translatable("gui.custom_mobs.spawner_edit.cooldown"));
+            this.spawnerCooldownField.setValue(String.valueOf(spawnerCooldown));
 
             this.rateField.setBordered(false);
             this.radiusField.setBordered(false);
             this.maxAliveField.setBordered(false);
             this.playerDistField.setBordered(false);
             this.eliteChanceField.setBordered(false);
+            this.spawnerCooldownField.setBordered(false);
 
             this.addRenderableWidget(this.rateField);
             this.addRenderableWidget(this.radiusField);
             this.addRenderableWidget(this.maxAliveField);
             this.addRenderableWidget(this.playerDistField);
             this.addRenderableWidget(this.eliteChanceField);
+            this.addRenderableWidget(this.spawnerCooldownField);
 
             this.addRenderableWidget(Button.builder(Component.translatable("gui.custom_mobs.spawner_edit.save"), btn -> {
                 FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -3869,9 +3880,11 @@ public class MobCreatorScreen extends Screen {
                 buf.writeInt(parseIntSafe(playerDistField.getValue(), playerDist));
                 buf.writeUtf(selectedTemplateId != null ? selectedTemplateId : "");
                 buf.writeInt(parseIntSafe(eliteChanceField.getValue(), eliteChance));
+                buf.writeBoolean(redstonePulseOnly);
+                buf.writeInt(parseIntSafe(spawnerCooldownField.getValue(), spawnerCooldown));
                 NetworkManager.sendToServer(ModPackets.C2S_SAVE_SPAWNER_SETTINGS, buf);
                 Minecraft.getInstance().setScreen(null);
-            }).bounds(left + 20, top + 160, 110, 20).build());
+            }).bounds(left + 20, top + 190, 110, 20).build());
         }
 
         private static int parseIntSafe(String val, int def) {
@@ -3889,6 +3902,7 @@ public class MobCreatorScreen extends Screen {
             maxAliveField.tick();
             playerDistField.tick();
             eliteChanceField.tick();
+            spawnerCooldownField.tick();
         }
 
         @Override
@@ -3917,8 +3931,14 @@ public class MobCreatorScreen extends Screen {
                 }
             }
 
-            if (mouseX >= left + 90 && mouseX <= left + 140 && mouseY >= top + 130 && mouseY <= top + 142) {
+            if (mouseX >= left + 90 && mouseX <= left + 140 && mouseY >= top + 150 && mouseY <= top + 162) {
                 dayNight = (dayNight + 1) % 3;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+
+            if (mouseX >= left + 90 && mouseX <= left + 100 && mouseY >= top + 170 && mouseY <= top + 180) {
+                redstonePulseOnly = !redstonePulseOnly;
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
@@ -3965,7 +3985,7 @@ public class MobCreatorScreen extends Screen {
             int textActiveC = 0xFFD4AF37;
             int textNormalC = 0xFFCCCCCC;
 
-            UIHelper.drawBeveledPanel(graphics, left, top, 320, 200, borderC, bgC);
+            UIHelper.drawBeveledPanel(graphics, left, top, 320, 220, borderC, bgC);
 
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.header").getString(), left + 15, top + 10, textActiveC, false);
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.rate").getString(), left + 15, top + 32, 0xFFFFFFFF, false);
@@ -3973,14 +3993,21 @@ public class MobCreatorScreen extends Screen {
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.max_mobs").getString(), left + 15, top + 72, 0xFFFFFFFF, false);
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.player_dist").getString(), left + 15, top + 92, 0xFFFFFFFF, false);
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.elite_chance").getString(), left + 15, top + 112, 0xFFFFFFFF, false);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.cooldown").getString(), left + 15, top + 132, 0xFFFFFFFF, false);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.day_night").getString(), left + 15, top + 132, 0xFFFFFFFF, false);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.day_night").getString(), left + 15, top + 152, 0xFFFFFFFF, false);
             String cycleText = Component.translatable("gui.custom_mobs.spawner_edit.both").getString();
             if (dayNight == 1) cycleText = Component.translatable("gui.custom_mobs.spawner_edit.day_only").getString();
             else if (dayNight == 2) cycleText = Component.translatable("gui.custom_mobs.spawner_edit.night_only").getString();
-            boolean hoverCycle = mouseX >= left + 90 && mouseX <= left + 140 && mouseY >= top + 130 && mouseY <= top + 142;
-            UIHelper.drawShadedButton(graphics, left + 90, top + 130, 50, 12, hoverCycle, 0xFF3C3C3C);
-            graphics.drawString(this.font, cycleText, left + 93, top + 132, 0xFFFFFFFF, false);
+            boolean hoverCycle = mouseX >= left + 90 && mouseX <= left + 140 && mouseY >= top + 150 && mouseY <= top + 162;
+            UIHelper.drawShadedButton(graphics, left + 90, top + 150, 50, 12, hoverCycle, 0xFF3C3C3C);
+            graphics.drawString(this.font, cycleText, left + 93, top + 152, 0xFFFFFFFF, false);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.redstone_pulse").getString(), left + 15, top + 172, 0xFFFFFFFF, false);
+            int checkboxX = left + 90;
+            int checkboxY = top + 170;
+            graphics.fill(checkboxX, checkboxY, checkboxX + 10, checkboxY + 10, redstonePulseOnly ? 0xFF00FF00 : 0xFFFF0000);
+            UIHelper.drawOutline(graphics, checkboxX, checkboxY, 10, 10, borderC);
 
             int listX = left + 160;
             int listY = top + 25;
@@ -4032,8 +4059,34 @@ public class MobCreatorScreen extends Screen {
             if (eliteChanceField.visible) {
                 UIHelper.drawRecessedSlot(graphics, eliteChanceField.getX() - 4, eliteChanceField.getY() - 3, eliteChanceField.getWidth() + 8, eliteChanceField.getHeight() + 6, borderC, slotC);
             }
+            if (spawnerCooldownField.visible) {
+                UIHelper.drawRecessedSlot(graphics, spawnerCooldownField.getX() - 4, spawnerCooldownField.getY() - 3, spawnerCooldownField.getWidth() + 8, spawnerCooldownField.getHeight() + 6, borderC, slotC);
+            }
+
+            hoveredTooltip = null;
+            if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 30 && mouseY <= top + 42) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.rate"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 50 && mouseY <= top + 62) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.radius"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 70 && mouseY <= top + 82) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.max_mobs"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 90 && mouseY <= top + 102) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.player_dist"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 110 && mouseY <= top + 122) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.elite_chance"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 130 && mouseY <= top + 142) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.cooldown"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 150 && mouseY <= top + 162) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.day_night"));
+            } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 170 && mouseY <= top + 182) {
+                hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.redstone_pulse"));
+            }
 
             super.render(graphics, mouseX, mouseY, partialTicks);
+
+            if (hoveredTooltip != null) {
+                graphics.renderComponentTooltip(this.font, hoveredTooltip, mouseX, mouseY);
+            }
         }
     }
 

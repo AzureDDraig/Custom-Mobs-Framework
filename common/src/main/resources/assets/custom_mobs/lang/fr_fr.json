@@ -408,5 +408,15 @@
   "gui.custom_mobs.goal_desc.summon_gale_vortex_push": "Summons vortex push hazard that repels entities and damages them.",
   "gui.custom_mobs.goal_desc.summon_minion_portal": "Summons a minion portal entity at a nearby location.",
   "gui.custom_mobs.goal_desc.spawn_minions": "Minion portal AI logic that spawns mini servants up to a maximum count.",
-  "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage."
+  "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage.",
+  "gui.custom_mobs.spawner_edit.cooldown": "Cooldown (s):",
+  "gui.custom_mobs.spawner_edit.redstone_pulse": "Redstone Pulse:",
+  "gui.custom_mobs.spawner_edit.tooltip.rate": "The frequency of spawn attempts in ticks (20 ticks = 1 second).",
+  "gui.custom_mobs.spawner_edit.tooltip.radius": "The radius in blocks around the spawner within which mobs will spawn.",
+  "gui.custom_mobs.spawner_edit.tooltip.max_mobs": "The maximum number of mobs spawned by this block allowed alive at the same time.",
+  "gui.custom_mobs.spawner_edit.tooltip.player_dist": "The distance in blocks a player must be within for the spawner to tick.",
+  "gui.custom_mobs.spawner_edit.tooltip.elite_chance": "The percentage chance (0 to 100) that a spawned mob is an Elite version.",
+  "gui.custom_mobs.spawner_edit.tooltip.cooldown": "Cooldown in seconds. Enforces a delay before attempting to spawn again.",
+  "gui.custom_mobs.spawner_edit.tooltip.day_night": "Restrict spawning to day only, night only, or both.",
+  "gui.custom_mobs.spawner_edit.tooltip.redstone_pulse": "If enabled, the spawner only attempts a spawn when receiving a redstone pulse."
 }

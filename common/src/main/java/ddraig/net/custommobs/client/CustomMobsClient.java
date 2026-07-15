@@ -69,10 +69,12 @@ public class CustomMobsClient {
             int playerDist = buf.readInt();
             String templateId = buf.readUtf();
             int eliteChance = buf.readInt();
+            boolean redstonePulseOnly = buf.readBoolean();
+            int spawnerCooldown = buf.readInt();
 
             context.queue(() -> {
                 Minecraft.getInstance().setScreen(new MobCreatorScreen.SpawnerEditScreen(
-                        pos, rate, radius, maxAlive, dayNight, playerDist, templateId, eliteChance
+                        pos, rate, radius, maxAlive, dayNight, playerDist, templateId, eliteChance, redstonePulseOnly, spawnerCooldown
                 ));
             });
         });
