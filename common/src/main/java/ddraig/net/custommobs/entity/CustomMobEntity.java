@@ -56,7 +56,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.*;
 
-public class CustomMobEntity extends TamableAnimal implements GeoEntity {
+public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.minecraft.world.entity.monster.Enemy {
     public boolean isPreview = false;
     public static final EntityDataAccessor<String> TEMPLATE_ID = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.STRING);
     public static final EntityDataAccessor<Boolean> IS_ELITE = SynchedEntityData.defineId(CustomMobEntity.class, EntityDataSerializers.BOOLEAN);
@@ -1880,21 +1880,21 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true) {
             @Override
             public boolean canUse() {
-                return hasGoalType("TARGET_PLAYER") && super.canUse();
+                return hasGoalType("TARGET_PLAYER") && !isTame() && super.canUse();
             }
         });
 
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true) {
             @Override
             public boolean canUse() {
-                return hasGoalType("TARGET_VILLAGER") && super.canUse();
+                return hasGoalType("TARGET_VILLAGER") && !isTame() && super.canUse();
             }
         });
 
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, true) {
             @Override
             public boolean canUse() {
-                return hasGoalType("TARGET_ANIMALS") && super.canUse();
+                return hasGoalType("TARGET_ANIMALS") && !isTame() && super.canUse();
             }
         });
 
@@ -3907,7 +3907,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
 
         @Override
         public boolean canUse() {
-            if (!mob.hasGoalType("ATTACK_OTHERS")) return false;
+            if (!mob.hasGoalType("ATTACK_OTHERS") || mob.isTame()) return false;
             return super.canUse();
         }
     }
@@ -3930,7 +3930,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity {
 
         @Override
         public boolean canUse() {
-            if (!mob.hasGoalType("TARGET_GROUP")) return false;
+            if (!mob.hasGoalType("TARGET_GROUP") || mob.isTame()) return false;
             return super.canUse();
         }
     }
