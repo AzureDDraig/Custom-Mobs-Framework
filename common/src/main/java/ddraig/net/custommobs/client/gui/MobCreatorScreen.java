@@ -850,6 +850,13 @@ public class MobCreatorScreen extends Screen {
                 eb.setMaxLength(1024);
             }
         }
+        this.idleAnimField.setMaxLength(512);
+        this.walkAnimField.setMaxLength(512);
+        this.attackAnimField.setMaxLength(512);
+        this.deathAnimField.setMaxLength(512);
+        this.swimAnimField.setMaxLength(512);
+        this.flyAnimField.setMaxLength(512);
+        this.goalAnimationField.setMaxLength(512);
 
         hideAllFields();
         showFieldsForTab();

@@ -4,6 +4,14 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 110] - Animation Textbox Character Limit Update
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**: Set explicit maximum character length limits (`setMaxLength(512)`) on all animation textboxes (`idleAnimField`, `walkAnimField`, `attackAnimField`, `deathAnimField`, `swimAnimField`, `flyAnimField`, and `goalAnimationField`). This overrides the default Minecraft `EditBox` limit of 32 characters.
+### Layman's Explanation
+*   **Animation name Length:** Increased the character limit for animation name fields in the mob editor screen from 32 to 512, allowing for longer namesspaced Geckolib animation identifiers.
+
+---
+
 ## [Build 109] - Loot Drop Parameter Editing Fix
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:
