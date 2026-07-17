@@ -430,6 +430,7 @@
   "gui.custom_mobs.creator.goal.tooltip.speed": "The rotation speed of the orbiting shield or projectiles.",
   "gui.custom_mobs.creator.goal.duration": "Duration:",
   "gui.custom_mobs.creator.goal.tooltip.duration": "The active lifetime duration of the shield in ticks.",
+  "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.creator.goal.param8": "Param 8:",
   "gui.custom_mobs.creator.goal.knockback_distance": "Knockback Distance:",
   "gui.custom_mobs.creator.goal.tooltip.knockback_distance": "The knockback distance in blocks (maximum 32 blocks).",
@@ -497,5 +498,6 @@
   "gui.custom_mobs.goal_desc.summon_gale_vortex_push": "Summons vortex push hazard that repels entities and damages them.",
   "gui.custom_mobs.goal_desc.summon_minion_portal": "Summons a minion portal entity at a nearby location.",
   "gui.custom_mobs.goal_desc.spawn_minions": "Minion portal AI logic that spawns mini servants up to a maximum count.",
-  "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage."
+  "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage.",
+  "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation."
 }

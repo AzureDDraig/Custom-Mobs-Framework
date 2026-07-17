@@ -250,12 +250,13 @@ public class MobCreatorScreen extends Screen {
         "SUMMON_GROUND_SHOCKWAVE", "SUMMON_AERIAL_SHOCKWAVE", "SUMMON_GROUND_SHOCKWAVE_LAYERED", "SUMMON_AERIAL_SHOCKWAVE_LAYERED",
         "SUMMON_GROUND_CRUNCH", "SUMMON_AERIAL_CRUNCH", "SUMMON_GROUND_CRUNCH_LAYERED", "SUMMON_AERIAL_CRUNCH_LAYERED",
         "SUMMON_TETHER_DRAIN", "SUMMON_CHASE_SNAKE", "SUMMON_GALE_VORTEX_PULL", "SUMMON_GALE_VORTEX_PUSH",
-        "SUMMON_MINION_PORTAL", "SPAWN_MINIONS", "STAGGER"
+        "SUMMON_MINION_PORTAL", "SPAWN_MINIONS", "STAGGER", "IDLE"
     };
 
     private static final Map<String, String> GOAL_DESCS = new HashMap<>();
     static {
         java.util.Arrays.sort(POSSIBLE_GOALS);
+        GOAL_DESCS.put("IDLE", "Makes the mob stand still for a set duration and play an animation.");
         GOAL_DESCS.put("SUMMON_GROUND_LINE", "Summons ground projectiles in a line towards the target.");
         GOAL_DESCS.put("SUMMON_AERIAL_LINE", "Summons aerial projectiles in a line towards the target.");
         GOAL_DESCS.put("SUMMON_GROUND_LINES", "Summons ground projectiles in multiple diverging lines.");
@@ -1594,6 +1595,10 @@ public class MobCreatorScreen extends Screen {
             } else if (type.equals("IMITATE_SOUNDS")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("cooldown", "200"));
+            } else if (type.equals("IDLE")) {
+                p1Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("duration", "40"));
+                goalParam1Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.idle_duration")));
             }
         }
         
@@ -1900,6 +1905,8 @@ public class MobCreatorScreen extends Screen {
                 goal.params.put("cooldown", goalParam1Field.getValue());
             } else if (type.equals("IMITATE_SOUNDS")) {
                 goal.params.put("cooldown", goalParam1Field.getValue());
+            } else if (type.equals("IDLE")) {
+                goal.params.put("duration", goalParam1Field.getValue());
             }
         }
 
@@ -2032,18 +2039,27 @@ public class MobCreatorScreen extends Screen {
             }
             ab.isPassive = isPassive;
 
-            if (name.contains("Flame") || name.contains("Fire") || name.contains("Infernal")) {
-                ab.type = "BURNING";
-            } else if (name.contains("Frost") || name.contains("Nova") || name.contains("Glacial")) {
-                ab.type = "FREEZE";
-            } else if (name.contains("Healing") || name.contains("Rejuvenation")) {
-                ab.type = "HEALING";
-            } else if (name.contains("Teleport")) {
-                ab.type = "TELEPORT";
-            } else if (name.contains("Dash") || name.contains("Charge")) {
-                ab.type = "DASH";
+            MobData.AbilityData template = ddraig.net.custommobs.data.MobRegistry.abilityTemplates.get(name);
+            if (template != null) {
+                ab.cooldownTicks = template.cooldownTicks;
+                ab.power = template.power;
+                ab.durationTicks = template.durationTicks;
+                ab.particle = template.particle;
+                ab.type = template.type;
             } else {
-                ab.type = "POISON";
+                if (name.contains("Flame") || name.contains("Fire") || name.contains("Infernal")) {
+                    ab.type = "BURNING";
+                } else if (name.contains("Frost") || name.contains("Nova") || name.contains("Glacial")) {
+                    ab.type = "FREEZE";
+                } else if (name.contains("Healing") || name.contains("Rejuvenation")) {
+                    ab.type = "HEALING";
+                } else if (name.contains("Teleport")) {
+                    ab.type = "TELEPORT";
+                } else if (name.contains("Dash") || name.contains("Charge")) {
+                    ab.type = "DASH";
+                } else {
+                    ab.type = "POISON";
+                }
             }
             selectedMob.abilities.add(ab);
         }
@@ -4491,6 +4507,7 @@ public class MobCreatorScreen extends Screen {
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_mob_id"; fallback = "Portal Mob ID"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.hp_threshold_percent"; fallback = "HP Threshold (%)"; }
+            else if (type.equals("IDLE")) { key = "gui.custom_mobs.creator.goal.duration"; fallback = "Duration"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.sound_event"; fallback = "Sound Event"; }
         } else if (paramNum == 2) {
             key = "gui.custom_mobs.creator.goal.param2";

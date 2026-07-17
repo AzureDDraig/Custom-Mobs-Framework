@@ -22,6 +22,83 @@ public class MobRegistry {
     
     public static final Map<String, MobData> loadedMobs = new ConcurrentHashMap<>();
     public static final Map<String, ProjectileData> loadedProjectiles = new ConcurrentHashMap<>();
+    public static final Map<String, MobData.AbilityData> abilityTemplates = new ConcurrentHashMap<>();
+
+    private static final String[] PASSIVE_ABILITIES = {
+        "Fireproof Scales", "Gills of the Deep", "Traction Tread", "Feather Light", "Rejuvenation Aura",
+        "Deep Diver", "Step Assist", "Shadow Camouflage", "Thorn Guard", "Photosynthesis",
+        "Toxic Secretions", "Glacial Aura", "Magnetosphere", "Night Eyes", "Reinforced Hide",
+        "Spider Climb"
+    };
+
+    private static final String[] ACTIVE_ABILITIES = {
+        "Flame Breath", "Tail Sweep", "Venomous Bite", "Sonic Screech",
+        "Thunder Stomp", "Frost Nova", "Blight Spit", "Healing Touch", "Sonic Dash",
+        "Abyssal Stealth", "High Jump", "Wind Glide", "Frightening Roar", "Lightning Strike",
+        "Spore Blast", "Iron Wall", "Infernal Charge", "Life Steal Bite", "Teleport Dash",
+        "Aqua Propulsion", "Trample", "Feather Hover"
+    };
+
+    private static String getDeductedType(String name) {
+        if (name.contains("Flame") || name.contains("Fire") || name.contains("Infernal")) {
+            return "BURNING";
+        } else if (name.contains("Frost") || name.contains("Nova") || name.contains("Glacial")) {
+            return "FREEZE";
+        } else if (name.contains("Healing") || name.contains("Rejuvenation")) {
+            return "HEALING";
+        } else if (name.contains("Teleport")) {
+            return "TELEPORT";
+        } else if (name.contains("Dash") || name.contains("Charge")) {
+            return "DASH";
+        } else {
+            return "POISON";
+        }
+    }
+
+    private static void loadAbilitiesConfig(File baseDir) {
+        File file = new File(baseDir, "abilities.json");
+        if (!file.exists()) {
+            abilityTemplates.clear();
+            for (String p : PASSIVE_ABILITIES) {
+                MobData.AbilityData ab = new MobData.AbilityData();
+                ab.name = p;
+                ab.isPassive = true;
+                ab.cooldownTicks = 100;
+                ab.power = 2.0;
+                ab.durationTicks = 60;
+                ab.particle = "";
+                ab.type = getDeductedType(p);
+                abilityTemplates.put(p, ab);
+            }
+            for (String a : ACTIVE_ABILITIES) {
+                MobData.AbilityData ab = new MobData.AbilityData();
+                ab.name = a;
+                ab.isPassive = false;
+                ab.cooldownTicks = 100;
+                ab.power = 2.0;
+                ab.durationTicks = 60;
+                ab.particle = "";
+                ab.type = getDeductedType(a);
+                abilityTemplates.put(a, ab);
+            }
+            try (java.io.Writer writer = new java.io.FileWriter(file)) {
+                GSON.toJson(abilityTemplates, writer);
+            } catch (Exception e) {
+                CustomMobs.LOGGER.error("Failed to save default abilities.json", e);
+            }
+        } else {
+            try (java.io.Reader reader = new java.io.FileReader(file)) {
+                java.lang.reflect.Type typeOfHashMap = new com.google.gson.reflect.TypeToken<Map<String, MobData.AbilityData>>() {}.getType();
+                Map<String, MobData.AbilityData> loaded = GSON.fromJson(reader, typeOfHashMap);
+                if (loaded != null) {
+                    abilityTemplates.clear();
+                    abilityTemplates.putAll(loaded);
+                }
+            } catch (Exception e) {
+                CustomMobs.LOGGER.error("Failed to load abilities.json", e);
+            }
+        }
+    }
 
     // Suggestion Cache Arrays to prevent lagging on Visual Creator Screens
     public static final List<String> cachedSounds = new ArrayList<>();
@@ -51,6 +128,8 @@ public class MobRegistry {
         if (!projFolder.exists()) projFolder.mkdirs();
         if (!projPacksFolder.exists()) projPacksFolder.mkdirs();
         if (!soundsFolder.exists()) soundsFolder.mkdirs();
+
+        loadAbilitiesConfig(baseDir);
 
         reloadAll();
     }

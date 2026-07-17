@@ -1844,6 +1844,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         this.goalSelector.addGoal(2, new ShotgunAttackGoal(this));
         this.goalSelector.addGoal(2, new OrbitingShieldGoal(this));
         this.goalSelector.addGoal(2, new CombatDelayGoal(this));
+        this.goalSelector.addGoal(2, new CustomIdleGoal(this));
 
         this.goalSelector.addGoal(2, new AerialRangedAttackGoal(this));
         this.goalSelector.addGoal(2, new AerialRangedAOEGoal(this, "AERIAL_RANGED_AOE"));
@@ -3993,6 +3994,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 }
             }
         }
+
+        @Override
+        public void stop() {
+            mob.stopGoalAnimation();
+        }
     }
 
     public static class CreeperLikeExplodeGoal extends Goal {
@@ -4644,6 +4650,26 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     }
                 }
             }
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null && !aiGoal.animation.isEmpty()) {
+                LivingEntity target = mob.getTarget();
+                if (target != null && target.isAlive()) {
+                    double reach = this.getAttackReachSqr(target);
+                    double reachDist = Math.sqrt(reach);
+                    double triggerReach = reachDist + 1.5D;
+                    double distSqr = mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+                    if (distSqr <= triggerReach * triggerReach) {
+                        if (!mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation(aiGoal.animation);
+                        }
+                    } else {
+                        if (mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation("");
+                        }
+                    }
+                }
+            }
         }
 
         @Override
@@ -4789,7 +4815,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         public void stop() {
             super.stop();
             MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
-            if (aiGoal != null && mob.getActiveAnimation().equals(aiGoal.animation)) {
+            if (aiGoal == null || aiGoal.animation.isEmpty() || mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
                 mob.setActiveAnimation("");
             }
             damageDelayTimer = -1;
@@ -4818,6 +4844,26 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     if (myCooldown == 0 && isAttacking) {
                         hasAttacked = true;
                         isAttacking = false;
+                    }
+                }
+            }
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null && !aiGoal.animation.isEmpty()) {
+                LivingEntity target = mob.getTarget();
+                if (target != null && target.isAlive()) {
+                    double reach = this.getAttackReachSqr(target);
+                    double reachDist = Math.sqrt(reach);
+                    double triggerReach = reachDist + 1.5D;
+                    double distSqr = mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+                    if (distSqr <= triggerReach * triggerReach) {
+                        if (!mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation(aiGoal.animation);
+                        }
+                    } else {
+                        if (mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation("");
+                        }
                     }
                 }
             }
@@ -5012,7 +5058,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         public void stop() {
             super.stop();
             MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
-            if (aiGoal != null && mob.getActiveAnimation().equals(aiGoal.animation)) {
+            if (aiGoal == null || aiGoal.animation.isEmpty() || mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
                 mob.setActiveAnimation("");
             }
             damageDelayTimer = -1;
@@ -5049,6 +5095,26 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     if (myCooldown == 0 && isAttacking) {
                         hasAttacked = true;
                         isAttacking = false;
+                    }
+                }
+            }
+
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null && !aiGoal.animation.isEmpty()) {
+                LivingEntity target = mob.getTarget();
+                if (target != null && target.isAlive()) {
+                    double reach = this.getAttackReachSqr(target);
+                    double reachDist = Math.sqrt(reach);
+                    double triggerReach = reachDist + 1.5D;
+                    double distSqr = mob.distanceToSqr(target.getX(), target.getY(), target.getZ());
+                    if (distSqr <= triggerReach * triggerReach) {
+                        if (!mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation(aiGoal.animation);
+                        }
+                    } else {
+                        if (mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                            mob.setActiveAnimation("");
+                        }
                     }
                 }
             }
@@ -5215,6 +5281,69 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 mob.getLookControl().setLookAt(target, 30.0F, 30.0F);
                 mob.getNavigation().stop();
             }
+            this.timer++;
+        }
+    }
+
+    private static class CustomIdleGoal extends Goal {
+        private final CustomMobEntity mob;
+        private int durationTicks = 40;
+        private int timer = 0;
+
+        public CustomIdleGoal(CustomMobEntity mob) {
+            this.mob = mob;
+            this.setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            if (mob.isGoalOnCooldown("IDLE")) {
+                return false;
+            }
+            if (!mob.combatSequence.isEmpty()) {
+                if (!mob.checkCombatSequence("IDLE")) {
+                    return false;
+                }
+            }
+            return mob.hasGoalType("IDLE");
+        }
+
+        @Override
+        public void start() {
+            this.timer = 0;
+            this.durationTicks = 40;
+            MobData.AIGoalData aiGoal = mob.getGoalData("IDLE");
+            if (aiGoal != null) {
+                try {
+                    this.durationTicks = Integer.parseInt(aiGoal.params.getOrDefault("duration", "40"));
+                } catch (Exception ignored) {}
+                if (!aiGoal.animation.isEmpty()) {
+                    mob.setActiveAnimation(aiGoal.animation);
+                }
+            }
+            mob.getNavigation().stop();
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return this.timer < this.durationTicks;
+        }
+
+        @Override
+        public void stop() {
+            MobData.AIGoalData aiGoal = mob.getGoalData("IDLE");
+            if (aiGoal == null || aiGoal.animation.isEmpty() || mob.getActiveAnimation().equalsIgnoreCase(aiGoal.animation)) {
+                mob.setActiveAnimation("");
+            }
+            mob.startGoalCooldown("IDLE", this.durationTicks);
+            if (this.timer >= this.durationTicks && !mob.combatSequence.isEmpty()) {
+                mob.advanceCombatSequence();
+            }
+        }
+
+        @Override
+        public void tick() {
+            mob.getNavigation().stop();
             this.timer++;
         }
     }
