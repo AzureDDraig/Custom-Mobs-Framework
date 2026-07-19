@@ -282,6 +282,9 @@ public class RaidEditorScreen extends Screen {
         this.itemSearchField.setValue("");
         this.itemSearchField.setBordered(false);
         this.itemSearchField.visible = false;
+        this.itemSearchField.setResponder(val -> {
+            this.itemSelectorScroll = 0;
+        });
         this.addRenderableWidget(this.itemSearchField);
 
         // Global save button

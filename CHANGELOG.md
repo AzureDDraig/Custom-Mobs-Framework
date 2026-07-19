@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 127] - Raid Editor Item Selector Scroll Reset Fix
+### Technical Changes (By Class)
+*   **`RaidEditorScreen.java`**:
+    *   **Item Search Responder:** Added a text change responder (`setResponder`) to the loot tab item selector modal's `itemSearchField` that resets `itemSelectorScroll` to `0` whenever typing/filtering. This fixes a GUI bug where the item selector grid rendered completely blank if a user typed a query after having scrolled down the list.
+### Layman's Explanation
+*   **Raid Loot Selector Quality of Life:** Fixed a common item selector screen bug. When adding a loot drop to a raid wave and typing in the search box, the search results will no longer render blank if you had scrolled down the list prior to typing.
+
+---
+
 ## [Build 126] - Raid Editor Mobs List Autocomplete Search Filter
 ### Technical Changes (By Class)
 *   **`RaidEditorScreen.java`**:
