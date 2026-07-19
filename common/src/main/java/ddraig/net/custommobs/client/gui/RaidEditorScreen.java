@@ -744,8 +744,9 @@ public class RaidEditorScreen extends Screen {
                         graphics.fill(left + 117, rowY - 1, left + 213, rowY + rowH - 1, 0x40FFFFFF);
                     }
 
-                    String cleanName = mobId.contains(":") ? mobId.substring(mobId.indexOf(":") + 1) : mobId;
-                    graphics.drawString(this.font, cleanName + ": " + count, left + 120, rowY, color, false);
+                    ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
+                    String displayName = (m != null) ? m.name : (mobId.contains(":") ? mobId.substring(mobId.indexOf(":") + 1) : mobId);
+                    graphics.drawString(this.font, truncate(displayName, 14) + ": " + count, left + 120, rowY, color, false);
                 }
             }
 
@@ -756,7 +757,9 @@ public class RaidEditorScreen extends Screen {
                 int idx = i + addMobScroll;
                 String mobId = availableAddMobs.get(idx);
                 int rowY = top + 178 + i * 10;
-                graphics.drawString(this.font, mobId, left + 20, rowY, 0xFFCCCCCC, false);
+                ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
+                String displayName = (m != null) ? m.name : mobId;
+                graphics.drawString(this.font, truncate(displayName, 26), left + 20, rowY, 0xFFCCCCCC, false);
             }
 
             // Draw modifiers (bottom right)
@@ -822,11 +825,45 @@ public class RaidEditorScreen extends Screen {
                 }
                 // Hover over Wave Mobs list (middle column)
                 else if (mouseX >= left + 115 && mouseX <= left + 215 && mouseY >= top + 50 && mouseY <= top + 165) {
-                    customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.wave_mobs_list"));
+                    if (selectedWaveIndex >= 0 && selectedWaveIndex < waves.size()) {
+                        RaidSystem.RaidWave wave = waves.get(selectedWaveIndex);
+                        List<String> mobIds = new ArrayList<>(wave.mobCounts.keySet());
+                        int clickedRow = (int) ((mouseY - (top + 53)) / 14);
+                        int idx = clickedRow + waveMobsScroll;
+                        if (idx >= 0 && idx < mobIds.size()) {
+                            String mobId = mobIds.get(idx);
+                            int count = wave.mobCounts.getOrDefault(mobId, 0);
+                            int elite = wave.mobEliteChances.getOrDefault(mobId, 0);
+                            ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
+                            String displayName = (m != null) ? m.name : mobId;
+                            customTooltip = List.of(
+                                Component.literal(displayName),
+                                Component.literal("ID: " + mobId).withStyle(net.minecraft.ChatFormatting.GRAY),
+                                Component.literal("Count: " + count).withStyle(net.minecraft.ChatFormatting.GREEN),
+                                Component.literal("Elite Chance: " + elite + "%").withStyle(net.minecraft.ChatFormatting.GOLD)
+                            );
+                        } else {
+                            customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.wave_mobs_list"));
+                        }
+                    } else {
+                        customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.wave_mobs_list"));
+                    }
                 }
                 // Hover over Add Mob list
                 else if (mouseX >= left + 15 && mouseX <= left + 195 && mouseY >= top + 175 && mouseY <= top + 230) {
-                    customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.add_mob_list"));
+                    int clickedRow = (int) ((mouseY - (top + 178)) / 10);
+                    int idx = clickedRow + addMobScroll;
+                    if (idx >= 0 && idx < availableAddMobs.size()) {
+                        String mobId = availableAddMobs.get(idx);
+                        ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
+                        String displayName = (m != null) ? m.name : mobId;
+                        customTooltip = List.of(
+                            Component.literal(displayName),
+                            Component.literal("ID: " + mobId).withStyle(net.minecraft.ChatFormatting.GRAY)
+                        );
+                    } else {
+                        customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.add_mob_list"));
+                    }
                 }
                 // Hover over minus button '-'
                 else if (mouseX >= left + 185 && mouseX <= left + 215 && mouseY >= top + 32 && mouseY <= top + 42) {
@@ -974,5 +1011,11 @@ public class RaidEditorScreen extends Screen {
             String itemId = split[0];
             return itemId + " " + count;
         }
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null) return "";
+        if (s.length() <= max) return s;
+        return s.substring(0, max - 3) + "...";
     }
 }

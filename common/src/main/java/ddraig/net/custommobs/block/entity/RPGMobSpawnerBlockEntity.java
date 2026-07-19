@@ -114,10 +114,16 @@ public class RPGMobSpawnerBlockEntity extends BlockEntity {
 
         // Check active mob limit within radius
         AABB area = new AABB(pos).inflate(spawner.spawnRadius);
-        List<CustomMobEntity> activeMobs = level.getEntitiesOfClass(
-                CustomMobEntity.class, 
+        List<net.minecraft.world.entity.Mob> activeMobs = level.getEntitiesOfClass(
+                net.minecraft.world.entity.Mob.class, 
                 area, 
-                mob -> spawner.templateId.equals(mob.getTemplateId())
+                mob -> {
+                    if (mob instanceof CustomMobEntity custom) {
+                        return spawner.templateId.equals(custom.getTemplateId());
+                    }
+                    net.minecraft.resources.ResourceLocation loc = net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
+                    return loc.toString().equals(spawner.templateId);
+                }
         );
 
         if (activeMobs.size() < spawner.maxAlive) {

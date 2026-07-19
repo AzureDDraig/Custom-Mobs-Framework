@@ -4,6 +4,19 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 124] - Vanilla Spawner Limits & Raid Editor Display Names (Issue #4)
+### Technical Changes (By Class)
+*   **`RPGMobSpawnerBlockEntity.java`**:
+    *   Fixed a bug where spawners configured to spawn vanilla Minecraft entities (like creepers or zombies) bypassed the `maxAlive` limit. Spawner blocks now check `Mob.class` instead of `CustomMobEntity.class`, evaluating both custom template IDs and vanilla registry ResourceLocations to correctly enforce max alive limits and prevent infinite spawning lag.
+*   **`RaidEditorScreen.java`**:
+    *   **Wave Mobs and Add Mobs list:** Replaced raw registry/namespace ID rendering with corresponding human-readable template name lookups, using a new private `truncate` helper to prevent text overflows.
+    *   **Detailed list hovers:** Overhauled manual hover tooltips on list rows. Hovering over a wave mob now displays the template display name, internal ID resource key, configured spawn quantity, and elite chance. Hovering over an addable mob displays its name and ID.
+### Layman's Explanation
+*   **Vanilla Spawner Limit Safeguard:** Setting a spawner block to spawn vanilla Minecraft mobs now respects the `Max Mobs` settings limit, preventing infinite mob spawning issues.
+*   **Raid Editor UI Overhaul:** Custom mob names are now cleanly formatted and truncated in the wave mobs and add mobs lists. Hovering over a mob row displays details like the entity ID, spawn count, and elite chance in a premium popup tooltip.
+
+---
+
 ## [Build 123] - Translatable Mobs Abilities & Custom Damage per Melee Attack Slot (Issue #4)
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:
