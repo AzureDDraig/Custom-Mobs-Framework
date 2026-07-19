@@ -229,7 +229,7 @@ public class MobCreatorScreen extends Screen {
         "MELEE", "MELEE_2", "MELEE_3", "MELEE_4", "MELEE_5", "MELEE_6", "RANGED", "WANDER", "TARGET_PLAYER", "TARGET_REVENGE", 
         "DELAY", "RETURN_TO_SPAWN", "HEAL_ALLIES", "LEAP_ATTACK", 
         "STALK", "SEARCH", "AVOID_LIGHT", "AVOID_PLAYER_WEARING", 
-        "AVOID_MOB", "AVOID_GROUP", "ATTACK_OTHERS", "TARGET_GROUP", "USE_ABILITY",
+        "AVOID_MOB", "AVOID_GROUP", "ATTACK_OTHERS", "TARGET_GROUP", "USE_ABILITY", "SCARE_GROUP",
         "EXPLODE_ON_DEATH", "TELEPORT_ON_HIT", "FLY_HOVER", "PANIC_ON_FIRE", 
         "SWIM_UNDERWATER", "LOOK_AT_PLAYER", "FLEE_SUN", "BURN_IN_SUN",
         "SUMMON_MINIONS", "TELEPORT_BEHIND_TARGET", "PULL_TARGET", "RAGE_MODE",
@@ -1135,6 +1135,15 @@ public class MobCreatorScreen extends Screen {
                     } else if (goal.type.equals("EFFECT_ON_CONTACT") || goal.type.equals("EFFECT_ON_ATTACK")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         cache = new ArrayList<>(BuiltInRegistries.MOB_EFFECT.keySet().stream().map(ResourceLocation::toString).toList());
+                    } else if (goal.type.equals("AVOID_GROUP") || goal.type.equals("TARGET_GROUP") || goal.type.equals("SCARE_GROUP")) {
+                        focused = goalParam1Field; yOffset = 132 + 10;
+                        List<String> list = new ArrayList<>();
+                        for (ddraig.net.custommobs.data.MobData m : MobRegistry.loadedMobs.values()) {
+                            if (m.mobGroup != null && !m.mobGroup.isEmpty() && !list.contains(m.mobGroup)) {
+                                list.add(m.mobGroup);
+                            }
+                        }
+                        cache = list;
                     } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("SUMMON_MINIONS") || goal.type.equals("SUMMON_MINION_PORTAL")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
@@ -1638,6 +1647,11 @@ public class MobCreatorScreen extends Screen {
                 p2Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("target_mob", ""));
                 goalParam2Field.setValue(goal.params.getOrDefault("range", "8.0"));
+            } else if (type.equals("SCARE_GROUP")) {
+                p1Visible = true;
+                p2Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("target_group", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "8.0"));
             } else if (type.equals("TELEPORT_ON_LOW_HEALTH")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("health_percent", "0.2"));
@@ -1969,6 +1983,9 @@ public class MobCreatorScreen extends Screen {
                 goal.params.put("count", goalParam2Field.getValue());
             } else if (type.equals("SCARE_MOB")) {
                 goal.params.put("target_mob", goalParam1Field.getValue());
+                goal.params.put("range", goalParam2Field.getValue());
+            } else if (type.equals("SCARE_GROUP")) {
+                goal.params.put("target_group", goalParam1Field.getValue());
                 goal.params.put("range", goalParam2Field.getValue());
             } else if (type.equals("TELEPORT_ON_LOW_HEALTH")) {
                 goal.params.put("health_percent", goalParam1Field.getValue());
@@ -4730,6 +4747,7 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("AVOID_LIGHT")) { key = "gui.custom_mobs.creator.goal.light_level"; fallback = "Light Level"; }
             else if (type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP")) { key = "gui.custom_mobs.creator.goal.avoid_mob_id"; fallback = "Avoid Mob ID / Group ID"; }
             else if (type.equals("SCARE_MOB")) { key = "gui.custom_mobs.creator.goal.scare_target_id"; fallback = "Scare Target ID"; }
+            else if (type.equals("SCARE_GROUP")) { key = "gui.custom_mobs.creator.goal.group_id"; fallback = "Scare Group ID"; }
             else if (type.equals("AVOID_PLAYER_WEARING")) { key = "gui.custom_mobs.creator.goal.item_id"; fallback = "Item ID"; }
             else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.explosion_power"; fallback = "Explosion Power"; }
             else if (type.equals("DAMAGE_ON_CONTACT")) { key = "gui.custom_mobs.creator.goal.contact_damage"; fallback = "Contact Damage"; }
@@ -4754,7 +4772,7 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("HEAL_ALLIES") || type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("AVOID_PLAYER_WEARING")) {
                 key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Range";
             }
-            else if (type.equals("SCARE_MOB")) {
+            else if (type.equals("SCARE_MOB") || type.equals("SCARE_GROUP")) {
                 key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius";
             }
             else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.break_blocks"; fallback = "Break Blocks"; }

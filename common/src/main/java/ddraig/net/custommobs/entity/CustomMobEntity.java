@@ -527,6 +527,35 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     }
                 }
 
+                if (this.tickCount % 10 == 0 && hasGoalType("SCARE_GROUP")) {
+                    for (MobData.AIGoalData g : data.aiGoals) {
+                        if (g.type.equalsIgnoreCase("SCARE_GROUP")) {
+                            String targetGroup = g.params.getOrDefault("target_group", "");
+                            if (!targetGroup.isEmpty()) {
+                                double range = 8.0;
+                                try {
+                                    range = Double.parseDouble(g.params.getOrDefault("range", "8.0"));
+                                } catch (Exception ignored) {}
+                                final double finalRange = range;
+                                List<PathfinderMob> nearby = this.level().getEntitiesOfClass(PathfinderMob.class, this.getBoundingBox().inflate(finalRange), e -> {
+                                    if (e == this) return false;
+                                    if (e instanceof CustomMobEntity c) {
+                                        MobData cData = MobRegistry.loadedMobs.get(c.getTemplateId());
+                                        return cData != null && targetGroup.equalsIgnoreCase(cData.mobGroup);
+                                    }
+                                    return false;
+                                });
+                                for (PathfinderMob victim : nearby) {
+                                    Vec3 away = DefaultRandomPos.getPosAway(victim, 16, 7, this.position());
+                                    if (away != null) {
+                                        victim.getNavigation().moveTo(away.x, away.y, away.z, 1.25D);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // SUMMON_MINIONS
                 if (hasGoalType("SUMMON_MINIONS") && !isGoalOnCooldown("SUMMON_MINIONS") && customSummonMinionsCooldown <= 0 && this.getTarget() != null) {
                     for (MobData.AIGoalData g : data.aiGoals) {

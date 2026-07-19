@@ -4,6 +4,22 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 119] - SCARE_GROUP AI Goal & Group Autocomplete Suggestions (Issue #2)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   Implemented ticking logic for the new `SCARE_GROUP` AI goal type. When active, it scans for surrounding `PathfinderMob` entities within the configured scare radius (defaulting to `8.0` blocks) and check if they belong to custom mob templates matching the specified `target_group`. Any matching mobs are scared and navigate away.
+*   **`MobCreatorScreen.java`**:
+    *   Added `"SCARE_GROUP"` to the `POSSIBLE_GOALS` array.
+    *   Added parameter load, save, parameter label translation mappings, and field visibility checks for `SCARE_GROUP` (parameter 1 is `"target_group"`, parameter 2 is `"range"`).
+    *   Implemented dynamic autocomplete suggestions for group-based goals (`AVOID_GROUP`, `TARGET_GROUP`, and `SCARE_GROUP`), suggesting all unique group names currently defined on loaded custom mobs.
+*   **Language JSON files (`de_de`, `es_es`, `fr_fr`, `pt_br`, `zh_cn`, `ja_jp`, `ko_kr`, `ru_ru`, `en_us`)**:
+    *   Registered `"gui.custom_mobs.goal_desc.scare_group"` across all language files using an automated scratch script.
+### Layman's Explanation
+*   **Scare Group AI Behavior:** Added a new AI goal type called `SCARE_GROUP`. Mobs with this behavior will scare away other custom mobs belonging to a specific group (e.g. scaring away all "undead" group mobs) within a configurable radius.
+*   **Group Name Autocomplete:** Group-related configuration text fields (for scaring, avoiding, or targeting specific groups) now provide autocomplete suggestion dropdowns listing all existing custom mob group names.
+
+---
+
 ## [Build 118] - Customizable Scare Radius for SCARE_MOB (Issue #2)
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

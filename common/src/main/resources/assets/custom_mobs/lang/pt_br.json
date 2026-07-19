@@ -475,5 +475,6 @@
   "gui.custom_mobs.spawner_edit.tooltip.redstone_pulse": "If enabled, the spawner only attempts a spawn when receiving a redstone pulse.",
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
-  "gui.custom_mobs.creator.goal.gravity": "Gravidade:"
+  "gui.custom_mobs.creator.goal.gravity": "Gravidade:",
+  "gui.custom_mobs.goal_desc.scare_group": "Assusta monstros personalizados pertencentes a um grupo configurado."
 }
