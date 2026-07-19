@@ -2127,6 +2127,22 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         }
     }
 
+    public boolean doHurtTarget(Entity target, double customDamage) {
+        if (customDamage >= 0.0) {
+            var attribute = this.getAttribute(net.minecraft.world.entity.ai.attributes.Attributes.ATTACK_DAMAGE);
+            if (attribute != null) {
+                double baseVal = attribute.getBaseValue();
+                attribute.setBaseValue(customDamage);
+                try {
+                    return this.doHurtTarget(target);
+                } finally {
+                    attribute.setBaseValue(baseVal);
+                }
+            }
+        }
+        return this.doHurtTarget(target);
+    }
+
     @Override
     public boolean doHurtTarget(Entity target) {
         boolean hurt = super.doHurtTarget(target);
@@ -4704,7 +4720,15 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                         double distSqr = mob.distanceToSqr(attackTargetPending.getX(), attackTargetPending.getY(), attackTargetPending.getZ());
                         double reach = this.getAttackReachSqr(attackTargetPending);
                         if (distSqr <= reach) {
-                            this.mob.doHurtTarget(attackTargetPending);
+                            double customDmg = -1.0;
+                            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+                            if (aiGoal != null) {
+                                try {
+                                    String dmgStr = aiGoal.params.get("damage");
+                                    if (dmgStr != null && !dmgStr.isEmpty()) customDmg = Double.parseDouble(dmgStr);
+                                } catch (Exception ignored) {}
+                            }
+                            this.mob.doHurtTarget(attackTargetPending, customDmg);
                         }
                     }
                     attackTargetPending = null;
@@ -4784,7 +4808,14 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     attackTargetPending = target;
                 } else {
                     if (distanceVal <= reach) {
-                        this.mob.doHurtTarget(target);
+                        double customDmg = -1.0;
+                        if (aiGoal != null) {
+                            try {
+                                String dmgStr = aiGoal.params.get("damage");
+                                if (dmgStr != null && !dmgStr.isEmpty()) customDmg = Double.parseDouble(dmgStr);
+                            } catch (Exception ignored) {}
+                        }
+                        this.mob.doHurtTarget(target, customDmg);
                     }
                 }
             }
@@ -5022,7 +5053,14 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     double maxDist = mob.getBbWidth() * 0.5D + target.getBbWidth() * 0.5D + reach;
 
                     if (distSqr <= maxDist * maxDist && diff <= width / 2.0D) {
-                        this.mob.doHurtTarget(target);
+                        double customDmg = -1.0;
+                        if (aiGoal != null) {
+                            try {
+                                String dmgStr = aiGoal.params.get("damage");
+                                if (dmgStr != null && !dmgStr.isEmpty()) customDmg = Double.parseDouble(dmgStr);
+                            } catch (Exception ignored) {}
+                        }
+                        this.mob.doHurtTarget(target, customDmg);
                     }
                 }
             }
@@ -5239,10 +5277,17 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         }
 
         private void performKnockbackAttack(LivingEntity target) {
-            this.mob.doHurtTarget(target);
+            double customDmg = -1.0;
+            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
+            if (aiGoal != null) {
+                try {
+                    String dmgStr = aiGoal.params.get("damage");
+                    if (dmgStr != null && !dmgStr.isEmpty()) customDmg = Double.parseDouble(dmgStr);
+                } catch (Exception ignored) {}
+            }
+            this.mob.doHurtTarget(target, customDmg);
 
             double distanceVal = 8.0D;
-            MobData.AIGoalData aiGoal = mob.getGoalData(goalType);
             if (aiGoal != null) {
                 try {
                     distanceVal = Double.parseDouble(aiGoal.params.getOrDefault("distance", "8.0"));

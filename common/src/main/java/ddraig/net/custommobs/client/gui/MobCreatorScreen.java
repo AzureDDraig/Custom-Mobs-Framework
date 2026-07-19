@@ -1468,6 +1468,7 @@ public class MobCreatorScreen extends Screen {
                 p2Visible = true;
                 p3Visible = true;
                 p4Visible = true;
+                p5Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("sound", ""));
                 goalParam2Field.setValue(goal.params.getOrDefault("damageDelay", "0"));
                 goalParam2Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage_delay")));
@@ -1475,21 +1476,29 @@ public class MobCreatorScreen extends Screen {
                 goalParam3Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.reach")));
                 goalParam4Field.setValue(goal.params.getOrDefault("width", "120.0"));
                 goalParam4Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.width")));
+                goalParam5Field.setValue(goal.params.getOrDefault("damage", ""));
+                goalParam5Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage")));
             } else if (type.startsWith("KNOCKBACK")) {
+                p1Visible = true;
+                p2Visible = true;
+                p3Visible = true;
+                p4Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("sound", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("damageDelay", "0"));
+                goalParam2Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage_delay")));
+                goalParam3Field.setValue(goal.params.getOrDefault("distance", "8.0"));
+                goalParam3Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.knockback_distance")));
+                goalParam4Field.setValue(goal.params.getOrDefault("damage", ""));
+                goalParam4Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage")));
+            } else if (type.startsWith("MELEE")) {
                 p1Visible = true;
                 p2Visible = true;
                 p3Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("sound", ""));
                 goalParam2Field.setValue(goal.params.getOrDefault("damageDelay", "0"));
                 goalParam2Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage_delay")));
-                goalParam3Field.setValue(goal.params.getOrDefault("distance", "8.0"));
-                goalParam3Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.knockback_distance")));
-            } else if (type.startsWith("MELEE")) {
-                p1Visible = true;
-                p2Visible = true;
-                goalParam1Field.setValue(goal.params.getOrDefault("sound", ""));
-                goalParam2Field.setValue(goal.params.getOrDefault("damageDelay", "0"));
-                goalParam2Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage_delay")));
+                goalParam3Field.setValue(goal.params.getOrDefault("damage", ""));
+                goalParam3Field.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.creator.goal.tooltip.melee_damage")));
             } else if (type.equals("RANGED")) {
                 p1Visible = true;
                 p2Visible = true;
@@ -1904,13 +1913,16 @@ public class MobCreatorScreen extends Screen {
                 goal.params.put("damageDelay", goalParam2Field.getValue());
                 goal.params.put("reach", goalParam3Field.getValue());
                 goal.params.put("width", goalParam4Field.getValue());
+                goal.params.put("damage", goalParam5Field.getValue());
             } else if (type.startsWith("KNOCKBACK")) {
                 goal.params.put("sound", goalParam1Field.getValue());
                 goal.params.put("damageDelay", goalParam2Field.getValue());
                 goal.params.put("distance", goalParam3Field.getValue());
+                goal.params.put("damage", goalParam4Field.getValue());
             } else if (type.startsWith("MELEE")) {
                 goal.params.put("sound", goalParam1Field.getValue());
                 goal.params.put("damageDelay", goalParam2Field.getValue());
+                goal.params.put("damage", goalParam3Field.getValue());
             } else if (type.equals("RANGED")) {
                 goal.params.put("sound", goalParam1Field.getValue());
                 goal.params.put("projectileId", goalParam2Field.getValue());
@@ -2778,14 +2790,23 @@ public class MobCreatorScreen extends Screen {
                 graphics.fill(rowX, rowY, rowX + rowW, rowY + rowH, 0x11FFFFFF);
                 UIHelper.drawOutline(graphics, rowX, rowY, rowW, rowH, borderC);
 
-                graphics.drawString(this.font, abName, rowX + 22, rowY + 4, textNormalC, false);
+                String transNameKey = "ability.custom_mobs." + abName.toLowerCase().replace(" ", "_");
+                String displayName = Component.translatable(transNameKey).getString();
+                if (displayName.equals(transNameKey)) {
+                    displayName = abName;
+                }
+                graphics.drawString(this.font, displayName, rowX + 22, rowY + 4, textNormalC, false);
                 graphics.fill(rowX + 6, rowY + 3, rowX + 16, rowY + 13, active ? 0xFF00FF00 : 0xFFFF0000);
 
                 if (mouseX >= rowX && mouseX <= rowX + rowW && mouseY >= rowY && mouseY <= rowY + rowH) {
                     graphics.fill(rowX + 1, rowY + 1, rowX + rowW - 1, rowY + rowH - 1, 0x22FFFFFF);
-                    String desc = ABILITY_DESCS.getOrDefault(abName, "No description.");
+                    String transDescKey = "ability_desc.custom_mobs." + abName.toLowerCase().replace(" ", "_");
+                    String desc = Component.translatable(transDescKey).getString();
+                    if (desc.equals(transDescKey)) {
+                        desc = ABILITY_DESCS.getOrDefault(abName, "No description.");
+                    }
                     this.hoveredTooltip = List.of(
-                        Component.literal("§e" + abName),
+                        Component.literal("§e" + displayName),
                         Component.literal("§7" + desc)
                     );
                 }
@@ -4514,13 +4535,22 @@ public class MobCreatorScreen extends Screen {
         if (type.equals("SHOTGUN_ATTACK")) {
             return paramNum <= 6;
         }
-        if (type.startsWith("MELEE_AOE") || type.equals("RANGED")) {
+        if (type.startsWith("MELEE_AOE")) {
+            return paramNum <= 5;
+        }
+        if (type.equals("RANGED")) {
             return paramNum <= 4;
         }
-        if (type.startsWith("KNOCKBACK") || type.startsWith("EXPLODE_ON_") || type.startsWith("EFFECT_ON_") || type.equals("SPLIT_ON_DEATH") || type.equals("SUMMON_MINIONS")) {
+        if (type.startsWith("KNOCKBACK")) {
+            return paramNum <= 4;
+        }
+        if (type.startsWith("MELEE")) {
             return paramNum <= 3;
         }
-        if (type.startsWith("MELEE") || type.equals("PULL_TARGET") || type.equals("RAGE_MODE") || type.equals("FIRE_TRAIL") || type.equals("FROST_TOUCH") || type.equals("LIGHTNING_STRIKE") || type.equals("GIFT_GIVER")) {
+        if (type.startsWith("EXPLODE_ON_") || type.startsWith("EFFECT_ON_") || type.equals("SPLIT_ON_DEATH") || type.equals("SUMMON_MINIONS")) {
+            return paramNum <= 3;
+        }
+        if (type.equals("PULL_TARGET") || type.equals("RAGE_MODE") || type.equals("FIRE_TRAIL") || type.equals("FROST_TOUCH") || type.equals("LIGHTNING_STRIKE") || type.equals("GIFT_GIVER")) {
             return paramNum <= 2;
         }
         return false;
@@ -4796,7 +4826,7 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.damage_multiplier"; fallback = "Damage Multiplier"; }
             else if (type.startsWith("MELEE_AOE")) { key = "gui.custom_mobs.creator.goal.reach"; fallback = "Reach"; }
             else if (type.startsWith("KNOCKBACK")) { key = "gui.custom_mobs.creator.goal.knockback_distance"; fallback = "Knockback Distance"; }
-            else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
+            else if (type.startsWith("SUMMON_") || type.startsWith("MELEE") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
                 key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage";
             }
             else if (type.equals("HEAL_ALLIES")) { key = "gui.custom_mobs.creator.goal.heal_amount"; fallback = "Heal Amount"; }
@@ -4813,6 +4843,7 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.goal.quantity"; fallback = "Quantity"; }
             else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.gravity"; fallback = "Gravity"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.speed"; fallback = "Speed"; }
+            else if (type.startsWith("KNOCKBACK")) { key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage"; }
         } else if (paramNum == 5) {
             key = "gui.custom_mobs.creator.goal.param5";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.max_minions"; fallback = "Max Minions"; }
@@ -4822,6 +4853,7 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.orbit_radius"; fallback = "Orbit Radius"; }
             else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.quantity"; fallback = "Quantity"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.count"; fallback = "Count"; }
+            else if (type.startsWith("MELEE_AOE")) { key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage"; }
         } else if (paramNum == 6) {
             key = "gui.custom_mobs.creator.goal.param6";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_radius"; fallback = "Spawn Radius"; }

@@ -4,6 +4,22 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 123] - Translatable Mobs Abilities & Custom Damage per Melee Attack Slot (Issue #4)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   Added a `doHurtTarget(Entity target, double customDamage)` overload. This method temporarily sets the mob's base attack damage attribute to `customDamage` during the damage transaction call and restores the original value afterwards, ensuring vanilla mechanics are fully respected.
+    *   Updated `CustomMeleeAttackGoal`, `CustomMeleeAOEAttackGoal`, and `CustomKnockbackAttackGoal` to check if a `"damage"` string parameter is specified inside the active goal's JSON parameters, parsing and passing it to the custom `doHurtTarget` overload.
+*   **`MobCreatorScreen.java`**:
+    *   **Abilities list:** Replaced hardcoded ability display names and descriptions with `Component.translatable` lookups (`ability.custom_mobs.<name>` and `ability_desc.custom_mobs.<name>`), falling back to English defaults if translations are missing.
+    *   **Melee Goals parameters:** Registered custom `"damage"` parameter mappings (including fields, tooltips, and labels) for `MELEE`, `MELEE_AOE`, and `KNOCKBACK` attacks under `isParamActive`, `loadActiveMobGoalDetails`, `saveActiveMobGoalDetails`, and `getParamLabel`.
+*   **Language JSON files (`de_de`, `es_es`, `fr_fr`, `pt_br`, `zh_cn`, `ja_jp`, `ko_kr`, `ru_ru`, `en_us`)**:
+    *   Registered `"gui.custom_mobs.creator.goal.tooltip.melee_damage"` along with localized ability name and description translation keys across all language JSON files.
+### Layman's Explanation
+*   **Custom Damage per Melee Attack:** You can now configure different damage amounts for each individual melee attack goal (like a weak sweep attack vs. a heavy smash attack) inside the Mob Creator Screen under the AI goals parameter settings.
+*   **Fully Translatable Abilities:** Custom passive and active abilities (and their hover descriptions) are now fully localized and translatable into other languages using standard Minecraft language resource files.
+
+---
+
 ## [Build 122] - RPG Spawner Pulse, Cooldowns, Name Hovers & Spawning Env UI (Issue #4)
 ### Technical Changes (By Class)
 *   **`RPGMobSpawnerBlockEntity.java`**:
