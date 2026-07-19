@@ -4,6 +4,25 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 116] - Projectile UI & Gameplay Fixes (Issue #3)
+### Technical Changes (By Class)
+*   **`ProjectileCreatorScreen.java`**:
+    *   Aligned the suggestions autocomplete coordinates, width, and scroll values between `render()` and `mouseClicked()` by driving coordinates dynamically off the active edit box. This resolves the bug where click detection for the status effect search box was offset and failed to register clicks.
+    *   Replaced the basic `truncate(suggestion, 22)` string truncation with dynamic horizontal scrolling text formatting, matching the behavior of the Mob Creator Screen. This allows playtesters to view long sound and particle names in full.
+    *   Removed redundant `suggestionsYOffset` and related calculations.
+*   **`CustomProjectileRenderer.java`**:
+    *   Centered custom models (GeckoLib or Java) vertically inside the projectile's bounding box by translating the render `poseStack` upwards on the Y-axis by half of the bounding box height (`entity.getBbHeight() * 0.5D`).
+    *   Fixed a bug where the renderer's dummy Mob template didn't inherit the custom projectile's configured hitbox dimensions, by assigning `fakeMob.hitboxWidth = data.hitboxWidth` and `fakeMob.hitboxHeight = data.hitboxHeight`.
+*   **`CustomProjectileEntity.java`**:
+    *   Enabled entity hit logic during the landed phase for ground summons (`isGroundSummon == true`) by allowing `onHitEntity()` to bypass the `ticksAfterLanding > -1` early return check.
+    *   Added entity collision scanning to the `ticksAfterLanding > 0` tick updates on the server level, executing `onHitEntity()` once per newly-collided entity so potion effects and damage are applied successfully when targets step on landed projectiles.
+### Layman's Explanation
+*   **Autocomplete Click Detection & Scrolling:** Fixed a bug where playtesters could not select search suggestions for potion effect IDs because click detection was offset. Autocomplete suggestions now register clicks correctly, and long sound names now scroll horizontally when hovered so they are no longer cut off.
+*   **Centered Projectile Models:** Centered custom model renderings vertically inside their collision box. This aligns the visual projectile with its actual hitbox in-game.
+*   **Landed Projectile Hits:** Fixed a gameplay bug where ground-summoned projectile attacks (like circles, spikes, or trails) did not apply damage or potion status effects to entities that stepped on them after they had spawned on the ground.
+
+---
+
 ## [Build 115] - Descriptive AI Goal Parameter Labels
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

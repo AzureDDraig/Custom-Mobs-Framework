@@ -87,6 +87,8 @@ public class CustomProjectileRenderer extends EntityRenderer<CustomProjectileEnt
             fakeMob.modelId = data.modelId;
             fakeMob.texturePath = data.texturePath;
             fakeMob.scale = data.scale;
+            fakeMob.hitboxWidth = data.hitboxWidth;
+            fakeMob.hitboxHeight = data.hitboxHeight;
             fakeMob.billboardName = false;
             MobRegistry.loadedMobs.put(fakeTemplateId, fakeMob);
         } else {
@@ -95,6 +97,8 @@ public class CustomProjectileRenderer extends EntityRenderer<CustomProjectileEnt
             fakeMob.modelId = data.modelId;
             fakeMob.texturePath = data.texturePath;
             fakeMob.scale = data.scale;
+            fakeMob.hitboxWidth = data.hitboxWidth;
+            fakeMob.hitboxHeight = data.hitboxHeight;
         }
 
         this.dummyMob.setTemplateId(fakeTemplateId);
@@ -103,6 +107,7 @@ public class CustomProjectileRenderer extends EntityRenderer<CustomProjectileEnt
         initMobRenderer();
 
         poseStack.pushPose();
+        poseStack.translate(0.0D, entity.getBbHeight() * 0.5D, 0.0D);
         this.mobRenderer.render(this.dummyMob, entityYaw, partialTicks, poseStack, buffer, packedLight);
         poseStack.popPose();
     }

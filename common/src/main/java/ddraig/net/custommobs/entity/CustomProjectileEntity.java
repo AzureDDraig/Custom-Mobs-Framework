@@ -272,6 +272,19 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
         if (this.ticksAfterLanding > 0) {
             this.ticksAfterLanding--;
             this.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+            
+            if (!this.level().isClientSide) {
+                double radiusX = this.getBbWidth() * 0.5D;
+                double radiusY = this.getBbHeight() * 0.5D;
+                net.minecraft.world.phys.AABB checkStr = this.getBoundingBox().inflate(radiusX, radiusY, radiusX);
+                for (net.minecraft.world.entity.Entity entity : this.level().getEntities(this, checkStr, this::canHitEntity)) {
+                    if (entity instanceof LivingEntity target && !isAlly(target)) {
+                        EntityHitResult entityHit = new EntityHitResult(target);
+                        this.onHitEntity(entityHit);
+                    }
+                }
+            }
+
             if (this.ticksAfterLanding == 0) {
                 if (!this.level().isClientSide) {
                     this.discard();
@@ -489,7 +502,8 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
     @Override
     protected void onHitEntity(EntityHitResult result) {
         int stuckId = this.entityData.get(STUCK_ENTITY_ID);
-        if (stuckId != -1 || this.ticksAfterLanding > -1) return;
+        if (stuckId != -1) return;
+        if (this.ticksAfterLanding > -1 && !this.isGroundSummon) return;
 
         if (this.level().isClientSide || isAlly(result.getEntity())) {
             return;

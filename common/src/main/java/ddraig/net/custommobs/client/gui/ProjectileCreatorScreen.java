@@ -50,11 +50,9 @@ public class ProjectileCreatorScreen extends Screen {
     private EditBox effectAmpField;
     private EditBox explosionRadiusField;
 
-    // Autocomplete dropdown suggestions state
     private boolean showSuggestions = false;
     private List<String> activeSuggestions = new ArrayList<>();
     private EditBox activeField = null;
-    private int suggestionsYOffset = 0;
     private int suggestionsScrollOffset = 0;
 
     // Tooltip overlay
@@ -207,13 +205,11 @@ public class ProjectileCreatorScreen extends Screen {
 
         try {
             EditBox focused = null;
-            int yOffset = 0;
             List<String> cache = null;
 
             if (activeTab.equals("Basics")) {
                 if (modelIdField.isFocused()) {
                     focused = modelIdField;
-                    yOffset = 65 + 10;
                     if (selectedProj.modelType.equals("vanilla")) {
                         cache = new ArrayList<>(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                     } else {
@@ -221,26 +217,19 @@ public class ProjectileCreatorScreen extends Screen {
                     }
                 } else if (textureField.isFocused()) {
                     focused = textureField;
-                    yOffset = 90 + 10;
                     cache = getTextureSuggestions();
                 }
             } else if (activeTab.equals("Sounds")) {
                 if (landSoundField.isFocused()) {
                     focused = landSoundField;
-                    yOffset = 15 + 10;
                     cache = MobRegistry.cachedSounds;
                 } else if (particleTypeField.isFocused()) {
                     focused = particleTypeField;
-                    yOffset = 40 + 10;
                     cache = new ArrayList<>(BuiltInRegistries.PARTICLE_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                 }
             } else if (activeTab.equals("Effects")) {
                 if (effectIdField.isFocused() && effectIdField.visible) {
                     focused = effectIdField;
-                    int tempLeft = (this.width - this.panelW) / 2;
-                    int tempTop = (this.height - this.panelH) / 2;
-                    int formY = tempTop + 42;
-                    yOffset = (effectIdField.getY() - formY) + 10;
                     cache = new ArrayList<>(BuiltInRegistries.MOB_EFFECT.keySet().stream().map(ResourceLocation::toString).toList());
                 }
             }
@@ -255,7 +244,6 @@ public class ProjectileCreatorScreen extends Screen {
                 }
                 showSuggestions = true;
                 activeField = focused;
-                suggestionsYOffset = yOffset;
             } else {
                 showSuggestions = false;
                 activeField = null;
@@ -578,13 +566,9 @@ public class ProjectileCreatorScreen extends Screen {
 
         // Draw suggestions autocomplete dropdown (elevating Z index to block bleed-through)
         if (showSuggestions && !activeSuggestions.isEmpty() && activeField != null) {
-            int formX = left + 120;
-            int formY = top + 42;
-            int formW = (int) ((panelW - 130) * 0.6);
-
-            int dropX = formX + 110;
-            int dropY = formY + suggestionsYOffset;
-            int dropW = formW - 120;
+            int dropX = activeField.getX();
+            int dropY = activeField.getY() + activeField.getHeight() + 2;
+            int dropW = activeField.getWidth();
             int rowH = 12;
             int maxVisibleRows = 5;
             int visibleRows = Math.min(maxVisibleRows, activeSuggestions.size());
@@ -606,7 +590,30 @@ public class ProjectileCreatorScreen extends Screen {
                 if (hoverRow) {
                     graphics.fill(dropX + 1, suggestionY + 1, dropX + dropW - 1, suggestionY + rowH - 1, 0xFF444444);
                 }
-                graphics.drawString(this.font, truncate(suggestion, 22), dropX + 4, suggestionY + 2, 0xFFFFFFFF, false);
+                
+                String scrolledText = suggestion;
+                int textW = this.font.width(suggestion);
+                int maxW = dropW - 8;
+                if (textW > maxW) {
+                    int overflow = textW - maxW;
+                    int speed = 30; // ms per pixel
+                    long totalDuration = overflow * speed + 2000;
+                    long t = System.currentTimeMillis() % totalDuration;
+                    int shiftPixels = 0;
+                    if (t > 1000 && t < 1000 + overflow * speed) {
+                        shiftPixels = (int) ((t - 1000) / speed);
+                    } else if (t >= 1000 + overflow * speed) {
+                        shiftPixels = overflow;
+                    }
+                    int startIndex = 0;
+                    while (startIndex < suggestion.length() && this.font.width(suggestion.substring(0, startIndex)) < shiftPixels) {
+                        startIndex++;
+                    }
+                    String visiblePart = suggestion.substring(startIndex);
+                    scrolledText = this.font.plainSubstrByWidth(visiblePart, maxW);
+                }
+
+                graphics.drawString(this.font, scrolledText, dropX + 4, suggestionY + 2, 0xFFFFFFFF, false);
             }
             
             graphics.pose().popPose();
@@ -785,7 +792,7 @@ public class ProjectileCreatorScreen extends Screen {
         if (showSuggestions && !activeSuggestions.isEmpty() && activeField != null) {
             int dropX = activeField.getX();
             int dropY = activeField.getY() + activeField.getHeight() + 2;
-            int dropW = Math.max(180, activeField.getWidth());
+            int dropW = activeField.getWidth();
             int rowH = 12;
             int maxVisibleRows = 5;
             int visibleRows = Math.min(maxVisibleRows, activeSuggestions.size());
