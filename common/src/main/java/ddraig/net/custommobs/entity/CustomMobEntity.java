@@ -1153,6 +1153,29 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     }
 
     @Override
+    protected void tickDeath() {
+        this.deathTime++;
+        int maxDeathTime = 20;
+        MobData data = MobRegistry.loadedMobs.get(this.getTemplateId());
+        if (data != null) {
+            String deathAnim = data.animations.get("death");
+            if (deathAnim != null && !deathAnim.isEmpty()) {
+                int animLength = getAnimationLengthInTicks(deathAnim);
+                if (animLength > 0) {
+                    maxDeathTime = animLength;
+                }
+            }
+        }
+
+        if (this.deathTime >= maxDeathTime) {
+            if (!this.level().isClientSide()) {
+                this.level().broadcastEntityEvent(this, (byte) 3);
+                this.discard();
+            }
+        }
+    }
+
+    @Override
     public void aiStep() {
         super.aiStep();
         if (this.level().isDay() && !this.level().isClientSide) {
@@ -1486,6 +1509,14 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             CustomMobEntity mob = event.getAnimatable();
             MobData data = MobRegistry.loadedMobs.get(mob.getTemplateId());
             if (data == null) return PlayState.CONTINUE;
+
+            if (mob.isDeadOrDying()) {
+                String deathAnim = data.animations.get("death");
+                if (deathAnim != null && !deathAnim.isEmpty()) {
+                    event.getController().setAnimation(software.bernie.geckolib.core.animation.RawAnimation.begin().thenPlay(deathAnim));
+                    return PlayState.CONTINUE;
+                }
+            }
 
             String active = mob.getActiveAnimation();
             if (active != null && !active.isEmpty()) {

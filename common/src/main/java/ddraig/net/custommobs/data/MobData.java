@@ -118,6 +118,7 @@ public class MobData {
         public String nbt = ""; // JSON string for item NBT
         public boolean lootingRequired = false;
         public int lootingLevel = 0;
+        public Map<String, String> params = new HashMap<>();
     }
 
     public static class AIGoalData {

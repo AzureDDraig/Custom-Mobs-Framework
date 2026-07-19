@@ -32,6 +32,7 @@ import java.util.Map;
 public class MobCreatorScreen extends Screen {
     private final List<MobData> mobTemplates = new ArrayList<>();
     private MobData selectedMob;
+    private int sidebarScroll = 0;
     private String activeTab = "General"; // General, Model, AI, Stats, Abilities, Sounds, Loot, Spawning
 
     private int panelW = 440;
@@ -646,18 +647,54 @@ public class MobCreatorScreen extends Screen {
         this.lootChanceField = new EditBox(this.font, formX + 114, formY + 138, 50, 10, Component.literal("Loot Chance"));
         this.lootChanceField.setValue("");
         this.lootChanceField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.loot_chance")));
+        this.lootChanceField.setResponder(val -> {
+            if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
+                var item = selectedMob.loot.items.get(selectedLootIndex);
+                item.params.put("chance", val);
+                try {
+                    item.chance = Double.parseDouble(val.trim());
+                } catch (Exception ignored) {}
+            }
+        });
 
         this.lootMinField = new EditBox(this.font, formX + 114, formY + 153, 40, 10, Component.literal("Min Qty"));
         this.lootMinField.setValue("");
         this.lootMinField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.loot_min")));
+        this.lootMinField.setResponder(val -> {
+            if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
+                var item = selectedMob.loot.items.get(selectedLootIndex);
+                item.params.put("minCount", val);
+                try {
+                    item.minCount = Integer.parseInt(val.trim());
+                } catch (Exception ignored) {}
+            }
+        });
 
         this.lootMaxField = new EditBox(this.font, formX + 169, formY + 153, 40, 10, Component.literal("Max Qty"));
-        this.lootMaxField.setValue(String.valueOf(selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size() ? selectedMob.loot.items.get(selectedLootIndex).maxCount : ""));
+        this.lootMaxField.setValue("");
         this.lootMaxField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.loot_max")));
+        this.lootMaxField.setResponder(val -> {
+            if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
+                var item = selectedMob.loot.items.get(selectedLootIndex);
+                item.params.put("maxCount", val);
+                try {
+                    item.maxCount = Integer.parseInt(val.trim());
+                } catch (Exception ignored) {}
+            }
+        });
 
         this.lootLevelField = new EditBox(this.font, formX + 169, formY + 170, 40, 10, Component.literal("Looting Level"));
         this.lootLevelField.setValue("");
         this.lootLevelField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.loot_level")));
+        this.lootLevelField.setResponder(val -> {
+            if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
+                var item = selectedMob.loot.items.get(selectedLootIndex);
+                item.params.put("lootingLevel", val);
+                try {
+                    item.lootingLevel = Integer.parseInt(val.trim());
+                } catch (Exception ignored) {}
+            }
+        });
 
         // Animations tab initializations
         int animsMaxW = 0;
@@ -786,65 +823,97 @@ public class MobCreatorScreen extends Screen {
         applyBorderless(goalParam7Field);
         applyBorderless(goalParam8Field);
 
-        this.addRenderableWidget(this.nameField);
-        this.addRenderableWidget(this.mobGroupField);
-        this.addRenderableWidget(this.tamingChanceField);
-        this.addRenderableWidget(this.loreField);
-        this.addRenderableWidget(this.modelIdField);
-        this.addRenderableWidget(this.textureField);
-        this.addRenderableWidget(this.animField);
-        this.addRenderableWidget(this.healthField);
-        this.addRenderableWidget(this.speedField);
-        this.addRenderableWidget(this.followRangeField);
-        this.addRenderableWidget(this.damageField);
-        this.addRenderableWidget(this.armorField);
-        this.addRenderableWidget(this.attackSpeedField);
-        this.addRenderableWidget(this.attackReachField);
-        this.addRenderableWidget(this.knockbackResistanceField);
-        this.addRenderableWidget(this.knockbackInflictedField);
-        this.addRenderableWidget(this.regenSpeedField);
-        this.addRenderableWidget(this.stepHeightField);
-        this.addRenderableWidget(this.fallResField);
-        this.addRenderableWidget(this.reflectionChanceField);
-        this.addRenderableWidget(this.ambientSoundField);
-        this.addRenderableWidget(this.stepSoundField);
-        this.addRenderableWidget(this.hurtSoundField);
-        this.addRenderableWidget(this.deathSoundField);
-        this.addRenderableWidget(this.attackSoundField);
-        this.addRenderableWidget(this.xpField);
-        this.addRenderableWidget(this.minHeightField);
-        this.addRenderableWidget(this.maxHeightField);
-        this.addRenderableWidget(this.spawnBlockField);
-        this.addRenderableWidget(this.minLightField);
-        this.addRenderableWidget(this.maxLightField);
-        this.addRenderableWidget(this.minGroupField);
-        this.addRenderableWidget(this.maxGroupField);
-        this.addRenderableWidget(this.naturalWeightField);
-        this.addRenderableWidget(this.biomeSearchField);
-        this.addRenderableWidget(this.structureField);
-        this.addRenderableWidget(this.goalAnimationField);
-        this.addRenderableWidget(this.goalGroupField);
-        this.addRenderableWidget(this.goalDelayField);
-        this.addRenderableWidget(this.behaviorSearchField);
-        this.addRenderableWidget(this.lootChanceField);
-        this.addRenderableWidget(this.lootMinField);
-        this.addRenderableWidget(this.lootMaxField);
-        this.addRenderableWidget(this.lootLevelField);
-        this.addRenderableWidget(this.idleAnimField);
-        this.addRenderableWidget(this.walkAnimField);
-        this.addRenderableWidget(this.attackAnimField);
-        this.addRenderableWidget(this.deathAnimField);
-        this.addRenderableWidget(this.swimAnimField);
-        this.addRenderableWidget(this.flyAnimField);
-        this.addRenderableWidget(this.goalParam1Field);
-        this.addRenderableWidget(this.goalParam2Field);
-        this.addRenderableWidget(this.goalParam3Field);
-        this.addRenderableWidget(this.goalParam4Field);
-        this.addRenderableWidget(this.goalParam5Field);
-        this.addRenderableWidget(this.goalParam6Field);
-        this.addRenderableWidget(this.goalParam7Field);
-        this.addRenderableWidget(this.goalParam8Field);
-        this.addRenderableWidget(this.itemSearchField);
+        if (showItemSelector) {
+            this.addRenderableWidget(this.itemSearchField);
+        } else if (selectedMob != null) {
+            if (activeTab.equals("General")) {
+                this.addRenderableWidget(this.nameField);
+                this.addRenderableWidget(this.mobGroupField);
+                if (selectedMob.tameable) {
+                    this.addRenderableWidget(this.tamingChanceField);
+                }
+                this.addRenderableWidget(this.loreField);
+            } else if (activeTab.equals("Model")) {
+                if (!selectedMob.modelType.equals("mcmodel")) {
+                    this.addRenderableWidget(this.modelIdField);
+                }
+                if (!selectedMob.modelType.equals("mcmodel") && (selectedMob.modelType.equals("geckolib") || selectedMob.modelType.equals("java"))) {
+                    this.addRenderableWidget(this.textureField);
+                }
+                if (!selectedMob.modelType.equals("mcmodel") && selectedMob.modelType.equals("geckolib")) {
+                    this.addRenderableWidget(this.animField);
+                }
+            } else if (activeTab.equals("Animations")) {
+                this.addRenderableWidget(this.idleAnimField);
+                this.addRenderableWidget(this.walkAnimField);
+                this.addRenderableWidget(this.attackAnimField);
+                this.addRenderableWidget(this.deathAnimField);
+                this.addRenderableWidget(this.swimAnimField);
+                this.addRenderableWidget(this.flyAnimField);
+            } else if (activeTab.equals("Stats")) {
+                this.addRenderableWidget(this.healthField);
+                this.addRenderableWidget(this.speedField);
+                this.addRenderableWidget(this.followRangeField);
+                this.addRenderableWidget(this.damageField);
+                this.addRenderableWidget(this.armorField);
+                this.addRenderableWidget(this.attackSpeedField);
+                this.addRenderableWidget(this.attackReachField);
+                this.addRenderableWidget(this.knockbackResistanceField);
+                this.addRenderableWidget(this.knockbackInflictedField);
+                this.addRenderableWidget(this.regenSpeedField);
+                this.addRenderableWidget(this.stepHeightField);
+                this.addRenderableWidget(this.fallResField);
+                this.addRenderableWidget(this.reflectionChanceField);
+            } else if (activeTab.equals("Sounds")) {
+                this.addRenderableWidget(this.ambientSoundField);
+                this.addRenderableWidget(this.stepSoundField);
+                this.addRenderableWidget(this.hurtSoundField);
+                this.addRenderableWidget(this.deathSoundField);
+                this.addRenderableWidget(this.attackSoundField);
+            } else if (activeTab.equals("Loot")) {
+                this.addRenderableWidget(this.xpField);
+                boolean lootSelected = selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size();
+                if (lootSelected) {
+                    this.addRenderableWidget(this.lootChanceField);
+                    this.addRenderableWidget(this.lootMinField);
+                    this.addRenderableWidget(this.lootMaxField);
+                    var item = selectedMob.loot.items.get(selectedLootIndex);
+                    if (item.lootingRequired) {
+                        this.addRenderableWidget(this.lootLevelField);
+                    }
+                }
+            } else if (activeTab.equals("Spawning")) {
+                this.addRenderableWidget(this.minHeightField);
+                this.addRenderableWidget(this.maxHeightField);
+                this.addRenderableWidget(this.spawnBlockField);
+                this.addRenderableWidget(this.minLightField);
+                this.addRenderableWidget(this.maxLightField);
+                this.addRenderableWidget(this.minGroupField);
+                this.addRenderableWidget(this.maxGroupField);
+                this.addRenderableWidget(this.naturalWeightField);
+                this.addRenderableWidget(this.biomeSearchField);
+                this.addRenderableWidget(this.structureField);
+            } else if (activeTab.equals("AI")) {
+                this.addRenderableWidget(this.behaviorSearchField);
+                boolean aiGoalSelected = selectedGoalIndex >= 0 && selectedGoalIndex < selectedMob.aiGoals.size();
+                if (aiGoalSelected) {
+                    this.addRenderableWidget(this.goalAnimationField);
+                    var goal = selectedMob.aiGoals.get(selectedGoalIndex);
+                    if (isGroupGoal(goal.type)) {
+                        this.addRenderableWidget(this.goalGroupField);
+                    }
+                    this.addRenderableWidget(this.goalDelayField);
+                    this.addRenderableWidget(this.goalParam1Field);
+                    this.addRenderableWidget(this.goalParam2Field);
+                    this.addRenderableWidget(this.goalParam3Field);
+                    this.addRenderableWidget(this.goalParam4Field);
+                    this.addRenderableWidget(this.goalParam5Field);
+                    this.addRenderableWidget(this.goalParam6Field);
+                    this.addRenderableWidget(this.goalParam7Field);
+                    this.addRenderableWidget(this.goalParam8Field);
+                }
+            }
+        }
 
         for (var child : this.children()) {
             if (child instanceof EditBox eb) {
@@ -1143,6 +1212,19 @@ public class MobCreatorScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        int left = (this.width - this.panelW) / 2;
+        int top = (this.height - this.panelH) / 2;
+        int listX = left + 10;
+        int listY = top + 25;
+        int listW = 100;
+        int listH = panelH - 55;
+        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
+            int visibleCount = (listH - 10) / 12;
+            int maxScroll = Math.max(0, mobTemplates.size() - visibleCount);
+            sidebarScroll = Math.max(0, Math.min(maxScroll, sidebarScroll - (int) amount));
+            return true;
+        }
+
         if (showItemSelector) {
             int totalItems = getFilteredItemCount();
             int totalRows = (int) Math.ceil((double) totalItems / 9.0);
@@ -1162,8 +1244,8 @@ public class MobCreatorScreen extends Screen {
             return true;
         }
         if (activeTab.equals("AI")) {
-            int left = (this.width - this.panelW) / 2;
-            int top = (this.height - this.panelH) / 2;
+            left = (this.width - this.panelW) / 2;
+            top = (this.height - this.panelH) / 2;
             int formX = left + 120;
             int formY = top + 42;
             int formW = (int) ((panelW - 130) * 0.6);
@@ -1199,13 +1281,13 @@ public class MobCreatorScreen extends Screen {
         this.showItemSelector = true;
         this.itemSelectorScroll = 0;
         this.itemSelectionCallback = callback;
-        showFieldsForTab();
+        this.init(this.minecraft, this.width, this.height);
         this.itemSearchField.setFocused(true);
     }
 
     private void closeItemSelector() {
         this.showItemSelector = false;
-        showFieldsForTab();
+        this.init(this.minecraft, this.width, this.height);
     }
 
     private void showFieldsForTab() {
@@ -1272,10 +1354,10 @@ public class MobCreatorScreen extends Screen {
         boolean lootLevelVisible = false;
         if (lootSelected) {
             var item = selectedMob.loot.items.get(selectedLootIndex);
-            lootChanceField.setValue(String.valueOf(item.chance));
-            lootMinField.setValue(String.valueOf(item.minCount));
-            lootMaxField.setValue(String.valueOf(item.maxCount));
-            lootLevelField.setValue(String.valueOf(item.lootingLevel));
+            if (!lootChanceField.isFocused()) lootChanceField.setValue(item.params.getOrDefault("chance", String.valueOf(item.chance)));
+            if (!lootMinField.isFocused()) lootMinField.setValue(item.params.getOrDefault("minCount", String.valueOf(item.minCount)));
+            if (!lootMaxField.isFocused()) lootMaxField.setValue(item.params.getOrDefault("maxCount", String.valueOf(item.maxCount)));
+            if (!lootLevelField.isFocused()) lootLevelField.setValue(item.params.getOrDefault("lootingLevel", String.valueOf(item.lootingLevel)));
             lootLevelVisible = item.lootingRequired;
         }
         lootLevelField.visible = lootLevelVisible; lootLevelField.active = lootLevelVisible;
@@ -1676,8 +1758,7 @@ public class MobCreatorScreen extends Screen {
         this.activeTab = tab;
         this.selectedGoalIndex = -1;
         this.selectedLootIndex = -1;
-        hideAllFields();
-        showFieldsForTab();
+        this.init(this.minecraft, this.width, this.height);
     }
 
     private void selectMob(MobData data) {
@@ -1912,16 +1993,15 @@ public class MobCreatorScreen extends Screen {
 
         if (activeTab.equals("Loot") && selectedLootIndex >= 0 && selectedLootIndex < selectedMob.loot.items.size()) {
             var item = selectedMob.loot.items.get(selectedLootIndex);
-            try { item.chance = Double.parseDouble(lootChanceField.getValue()); } catch (Exception ignored) {}
-            try { item.minCount = Integer.parseInt(lootMinField.getValue()); } catch (Exception ignored) {}
-            try { item.maxCount = Integer.parseInt(lootMaxField.getValue()); } catch (Exception ignored) {}
-            try {
-                if (!lootLevelField.getValue().isEmpty()) {
-                    item.lootingLevel = Integer.parseInt(lootLevelField.getValue());
-                } else {
-                    item.lootingLevel = 0;
-                }
-            } catch (Exception ignored) {}
+            item.params.put("chance", lootChanceField.getValue());
+            item.params.put("minCount", lootMinField.getValue());
+            item.params.put("maxCount", lootMaxField.getValue());
+            item.params.put("lootingLevel", lootLevelField.getValue());
+
+            try { item.chance = Double.parseDouble(item.params.getOrDefault("chance", "100.0")); } catch (Exception ignored) {}
+            try { item.minCount = Integer.parseInt(item.params.getOrDefault("minCount", "1")); } catch (Exception ignored) {}
+            try { item.maxCount = Integer.parseInt(item.params.getOrDefault("maxCount", "1")); } catch (Exception ignored) {}
+            try { item.lootingLevel = Integer.parseInt(item.params.getOrDefault("lootingLevel", "0")); } catch (Exception ignored) {}
         }
     }
 
@@ -2102,17 +2182,31 @@ public class MobCreatorScreen extends Screen {
         UIHelper.drawRecessedSlot(graphics, listX, listY, listW, listH, borderC, slotC);
 
         int sidebarY = listY + 5;
-        for (MobData m : mobTemplates) {
+        int visibleCount = (listH - 10) / 12;
+        for (int i = sidebarScroll; i < Math.min(mobTemplates.size(), sidebarScroll + visibleCount); i++) {
+            MobData m = mobTemplates.get(i);
             int c = (m == selectedMob) ? textActiveC : textNormalC;
             graphics.drawString(this.font, truncate(m.name, 14), listX + 5, sidebarY, c, false);
             
-            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= sidebarY && mouseY <= sidebarY + 10) {
+            if (mouseX >= listX && mouseX <= listX + listW - 10 && mouseY >= sidebarY && mouseY <= sidebarY + 10) {
                 this.hoveredTooltip = List.of(
                     Component.literal("Template ID: " + m.id),
                     Component.literal("Type: " + m.modelType.toUpperCase())
                 );
             }
             sidebarY += 12;
+        }
+
+        if (mobTemplates.size() > visibleCount) {
+            int scrollbarX = listX + listW - 8;
+            int scrollbarY = listY + 4;
+            int scrollbarW = 5;
+            int scrollbarH = listH - 8;
+            graphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarW, scrollbarY + scrollbarH, 0xFF222222);
+            int maxScroll = mobTemplates.size() - visibleCount;
+            int thumbH = Math.max(10, scrollbarH * visibleCount / mobTemplates.size());
+            int thumbY = scrollbarY + (scrollbarH - thumbH) * sidebarScroll / maxScroll;
+            graphics.fill(scrollbarX, thumbY, scrollbarX + scrollbarW, thumbY + thumbH, 0xFF888888);
         }
 
         int addY = listY + listH + 4;
@@ -3191,9 +3285,23 @@ public class MobCreatorScreen extends Screen {
             return true;
         }
 
-        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
-            int clickedIdx = (int) ((mouseY - listY - 5) / 12);
-            if (clickedIdx >= 0 && clickedIdx < mobTemplates.size()) {
+        int visibleCount = (listH - 10) / 12;
+        if (mobTemplates.size() > visibleCount) {
+            int scrollbarX = listX + listW - 8;
+            int scrollbarY = listY + 4;
+            int scrollbarW = 5;
+            int scrollbarH = listH - 8;
+            if (mouseX >= scrollbarX && mouseX <= scrollbarX + scrollbarW && mouseY >= scrollbarY && mouseY <= scrollbarY + scrollbarH) {
+                int maxScroll = mobTemplates.size() - visibleCount;
+                double relativeY = (mouseY - scrollbarY) / (double) scrollbarH;
+                sidebarScroll = Math.max(0, Math.min(maxScroll, (int) (relativeY * mobTemplates.size() - visibleCount / 2.0)));
+                return true;
+            }
+        }
+
+        if (mouseX >= listX && mouseX <= listX + listW - 10 && mouseY >= listY && mouseY <= listY + listH) {
+            int clickedIdx = (int) ((mouseY - listY - 5) / 12) + sidebarScroll;
+            if (clickedIdx >= sidebarScroll && clickedIdx < Math.min(mobTemplates.size(), sidebarScroll + visibleCount)) {
                 selectMob(mobTemplates.get(clickedIdx));
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
@@ -3547,6 +3655,10 @@ public class MobCreatorScreen extends Screen {
                     loot.chance = 50.0;
                     loot.minCount = 1;
                     loot.maxCount = 2;
+                    loot.params.put("chance", "50.0");
+                    loot.params.put("minCount", "1");
+                    loot.params.put("maxCount", "2");
+                    loot.params.put("lootingLevel", "0");
                     selectedMob.loot.items.add(loot);
                     selectedLootIndex = selectedMob.loot.items.size() - 1;
                     lootScroll = Math.max(0, selectedMob.loot.items.size() - 3);
@@ -3577,9 +3689,8 @@ public class MobCreatorScreen extends Screen {
                     item.lootingRequired = !item.lootingRequired;
                     if (!item.lootingRequired) {
                         item.lootingLevel = 0;
-                        lootLevelField.setValue("");
                     }
-                    showFieldsForTab();
+                    this.init(this.minecraft, this.width, this.height);
                     Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                     return true;
                 }
@@ -3825,6 +3936,8 @@ public class MobCreatorScreen extends Screen {
         private EditBox playerDistField;
         private EditBox eliteChanceField;
         private EditBox spawnerCooldownField;
+        private EditBox searchField;
+        private String searchQuery = "";
 
         private List<Component> hoveredTooltip = null;
 
@@ -3844,19 +3957,37 @@ public class MobCreatorScreen extends Screen {
             this.eliteChance = eliteChance;
             this.redstonePulseOnly = redstonePulseOnly;
             this.spawnerCooldown = spawnerCooldown;
+            updateAvailableTemplates();
+        }
+
+        private void updateAvailableTemplates() {
+            this.availableTemplates.clear();
+            List<String> raw = new ArrayList<>();
             for (String key : MobRegistry.loadedMobs.keySet()) {
                 if (!key.startsWith("__proj_preview_")) {
-                    this.availableTemplates.add(key);
+                    raw.add(key);
                 }
             }
-            this.availableTemplates.addAll(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(net.minecraft.resources.ResourceLocation::toString).toList());
+            raw.addAll(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(net.minecraft.resources.ResourceLocation::toString).toList());
+            
+            for (String id : raw) {
+                MobData m = MobRegistry.loadedMobs.get(id);
+                String displayName = (m != null) ? m.name : id;
+                if (searchQuery.isEmpty() || id.toLowerCase().contains(searchQuery) || displayName.toLowerCase().contains(searchQuery)) {
+                    this.availableTemplates.add(id);
+                }
+            }
+            int maxScroll = Math.max(0, this.availableTemplates.size() - 10);
+            if (this.templatesScroll > maxScroll) {
+                this.templatesScroll = maxScroll;
+            }
         }
 
         private void updateScrollFromMouse(double mouseY) {
             int left = (this.width - 320) / 2;
             int top = (this.height - 220) / 2;
-            int listY = top + 25;
-            int listH = 160;
+            int listY = top + 35;
+            int listH = 150;
             int barH = Math.max(10, (int) ((listH - 10) * (10.0 / availableTemplates.size())));
             int trackH = listH - 10 - barH;
             if (trackH > 0) {
@@ -3885,6 +4016,14 @@ public class MobCreatorScreen extends Screen {
             this.spawnerCooldownField = new EditBox(this.font, left + 90, top + 130, 50, 12, Component.translatable("gui.custom_mobs.spawner_edit.cooldown"));
             this.spawnerCooldownField.setValue(String.valueOf(spawnerCooldown));
 
+            this.searchField = new EditBox(this.font, left + 164, top + 21, 132, 11, Component.literal("Search"));
+            this.searchField.setBordered(false);
+            this.searchField.setValue(this.searchQuery);
+            this.searchField.setResponder(val -> {
+                this.searchQuery = val.trim().toLowerCase();
+                this.updateAvailableTemplates();
+            });
+
             this.rateField.setBordered(false);
             this.radiusField.setBordered(false);
             this.maxAliveField.setBordered(false);
@@ -3898,6 +4037,7 @@ public class MobCreatorScreen extends Screen {
             this.addRenderableWidget(this.playerDistField);
             this.addRenderableWidget(this.eliteChanceField);
             this.addRenderableWidget(this.spawnerCooldownField);
+            this.addRenderableWidget(this.searchField);
 
             this.addRenderableWidget(Button.builder(Component.translatable("gui.custom_mobs.spawner_edit.save"), btn -> {
                 FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -3932,6 +4072,9 @@ public class MobCreatorScreen extends Screen {
             playerDistField.tick();
             eliteChanceField.tick();
             spawnerCooldownField.tick();
+            if (searchField != null) {
+                searchField.tick();
+            }
         }
 
         @Override
@@ -3947,9 +4090,9 @@ public class MobCreatorScreen extends Screen {
             int top = (this.height - 220) / 2;
 
             int listX = left + 160;
-            int listY = top + 25;
+            int listY = top + 35;
             int listW = 140;
-            int listH = 160;
+            int listH = 150;
             int barX = listX + listW - 10;
 
             if (button == 0 && availableTemplates.size() > 10) {
@@ -3972,7 +4115,7 @@ public class MobCreatorScreen extends Screen {
                 return true;
             }
 
-            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + 160) {
+            if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
                 int clickedRow = (int) ((mouseY - listY - 5) / 14);
                 int idx = clickedRow + templatesScroll;
                 if (idx >= 0 && idx < availableTemplates.size()) {
@@ -4039,11 +4182,14 @@ public class MobCreatorScreen extends Screen {
             UIHelper.drawOutline(graphics, checkboxX, checkboxY, 10, 10, borderC);
 
             int listX = left + 160;
-            int listY = top + 25;
+            int listY = top + 35;
             int listW = 140;
-            int listH = 160;
+            int listH = 150;
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.select_template").getString(), listX, top + 12, textActiveC, false);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.spawner_edit.select_template").getString(), listX, top + 10, textActiveC, false);
+            if (searchField != null && searchField.visible) {
+                UIHelper.drawRecessedSlot(graphics, searchField.getX() - 4, searchField.getY() - 3, searchField.getWidth() + 8, searchField.getHeight() + 6, borderC, slotC);
+            }
             UIHelper.drawRecessedSlot(graphics, listX, listY, listW, listH, borderC, slotC);
 
             int rowY = listY + 5;

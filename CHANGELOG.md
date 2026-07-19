@@ -4,6 +4,46 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 113] - Custom Death Animations Support
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   Updated the Geckolib controller registrar in `registerControllers()` to check if the mob is dead or dying (`isDeadOrDying()`), playing the custom death animation via `thenPlay()` if defined.
+    *   Overrode `tickDeath()` to dynamically extend the death tick timeline from the default 20 ticks to match the exact duration of the custom death animation.
+*   **`CustomMobRenderer.java`**:
+    *   Overrode `setupRotations()` to temporarily set `deathTime = 0` during rendering calls if a custom death animation is defined. This bypasses the default vanilla sideways 90-degree Z-axis tilt rotation.
+    *   Updated Java model rendering in `render()` to detect if the entity is dying, playing the death animation with timeline positioning computed from `deathTime + partialTicks`, clamped to the maximum length of the animation.
+### Layman's Explanation
+*   **Custom Death Animations:** Mobs now correctly play their custom playtester-defined death animations instead of using the generic Minecraft behavior (where they tilt 90 degrees sideways and quickly disappear). The mob remains visible until the custom death animation has fully completed playing.
+
+---
+
+## [Build 112] - Loot Tab Textbox Clickability Fix
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Restructured `init()` to conditionally register only the widgets that belong to the currently active tab or item selector. This solves a critical GUI bug where text fields on the Loot tab (`lootChanceField`, `lootMinField`, `lootMaxField`) were blocked and unclickable due to overlapping hidden widgets (such as the General tab's multi-line `loreField`) remaining active in the screen's children list.
+    *   Updated `selectTab()`, `openItemSelector()`, `closeItemSelector()`, and the `Looting Required Checkbox` click handler to call `this.init(...)` to cleanly rebuild the screen with the correct active widgets.
+### Layman's Explanation
+*   **Loot Tab Click Fix:** Fixed a major bug where playtesters could not click on or edit the textboxes in the Loot tab (Loot Chance, Min Qty, Max Qty). The editor screen now dynamically loads only the input boxes for the tab you are currently viewing, preventing hidden text fields from other tabs from blocking your clicks.
+
+---
+
+## [Build 111] - Sidebar Scrollbar, Spawner Search, and Loot Tab Textbox Editing
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Added a scrollbar and scroll wheel support to the mobs template list in the creator screen sidebar using `sidebarScroll`.
+    *   Added direct text field responders to `lootChanceField`, `lootMinField`, `lootMaxField`, and `lootLevelField` inside `init()` to synchronize edits instantly.
+    *   Avoided calling `setValue()` in `showFieldsForTab()` if the respective loot text field is already focused (`isFocused()`), preventing cursor reset issues.
+    *   Refactored `saveTextFieldsToActiveMob()` to save the raw textbox values into the new `params` map of the loot item, and safely parse them into their double/int representations.
+    *   Updated the "+ Add Drop Item" click callback inside `mouseClicked()` to initialize the default `params` map keys.
+    *   Implemented `SpawnerEditScreen` nested class updates: added a `searchField` and `searchQuery` to filter templates via a text responder. Shifted the spawner template list viewport down by 10 pixels to fit the search box, and updated coordinate click/scroll calculations accordingly.
+*   **`MobData.java`**: Added a `public Map<String, String> params = new HashMap<>();` map to `LootItemData` to mirror the string-based parameters of `AIGoalData`, enabling raw text field value persistence.
+### Layman's Explanation
+*   **Sidebar Scrollbar:** Added a scrollbar to the custom mobs list in the creator sidebar. You can now scroll through long lists of mobs using either the mouse wheel or by clicking the scrollbar track.
+*   **Spawner Search Field:** Added a search box to the RPG Mob Spawner block configuration screen, letting you search and filter the list of custom mobs instantly.
+*   **Loot Tab Textboxes Fix:** Replaced double/integer field overwrites with a temporary string parameter map (similar to how AI goal parameters work). You can now edit the drop chance and quantities textboxes reliably without them freezing, resetting, or locking up when you clear them or type.
+
+---
+
 ## [Build 110] - Animation Textbox Character Limit Update
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**: Set explicit maximum character length limits (`setMaxLength(512)`) on all animation textboxes (`idleAnimField`, `walkAnimField`, `attackAnimField`, `deathAnimField`, `swimAnimField`, `flyAnimField`, and `goalAnimationField`). This overrides the default Minecraft `EditBox` limit of 32 characters.

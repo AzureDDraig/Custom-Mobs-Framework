@@ -180,14 +180,27 @@ public class CustomMobRenderer extends MobRenderer<CustomMobEntity, CowModel<Cus
                     modelInstance.root().getAllParts().forEach(ModelPart::resetPose);
 
                     Map<String, AnimationDefinition> anims = JavaModelLoader.getAnimations(data.modelId);
-                    boolean isMoving = entity.getDeltaMovement().horizontalDistanceSqr() > 1E-4;
-                    String activeAnimState = isMoving ? "walk" : "idle";
-                    String animName = data.animations.getOrDefault(activeAnimState, isMoving ? "walk" : "idle");
+                    String animName = "";
+                    boolean isDeath = entity.isDeadOrDying();
+                    if (isDeath) {
+                        animName = data.animations.getOrDefault("death", "");
+                    }
+                    if (animName.isEmpty()) {
+                        boolean isMoving = entity.getDeltaMovement().horizontalDistanceSqr() > 1E-4;
+                        String activeAnimState = isMoving ? "walk" : "idle";
+                        animName = data.animations.getOrDefault(activeAnimState, isMoving ? "walk" : "idle");
+                    }
                     
                     AnimationDefinition animDef = anims.get(animName.toLowerCase());
                     if (animDef != null) {
-                        float currentTick = entity.tickCount + partialTicks;
-                        float elapsedTicks = currentTick % (animDef.lengthInSeconds() * 20.0f);
+                        float elapsedTicks;
+                        if (isDeath) {
+                            float deathTicks = Math.max(0.0f, entity.deathTime + partialTicks - 1.0f);
+                            elapsedTicks = Math.min(deathTicks, animDef.lengthInSeconds() * 20.0f);
+                        } else {
+                            float currentTick = entity.tickCount + partialTicks;
+                            elapsedTicks = currentTick % (animDef.lengthInSeconds() * 20.0f);
+                        }
                         long elapsedMillis = (long) (elapsedTicks * 50.0F);
                         net.minecraft.client.animation.KeyframeAnimations.animate(modelInstance, animDef, elapsedMillis, 1.0F, new org.joml.Vector3f());
                     }
@@ -343,5 +356,29 @@ public class CustomMobRenderer extends MobRenderer<CustomMobEntity, CowModel<Cus
             return true;
         }
         return super.shouldShowName(entity);
+    }
+
+    @Override
+    protected void setupRotations(CustomMobEntity entity, PoseStack poseStack, float ageInTicks, float rotationYaw, float partialTicks) {
+        int originalDeathTime = entity.deathTime;
+        boolean hasCustomDeath = false;
+        String templateId = entity.getTemplateId();
+        MobData data = MobRegistry.loadedMobs.get(templateId);
+        if (data != null) {
+            String deathAnim = data.animations.get("death");
+            if (deathAnim != null && !deathAnim.isEmpty()) {
+                hasCustomDeath = true;
+            }
+        }
+
+        if (hasCustomDeath && entity.isDeadOrDying()) {
+            entity.deathTime = 0; // Temporarily bypass vanilla Z-tilt in super.setupRotations
+        }
+
+        super.setupRotations(entity, poseStack, ageInTicks, rotationYaw, partialTicks);
+
+        if (hasCustomDeath && entity.isDeadOrDying()) {
+            entity.deathTime = originalDeathTime; // Restore original deathTime
+        }
     }
 }
