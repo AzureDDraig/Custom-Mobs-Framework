@@ -3790,7 +3790,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             String armorItem = aiGoal.params.getOrDefault("armorItem", "");
             if (armorItem.isEmpty()) return false;
 
-            List<Player> players = mob.level().getEntitiesOfClass(Player.class, mob.getBoundingBox().inflate(12.0));
+            double range = 12.0D;
+            try {
+                String rangeStr = aiGoal.params.get("range");
+                if (rangeStr != null && !rangeStr.isEmpty()) range = Double.parseDouble(rangeStr);
+            } catch (Exception ignored) {}
+
+            List<Player> players = mob.level().getEntitiesOfClass(Player.class, mob.getBoundingBox().inflate(range));
             for (Player p : players) {
                 for (ItemStack armor : p.getArmorSlots()) {
                     String key = BuiltInRegistries.ITEM.getKey(armor.getItem()).toString();
@@ -3854,7 +3860,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(res);
             if (type == null) return false;
 
-            List<? extends LivingEntity> list = mob.level().getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(12.0),
+            double range = 12.0D;
+            try {
+                String rangeStr = aiGoal.params.get("range");
+                if (rangeStr != null && !rangeStr.isEmpty()) range = Double.parseDouble(rangeStr);
+            } catch (Exception ignored) {}
+
+            List<? extends LivingEntity> list = mob.level().getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(range),
                 e -> e.getType() == type);
             if (!list.isEmpty()) {
                 targetMob = list.get(0);
@@ -3907,10 +3919,19 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             if (!mob.hasGoalType("AVOID_GROUP") || mob.isGoalOnCooldown("AVOID_GROUP")) return false;
             MobData.AIGoalData aiGoal = mob.getGoalData("AVOID_GROUP");
             if (aiGoal == null) return false;
-            String targetGroup = aiGoal.params.getOrDefault("mobGroup", "");
+            String targetGroup = aiGoal.params.get("group");
+            if (targetGroup == null || targetGroup.isEmpty()) {
+                targetGroup = aiGoal.params.getOrDefault("mobGroup", "");
+            }
             if (targetGroup.isEmpty()) return false;
 
-            List<CustomMobEntity> list = mob.level().getEntitiesOfClass(CustomMobEntity.class, mob.getBoundingBox().inflate(12.0),
+            double range = 12.0D;
+            try {
+                String rangeStr = aiGoal.params.get("range");
+                if (rangeStr != null && !rangeStr.isEmpty()) range = Double.parseDouble(rangeStr);
+            } catch (Exception ignored) {}
+
+            List<CustomMobEntity> list = mob.level().getEntitiesOfClass(CustomMobEntity.class, mob.getBoundingBox().inflate(range),
                 e -> e != mob && e.isAlive());
             for (CustomMobEntity e : list) {
                 MobData eData = MobRegistry.loadedMobs.get(e.getTemplateId());

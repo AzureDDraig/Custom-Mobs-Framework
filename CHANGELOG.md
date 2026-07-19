@@ -4,6 +4,20 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 125] - Customizable Avoid Range & Goal Parameter Mismatch Fixes
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Avoid Goals Range:** Replaced hardcoded `12.0` detection radius values in `AvoidPlayerWearingGoal`, `AvoidMobGoal`, and `AvoidGroupGoal` with dynamic `"range"` parameter parsing, falling back to `12.0` if not set.
+    *   **Group Parameter Mismatch:** Fixed `AvoidGroupGoal` looking up `"mobGroup"` instead of `"group"`. It now checks both keys to maintain backwards compatibility while aligning with the GUI.
+*   **`MobCreatorScreen.java`**:
+    *   Exposed Parameter 2 (Range/Radius) in the Mob Creator Screen goals configuration page for `HEAL_ALLIES`, `AVOID_MOB`, `AVOID_GROUP`, `TARGET_GROUP`, and `AVOID_PLAYER_WEARING`, resolving a UI disconnect where these values could not be loaded or saved.
+    *   Remapped Parameter 2's textbox label for avoid/target goals to `"gui.custom_mobs.creator.goal.radius"` (displaying "Radius" instead of "Call Range").
+### Layman's Explanation
+*   **Customizable Avoid Radius:** You can now configure the radius at which mobs will flee from specific items, entities, or groups in the Mob Creator Screen AI goals settings.
+*   **Avoid Group Goal Fix:** Fixed a parameter mapping mismatch that broke the `Avoid Group` behavior when saving custom mobs via the Mob Creator screen.
+
+---
+
 ## [Build 124] - Vanilla Spawner Limits & Raid Editor Display Names (Issue #4)
 ### Technical Changes (By Class)
 *   **`RPGMobSpawnerBlockEntity.java`**:

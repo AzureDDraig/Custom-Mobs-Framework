@@ -1450,19 +1450,30 @@ public class MobCreatorScreen extends Screen {
                 // No parameters on right side
             } else if (type.equals("HEAL_ALLIES")) {
                 p1Visible = true;
+                p2Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("amount", "2"));
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "16.0"));
             } else if (type.equals("AVOID_LIGHT")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("light_level", "8"));
             } else if (type.equals("AVOID_MOB")) {
                 p1Visible = true;
+                p2Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("mobs", ""));
-            } else if (type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("ATTACK_OTHERS")) {
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "12.0"));
+            } else if (type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP")) {
+                p1Visible = true;
+                p2Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("group", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "12.0"));
+            } else if (type.equals("ATTACK_OTHERS")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("group", ""));
             } else if (type.equals("AVOID_PLAYER_WEARING")) {
                 p1Visible = true;
+                p2Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("item", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "12.0"));
             } else if (type.startsWith("MELEE_AOE")) {
                 p1Visible = true;
                 p2Visible = true;
@@ -1900,14 +1911,20 @@ public class MobCreatorScreen extends Screen {
                 // Delay saved globally
             } else if (type.equals("HEAL_ALLIES")) {
                 goal.params.put("amount", goalParam1Field.getValue());
+                goal.params.put("range", goalParam2Field.getValue());
             } else if (type.equals("AVOID_LIGHT")) {
                 goal.params.put("light_level", goalParam1Field.getValue());
             } else if (type.equals("AVOID_MOB")) {
                 goal.params.put("mobs", goalParam1Field.getValue());
-            } else if (type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("ATTACK_OTHERS")) {
+                goal.params.put("range", goalParam2Field.getValue());
+            } else if (type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP")) {
+                goal.params.put("group", goalParam1Field.getValue());
+                goal.params.put("range", goalParam2Field.getValue());
+            } else if (type.equals("ATTACK_OTHERS")) {
                 goal.params.put("group", goalParam1Field.getValue());
             } else if (type.equals("AVOID_PLAYER_WEARING")) {
                 goal.params.put("item", goalParam1Field.getValue());
+                goal.params.put("range", goalParam2Field.getValue());
             } else if (type.startsWith("MELEE_AOE")) {
                 goal.params.put("sound", goalParam1Field.getValue());
                 goal.params.put("damageDelay", goalParam2Field.getValue());
@@ -4807,10 +4824,10 @@ public class MobCreatorScreen extends Screen {
             else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
                 key = "gui.custom_mobs.creator.goal.projectile_id"; fallback = "Projectile/Particle ID";
             }
-            else if (type.equals("HEAL_ALLIES") || type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("AVOID_PLAYER_WEARING")) {
-                key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Range";
+            else if (type.equals("HEAL_ALLIES")) {
+                key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Call Range";
             }
-            else if (type.equals("SCARE_MOB") || type.equals("SCARE_GROUP")) {
+            else if (type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("AVOID_PLAYER_WEARING") || type.equals("SCARE_MOB") || type.equals("SCARE_GROUP")) {
                 key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius";
             }
             else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.break_blocks"; fallback = "Break Blocks"; }
