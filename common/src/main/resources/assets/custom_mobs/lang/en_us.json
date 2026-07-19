@@ -501,5 +501,7 @@
   "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "Gravity:",
-  "gui.custom_mobs.goal_desc.scare_group": "Scares away custom mobs belonging to a configured group."
+  "gui.custom_mobs.goal_desc.scare_group": "Scares away custom mobs belonging to a configured group.",
+  "gui.custom_mobs.creator.label.spawn_env": "Spawn Environment:",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "Spawn location constraint: ANY (can spawn anywhere), SURFACE (only spawns under sky), or CAVES (only spawns underground)."
 }

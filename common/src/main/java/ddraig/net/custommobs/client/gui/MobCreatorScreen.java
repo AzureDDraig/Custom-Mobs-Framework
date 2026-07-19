@@ -3127,18 +3127,15 @@ public class MobCreatorScreen extends Screen {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.raid_spawner_only"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.surface_only"), formX + 190, formY + 36, textC);
-            boolean hoverSurface = mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 34 && mouseY <= formY + 44;
-            graphics.fill(formX + 280, formY + 34, formX + 290, formY + 44, selectedMob.spawnRules.surfaceOnly ? 0xFF00FF00 : 0xFFFF0000);
-            if (hoverSurface) {
-                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.surface_only"));
-            }
-
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.caves_only"), formX + 190, formY + 51, textC);
-            boolean hoverCaves = mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 49 && mouseY <= formY + 59;
-            graphics.fill(formX + 280, formY + 49, formX + 290, formY + 59, selectedMob.spawnRules.cavesOnly ? 0xFF00FF00 : 0xFFFF0000);
-            if (hoverCaves) {
-                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.caves_only"));
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_env"), formX + 190, formY + 36, textC);
+            String envText = "ANY";
+            if (selectedMob.spawnRules.surfaceOnly) envText = "SURFACE";
+            else if (selectedMob.spawnRules.cavesOnly) envText = "CAVES";
+            boolean hoverEnv = mouseX >= formX + 280 && mouseX <= formX + 330 && mouseY >= formY + 33 && mouseY <= formY + 45;
+            UIHelper.drawShadedButton(graphics, formX + 280, formY + 33, 50, 12, hoverEnv, 0xFF3C3C3C);
+            graphics.drawString(this.font, envText, formX + 283, formY + 35, 0xFFFFFFFF, false);
+            if (hoverEnv) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.spawn_env"));
             }
 
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.aquatic"), formX + 190, formY + 66, textC);
@@ -3788,13 +3785,17 @@ public class MobCreatorScreen extends Screen {
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
-            if (mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 34 && mouseY <= formY + 44) {
-                selectedMob.spawnRules.surfaceOnly = !selectedMob.spawnRules.surfaceOnly;
-                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
-                return true;
-            }
-            if (mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 49 && mouseY <= formY + 59) {
-                selectedMob.spawnRules.cavesOnly = !selectedMob.spawnRules.cavesOnly;
+            if (mouseX >= formX + 280 && mouseX <= formX + 330 && mouseY >= formY + 33 && mouseY <= formY + 45) {
+                if (!selectedMob.spawnRules.surfaceOnly && !selectedMob.spawnRules.cavesOnly) {
+                    selectedMob.spawnRules.surfaceOnly = true;
+                    selectedMob.spawnRules.cavesOnly = false;
+                } else if (selectedMob.spawnRules.surfaceOnly) {
+                    selectedMob.spawnRules.surfaceOnly = false;
+                    selectedMob.spawnRules.cavesOnly = true;
+                } else {
+                    selectedMob.spawnRules.surfaceOnly = false;
+                    selectedMob.spawnRules.cavesOnly = false;
+                }
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
@@ -4292,6 +4293,13 @@ public class MobCreatorScreen extends Screen {
                 MobData m = MobRegistry.loadedMobs.get(tId);
                 String displayName = (m != null) ? m.name : tId;
                 graphics.drawString(this.font, truncate(displayName, 14), listX + 9, rowY + 1, selected ? textActiveC : textNormalC, false);
+
+                if (mouseX >= listX + 5 && mouseX <= listX + listW - 15 && mouseY >= rowY - 1 && mouseY <= rowY + 11) {
+                    hoveredTooltip = List.of(
+                        Component.literal(displayName),
+                        Component.literal("ID: " + tId).withStyle(net.minecraft.ChatFormatting.GRAY)
+                    );
+                }
 
                 rowY += 14;
             }

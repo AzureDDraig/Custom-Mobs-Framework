@@ -419,5 +419,7 @@
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "重力:",
-  "gui.custom_mobs.goal_desc.scare_group": "吓跑属于指定群组的自定义怪物。"
+  "gui.custom_mobs.goal_desc.scare_group": "吓跑属于指定群组的自定义怪物。",
+  "gui.custom_mobs.creator.label.spawn_env": "生成环境:",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "生成位置限制: ANY (任何地方), SURFACE (仅限地表), 或 CAVES (仅限洞穴/地下)。"
 }

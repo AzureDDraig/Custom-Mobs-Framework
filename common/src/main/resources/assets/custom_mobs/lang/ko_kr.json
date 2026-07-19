@@ -419,5 +419,7 @@
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "중력:",
-  "gui.custom_mobs.goal_desc.scare_group": "설정된 그룹에 속한 사용자 정의 몹을 쫓아냅니다."
+  "gui.custom_mobs.goal_desc.scare_group": "설정된 그룹에 속한 사용자 정의 몹을 쫓아냅니다.",
+  "gui.custom_mobs.creator.label.spawn_env": "스폰 환경:",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "스폰 위치 제한: ANY (모두 가능), SURFACE (지상만), CAVES (지하/동굴만)。"
 }

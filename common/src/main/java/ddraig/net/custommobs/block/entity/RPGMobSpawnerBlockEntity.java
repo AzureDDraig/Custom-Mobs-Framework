@@ -78,19 +78,20 @@ public class RPGMobSpawnerBlockEntity extends BlockEntity {
             spawner.wasPowered = isPowered;
             if (pulse) {
                 if (spawner.cooldownTimer <= 0) {
-                    attemptSpawn(level, pos, spawner);
-                    spawner.cooldownTimer = spawner.spawnerCooldown * 20;
+                    if (attemptSpawn(level, pos, spawner)) {
+                        spawner.cooldownTimer = spawner.spawnerCooldown * 20;
+                    }
                 }
             }
         } else {
             spawner.wasPowered = isPowered;
             spawner.tickCounter++;
-            int effectiveRate = spawner.spawnerCooldown > 0 ? spawner.spawnerCooldown * 20 : spawner.spawnRate;
-            if (spawner.tickCounter >= effectiveRate) {
+            if (spawner.tickCounter >= spawner.spawnRate) {
                 spawner.tickCounter = 0;
                 if (spawner.cooldownTimer <= 0) {
-                    attemptSpawn(level, pos, spawner);
-                    spawner.cooldownTimer = spawner.spawnerCooldown * 20;
+                    if (attemptSpawn(level, pos, spawner)) {
+                        spawner.cooldownTimer = spawner.spawnerCooldown * 20;
+                    }
                 }
             }
         }

@@ -422,5 +422,7 @@
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "Gravité:",
-  "gui.custom_mobs.goal_desc.scare_group": "Fraye les monstres personnalisés appartenant à un groupe configuré."
+  "gui.custom_mobs.goal_desc.scare_group": "Fraye les monstres personnalisés appartenant à un groupe configuré.",
+  "gui.custom_mobs.creator.label.spawn_env": "Environnement :",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "Contrainte d'environnement : ANY (n'importe où), SURFACE (surface seulement), ou CAVES (grottes/souterrain seulement)."
 }

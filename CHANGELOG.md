@@ -4,6 +4,23 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 122] - RPG Spawner Pulse, Cooldowns, Name Hovers & Spawning Env UI (Issue #4)
+### Technical Changes (By Class)
+*   **`RPGMobSpawnerBlockEntity.java`**:
+    *   Fixed redstone pulse lockups: Attempting to spawn now returns a boolean status, and `cooldownTimer` is only set when the spawn successfully completes. Failed pulses due to day/night checks, lack of nearby players, or max alive limits will no longer block future redstone signals.
+    *   Corrected double-cooldown logic: Removed the line where `spawnerCooldown` overrode `spawnRate`. Spawner blocks now tick normally every `spawnRate` ticks and enforce `spawnerCooldown` as a delay between successful spawns, letting both settings work together properly.
+*   **`MobCreatorScreen.java`**:
+    *   **Spawner Settings UI (`SpawnerEditScreen`):** Implemented hover tooltips displaying the full display name and resource ID for items in the template selection list.
+    *   **Mob Spawning tab:** Replaced the separate, contradictory `Surface Only` and `Caves spawn Only` checkboxes with a single `Spawn Environment` cycle button (`ANY`, `SURFACE`, `CAVES`) to make configuring surface-and-cave spawning intuitive and error-proof.
+*   **Language JSON files (`de_de`, `es_es`, `fr_fr`, `pt_br`, `zh_cn`, `ja_jp`, `ko_kr`, `ru_ru`, `en_us`)**:
+    *   Registered `"gui.custom_mobs.creator.label.spawn_env"` and `"gui.custom_mobs.tooltip.creator.spawn_env"` translations using a python scratch script.
+### Layman's Explanation
+*   **Spawner Redstone Pulse & Cooldowns Fixed:** Spawner blocks set to redstone-pulse mode now trigger spawning reliably every time they receive a pulse (if not on cooldown). If a spawn attempt fails (e.g. no player is near), the pulse is no longer ignored, and the block doesn't lock up. Both Spawn Rate (frequency of checks) and Cooldown (delay after success) now work together in normal mode.
+*   **Full Template Names in Spawner UI:** Hovering over a truncated mob name in the spawner list now displays the full name and internal ID in a tooltip.
+*   **Spawning Environment UI simplified:** The confusing surface/cave checkboxes are merged into a single cycle button: `ANY` (spawns both underground and under sky), `SURFACE` (sky only), and `CAVES` (underground only).
+
+---
+
 ## [Build 121] - Scrollable Sidebar for Projectile Creator Menu (Issue #3)
 ### Technical Changes (By Class)
 *   **`ProjectileCreatorScreen.java`**:

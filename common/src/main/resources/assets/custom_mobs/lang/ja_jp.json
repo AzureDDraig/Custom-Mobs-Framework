@@ -419,5 +419,7 @@
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "重力:",
-  "gui.custom_mobs.goal_desc.scare_group": "設定されたグループに属するカスタムMobを怖がらせて逃げさせます。"
+  "gui.custom_mobs.goal_desc.scare_group": "設定されたグループに属するカスタムMobを怖がらせて逃げさせます。",
+  "gui.custom_mobs.creator.label.spawn_env": "スポーン環境:",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "スポーン場所の制限: ANY (制限なし), SURFACE (地表のみ), CAVES (洞穴/地下のみ)。"
 }

@@ -419,5 +419,7 @@
   "gui.custom_mobs.creator.goal.tooltip.idle_duration": "Duration in ticks for the mob to stand still and play its animation.",
   "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
   "gui.custom_mobs.creator.goal.gravity": "Гравитация:",
-  "gui.custom_mobs.goal_desc.scare_group": "Пугает кастомных мобов, принадлежащих к настроенной группе."
+  "gui.custom_mobs.goal_desc.scare_group": "Пугает кастомных мобов, принадлежащих к настроенной группе.",
+  "gui.custom_mobs.creator.label.spawn_env": "Окружение:",
+  "gui.custom_mobs.tooltip.creator.spawn_env": "Ограничение окружения: ANY (любое), SURFACE (только на поверхности), CAVES (только под землей/в пещерах)."
 }
