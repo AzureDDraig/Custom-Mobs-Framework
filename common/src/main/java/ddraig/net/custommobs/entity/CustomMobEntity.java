@@ -503,7 +503,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                             String targetId = g.params.getOrDefault("target_mob", "");
                             if (!targetId.isEmpty()) {
                                 double range = 8.0;
-                                List<PathfinderMob> nearby = this.level().getEntitiesOfClass(PathfinderMob.class, this.getBoundingBox().inflate(range), e -> {
+                                try {
+                                    range = Double.parseDouble(g.params.getOrDefault("range", "8.0"));
+                                } catch (Exception ignored) {}
+                                final double finalRange = range;
+                                List<PathfinderMob> nearby = this.level().getEntitiesOfClass(PathfinderMob.class, this.getBoundingBox().inflate(finalRange), e -> {
                                     if (e == this) return false;
                                     ResourceLocation loc = BuiltInRegistries.ENTITY_TYPE.getKey(e.getType());
                                     if (loc.toString().equals(targetId)) return true;

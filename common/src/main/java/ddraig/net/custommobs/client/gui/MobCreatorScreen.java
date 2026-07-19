@@ -1635,7 +1635,9 @@ public class MobCreatorScreen extends Screen {
                 goalParam2Field.setValue(goal.params.getOrDefault("count", "2"));
             } else if (type.equals("SCARE_MOB")) {
                 p1Visible = true;
+                p2Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("target_mob", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("range", "8.0"));
             } else if (type.equals("TELEPORT_ON_LOW_HEALTH")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("health_percent", "0.2"));
@@ -1967,6 +1969,7 @@ public class MobCreatorScreen extends Screen {
                 goal.params.put("count", goalParam2Field.getValue());
             } else if (type.equals("SCARE_MOB")) {
                 goal.params.put("target_mob", goalParam1Field.getValue());
+                goal.params.put("range", goalParam2Field.getValue());
             } else if (type.equals("TELEPORT_ON_LOW_HEALTH")) {
                 goal.params.put("health_percent", goalParam1Field.getValue());
             } else if (type.equals("SUMMON_MINIONS")) {
@@ -4750,6 +4753,9 @@ public class MobCreatorScreen extends Screen {
             }
             else if (type.equals("HEAL_ALLIES") || type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("AVOID_PLAYER_WEARING")) {
                 key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Range";
+            }
+            else if (type.equals("SCARE_MOB")) {
+                key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius";
             }
             else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.break_blocks"; fallback = "Break Blocks"; }
             else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK") || type.equals("FROST_TOUCH")) { key = "gui.custom_mobs.creator.goal.duration_ticks"; fallback = "Duration Ticks"; }

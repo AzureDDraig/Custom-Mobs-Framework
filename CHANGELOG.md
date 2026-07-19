@@ -4,6 +4,18 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 118] - Customizable Scare Radius for SCARE_MOB (Issue #2)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   Replaced the hardcoded double range value of `8.0` blocks under `SCARE_MOB` goal ticking with dynamic parameter parsing from the `"range"` parameter value, falling back safely to `8.0` if not set or invalid.
+*   **`MobCreatorScreen.java`**:
+    *   Exposed parameter 2 (`p2Visible = true`) in `loadActiveMobGoalDetails()` for the `SCARE_MOB` goal type, mapping the textbox load/save behavior to `"range"` with a default value of `8.0`.
+    *   Mapped parameter 2 of the `SCARE_MOB` goal to `"gui.custom_mobs.creator.goal.radius"` (fallback `"Radius"`) inside `getParamLabel()`.
+### Layman's Explanation
+*   **Customizable Scare Radius:** The `SCARE_MOB` behavior now supports a customizable "Radius" parameter instead of using a hardcoded value of 8.0 blocks. Playtesters can configure exactly how far away target mobs will be scared by this custom mob.
+
+---
+
 ## [Build 117] - Parameter Mappings for All AI Goals (Issue #2)
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:
