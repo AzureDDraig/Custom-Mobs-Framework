@@ -54,6 +54,7 @@ public class ProjectileCreatorScreen extends Screen {
     private List<String> activeSuggestions = new ArrayList<>();
     private EditBox activeField = null;
     private int suggestionsScrollOffset = 0;
+    private int sidebarScrollOffset = 0;
 
     // Tooltip overlay
     private List<Component> hoveredTooltip = null;
@@ -81,6 +82,11 @@ public class ProjectileCreatorScreen extends Screen {
         this.panelH = (int) (this.height * 0.85);
         int left = (this.width - this.panelW) / 2;
         int top = (this.height - this.panelH) / 2;
+
+        int listH = this.panelH - 55;
+        int visibleCount = (listH - 10) / 12;
+        int maxScroll = Math.max(0, templatesList.size() - visibleCount);
+        this.sidebarScrollOffset = Math.max(0, Math.min(maxScroll, this.sidebarScrollOffset));
 
         int formX = left + 120;
         int formY = top + 45;
@@ -255,6 +261,20 @@ public class ProjectileCreatorScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+        int left = (this.width - this.panelW) / 2;
+        int top = (this.height - this.panelH) / 2;
+        int listX = left + 10;
+        int listY = top + 25;
+        int listW = 100;
+        int listH = this.panelH - 55;
+
+        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
+            int visibleCount = (listH - 10) / 12;
+            int maxScroll = Math.max(0, templatesList.size() - visibleCount);
+            sidebarScrollOffset = Math.max(0, Math.min(maxScroll, sidebarScrollOffset - (int) amount));
+            return true;
+        }
+
         if (showSuggestions && !activeSuggestions.isEmpty()) {
             int maxScroll = Math.max(0, activeSuggestions.size() - 5);
             suggestionsScrollOffset = Math.max(0, Math.min(maxScroll, suggestionsScrollOffset - (int) amount));
@@ -492,8 +512,12 @@ public class ProjectileCreatorScreen extends Screen {
 
         UIHelper.drawRecessedSlot(graphics, listX, listY, listW, listH, borderC, slotC);
 
+        int visibleCount = (listH - 10) / 12;
         int sidebarY = listY + 5;
-        for (ProjectileData p : templatesList) {
+        for (int i = 0; i < visibleCount; i++) {
+            int index = i + sidebarScrollOffset;
+            if (index >= templatesList.size()) break;
+            ProjectileData p = templatesList.get(index);
             int c = (p == selectedProj) ? textActiveC : textNormalC;
             graphics.drawString(this.font, truncate(p.name, 14), listX + 5, sidebarY, c, false);
             
@@ -823,8 +847,10 @@ public class ProjectileCreatorScreen extends Screen {
         }
 
         if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
-            int clickedIdx = (int) ((mouseY - listY - 5) / 12);
-            if (clickedIdx >= 0 && clickedIdx < templatesList.size()) {
+            int clickedIdx = (int) ((mouseY - listY - 5) / 12) + sidebarScrollOffset;
+            int visibleCount = (listH - 10) / 12;
+            int screenIdx = (int) ((mouseY - listY - 5) / 12);
+            if (screenIdx >= 0 && screenIdx < visibleCount && clickedIdx >= 0 && clickedIdx < templatesList.size()) {
                 selectProj(templatesList.get(clickedIdx));
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;

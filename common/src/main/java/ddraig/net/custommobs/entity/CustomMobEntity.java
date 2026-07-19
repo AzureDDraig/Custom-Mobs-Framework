@@ -6110,8 +6110,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 this.cooldown = 0;
 
                 net.minecraft.world.phys.AABB aabb = mob.getBoundingBox().inflate(16.0D);
-                List<CustomMobEntity> activeMinions = serverLevel.getEntitiesOfClass(CustomMobEntity.class, aabb, entity -> {
-                    return entity != mob && entity.getSummonerId() == mob.getSummonerId() && entity.getTemplateId().equals(minionMobId);
+                List<Mob> activeMinions = serverLevel.getEntitiesOfClass(Mob.class, aabb, entity -> {
+                    if (entity == mob) return false;
+                    if (entity instanceof CustomMobEntity customMinion) {
+                        return customMinion.getSummonerId() == mob.getSummonerId() && customMinion.getTemplateId().equals(minionMobId);
+                    }
+                    ResourceLocation loc = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+                    return loc.toString().equals(minionMobId);
                 });
 
                 if (activeMinions.size() < maxMinions) {
@@ -6119,15 +6124,30 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     double my = mob.getY();
                     double mz = mob.getZ() + (mob.getRandom().nextDouble() - 0.5D) * spawnRadius * 2.0D;
 
-                    CustomMobEntity minion = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(serverLevel);
-                    if (minion != null) {
-                        minion.setTemplateId(minionMobId);
-                        minion.setSummonerId(mob.getSummonerId());
-                        minion.setPos(mx, my, mz);
-                        serverLevel.addFreshEntity(minion);
+                    Entity spawnedEntity = null;
+                    if (MobRegistry.loadedMobs.containsKey(minionMobId)) {
+                        CustomMobEntity minion = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(serverLevel);
+                        if (minion != null) {
+                            minion.setTemplateId(minionMobId);
+                            minion.setSummonerId(mob.getSummonerId());
+                            spawnedEntity = minion;
+                        }
+                    } else {
+                        try {
+                            ResourceLocation resLoc = new ResourceLocation(minionMobId);
+                            var entityTypeOpt = BuiltInRegistries.ENTITY_TYPE.getOptional(resLoc);
+                            if (entityTypeOpt.isPresent()) {
+                                spawnedEntity = entityTypeOpt.get().create(serverLevel);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+
+                    if (spawnedEntity != null) {
+                        spawnedEntity.setPos(mx, my, mz);
+                        serverLevel.addFreshEntity(spawnedEntity);
 
                         serverLevel.sendParticles(ParticleTypes.LARGE_SMOKE, mx, my + 0.5D, mz, 15, 0.2D, 0.5D, 0.2D, 0.02D);
-                        serverLevel.playSound(null, minion.blockPosition(), net.minecraft.sounds.SoundEvents.EVOKER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.0F);
+                        serverLevel.playSound(null, spawnedEntity.blockPosition(), net.minecraft.sounds.SoundEvents.EVOKER_CAST_SPELL, net.minecraft.sounds.SoundSource.HOSTILE, 1.0F, 1.0F);
                     }
                 }
             }

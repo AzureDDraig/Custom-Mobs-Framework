@@ -4,6 +4,29 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 121] - Scrollable Sidebar for Projectile Creator Menu (Issue #3)
+### Technical Changes (By Class)
+*   **`ProjectileCreatorScreen.java`**:
+    *   Added a `sidebarScrollOffset` variable to track scroll states of the sidebar template list.
+    *   Updated `init()` to bound the scroll offset to the current template list count to prevent out-of-bounds rendering.
+    *   Overrode `mouseScrolled()` to intercept mouse wheel actions on the sidebar region, adjusting `sidebarScrollOffset` accordingly.
+    *   Updated `render()` to only draw the visible subset of projectiles based on the scroll offset and list viewport.
+    *   Modified `mouseClicked()` to offset selection coordinates by the scroll offset, making selection click-to-select fully functional while scrolled.
+### Layman's Explanation
+*   **Scrollable Projectile List:** When playtesters have created enough custom projectiles, the sidebar list will now smoothly transition into a scrollable list, allowing them to scroll through all templates using the mouse wheel (fully matching the behavior of the Mob Creator Screen sidebar).
+
+---
+
+## [Build 120] - Fix Spawning and Limits for Vanilla Minions (Issue #2)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   Updated `SpawnMinionsGoal.tick()` to properly check and spawn vanilla entities (like zombies or skeletons) if configured as the `minionMobId` parameter of the portal, instead of trying to instantiate them as custom mobs.
+    *   Modified the active minion query to scan for `Mob.class` instead of `CustomMobEntity.class`, correctly counting both custom and vanilla minion entities against the `maxMinions` limit to prevent infinite spawning bugs.
+### Layman's Explanation
+*   **Vanilla Portal Minions Fixed:** Fixed a bug where configuring a minion portal to spawn vanilla mobs (like Minecraft zombies or skeletons) would result in broken/white-box entities and cause them to spawn infinitely without respecting the configured maximum minion limits. The portal now spawns vanilla minion types correctly and enforces spawn caps properly.
+
+---
+
 ## [Build 119] - SCARE_GROUP AI Goal & Group Autocomplete Suggestions (Issue #2)
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:
