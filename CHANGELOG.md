@@ -4,6 +4,17 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 115] - Descriptive AI Goal Parameter Labels
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Updated the `getParamLabel()` helper method to fully map all parameters for common combat/behavior goals (Melee, Melee AOE, Knockback, Ranged, Shotgun Attack, Orbiting Shield, and Aerial Ranged attacks) to their corresponding descriptive translation keys (e.g., `sound_event`, `melee_damage_delay`, `reach`, `width`, `knockback_distance`, `projectile_id`, `damage`, `accuracy`, `quantity`, `spread`, `orbit_radius`, `speed`, and `duration`) and fallbacks. This fixes the issue where they were generically labeled as "Param X".
+*   **Language Files (`en_us.json`, `es_es.json`, etc.)**:
+    *   Added the missing `"gui.custom_mobs.creator.goal.gravity": "Gravity:"` translation key (and translated equivalents) to all JSON language files (`de_de`, `es_es`, `fr_fr`, `pt_br`, `zh_cn`, `ja_jp`, `ko_kr`, `ru_ru`, `en_us`).
+### Layman's Explanation
+*   **Descriptive AI Parameter Labels:** Fixed a major UI bug where parameter names for standard AI goals (like Melee, Knockback, Ranged, Shotgun, Orbiting Shield, and Aerial attacks) showed up generically as "Param 1", "Param 2", etc. They now display their actual descriptive labels (e.g., "Damage Delay", "Orbit Radius", "Rotation Speed", "Gravity") regardless of the language configured.
+
+---
+
 ## [Build 114] - AI Goal Param Saving, Suggestions, and Minion Portal Sync (Issue 2)
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

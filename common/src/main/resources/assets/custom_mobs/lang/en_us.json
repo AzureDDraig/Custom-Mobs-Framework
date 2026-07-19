@@ -499,5 +499,6 @@
   "gui.custom_mobs.goal_desc.summon_minion_portal": "Summons a minion portal entity at a nearby location.",
   "gui.custom_mobs.goal_desc.spawn_minions": "Minion portal AI logic that spawns mini servants up to a maximum count.",
   "gui.custom_mobs.goal_desc.stagger": "Vulnerability state triggered at HP threshold, freezing actions and multiplying taken damage.",
-  "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation."
+  "gui.custom_mobs.goal_desc.idle": "Makes the mob stand still for a set duration and play an animation.",
+  "gui.custom_mobs.creator.goal.gravity": "Gravity:"
 }

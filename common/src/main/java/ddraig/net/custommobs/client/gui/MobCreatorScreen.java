@@ -4714,35 +4714,54 @@ public class MobCreatorScreen extends Screen {
     private String getParamLabel(String type, int paramNum) {
         String key = "gui.custom_mobs.creator.goal.param" + paramNum;
         String fallback = "Param " + paramNum;
+
         if (paramNum == 1) {
             key = "gui.custom_mobs.creator.goal.param1";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_mob_id"; fallback = "Portal Mob ID"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.hp_threshold_percent"; fallback = "HP Threshold (%)"; }
             else if (type.equals("IDLE")) { key = "gui.custom_mobs.creator.goal.duration"; fallback = "Duration"; }
-            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.sound_event"; fallback = "Sound Event"; }
+            else if (type.startsWith("SUMMON_") || type.startsWith("MELEE") || type.startsWith("KNOCKBACK") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
+                key = "gui.custom_mobs.creator.goal.sound_event"; fallback = "Sound Event";
+            }
         } else if (paramNum == 2) {
             key = "gui.custom_mobs.creator.goal.param2";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.stagger_duration_sec"; fallback = "Stagger Duration (Sec)"; }
-            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.projectile_id"; fallback = "Projectile/Particle ID"; }
+            else if (type.startsWith("MELEE") || type.startsWith("KNOCKBACK")) { key = "gui.custom_mobs.creator.goal.melee_damage_delay"; fallback = "Damage Delay"; }
+            else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
+                key = "gui.custom_mobs.creator.goal.projectile_id"; fallback = "Projectile/Particle ID";
+            }
         } else if (paramNum == 3) {
             key = "gui.custom_mobs.creator.goal.param3";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_duration_ticks"; fallback = "Portal Duration (Ticks)"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.max_minions"; fallback = "Max Minions"; }
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.damage_multiplier"; fallback = "Damage Multiplier"; }
-            else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage"; }
+            else if (type.startsWith("MELEE_AOE")) { key = "gui.custom_mobs.creator.goal.reach"; fallback = "Reach"; }
+            else if (type.startsWith("KNOCKBACK")) { key = "gui.custom_mobs.creator.goal.knockback_distance"; fallback = "Knockback Distance"; }
+            else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
+                key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage";
+            }
         } else if (paramNum == 4) {
             key = "gui.custom_mobs.creator.goal.param4";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.spawn_radius"; fallback = "Spawn Radius"; }
             else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.max_duration_ticks"; fallback = "Max Duration (Ticks)"; }
+            else if (type.startsWith("MELEE_AOE")) { key = "gui.custom_mobs.creator.goal.width"; fallback = "Width"; }
+            else if (type.equals("SUMMON_GROUND_ATTACK") || type.startsWith("SUMMON_GROUND_ATTACK_AOE")) { key = "gui.custom_mobs.creator.goal.upward_knockback"; fallback = "Upward Knockback"; }
+            else if (type.equals("RANGED")) { key = "gui.custom_mobs.creator.goal.accuracy"; fallback = "Accuracy"; }
+            else if (type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.goal.quantity"; fallback = "Quantity"; }
+            else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.gravity"; fallback = "Gravity"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.speed"; fallback = "Speed"; }
         } else if (paramNum == 5) {
             key = "gui.custom_mobs.creator.goal.param5";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.max_minions"; fallback = "Max Minions"; }
             else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.max_distance"; fallback = "Max Distance"; }
+            else if (type.equals("SUMMON_GROUND_ATTACK") || type.startsWith("SUMMON_GROUND_ATTACK_AOE")) { key = "gui.custom_mobs.creator.goal.upward_speed"; fallback = "Upward Speed"; }
+            else if (type.equals("SHOTGUN_ATTACK")) { key = "gui.custom_mobs.creator.goal.spread"; fallback = "Spread"; }
+            else if (type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.orbit_radius"; fallback = "Orbit Radius"; }
+            else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.quantity"; fallback = "Quantity"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.count"; fallback = "Count"; }
         } else if (paramNum == 6) {
             key = "gui.custom_mobs.creator.goal.param6";
@@ -4750,15 +4769,23 @@ public class MobCreatorScreen extends Screen {
             else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.slowness_level"; fallback = "Slowness Level"; }
             else if (type.equals("SUMMON_GALE_VORTEX_PULL") || type.equals("SUMMON_GALE_VORTEX_PUSH")) { key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius"; }
             else if (type.equals("SUMMON_CHASE_SNAKE")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
+            else if (type.equals("SUMMON_GROUND_ATTACK") || type.startsWith("SUMMON_GROUND_ATTACK_AOE")) { key = "gui.custom_mobs.creator.goal.max_height"; fallback = "Max Height"; }
+            else if (type.equals("SHOTGUN_ATTACK")) { key = "gui.custom_mobs.creator.goal.accuracy"; fallback = "Accuracy"; }
+            else if (type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.goal.speed"; fallback = "Rotation Speed"; }
+            else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.spread"; fallback = "Spread"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.lines_count_or_radius"; fallback = "Lines Count / Radius"; }
         } else if (paramNum == 7) {
             key = "gui.custom_mobs.creator.goal.param7";
             if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.heal_amount"; fallback = "Heal Amount"; }
             else if (type.equals("SUMMON_CHASE_SNAKE")) { key = "gui.custom_mobs.creator.goal.warning_particle_type"; fallback = "Warning Particle Type"; }
+            else if (type.equals("SUMMON_GROUND_ATTACK") || type.startsWith("SUMMON_GROUND_ATTACK_AOE")) { key = "gui.custom_mobs.creator.goal.accuracy"; fallback = "Accuracy"; }
+            else if (type.equals("ORBITING_SHIELD")) { key = "gui.custom_mobs.creator.goal.duration"; fallback = "Duration (Ticks)"; }
+            else if (type.startsWith("AERIAL_RANGED")) { key = "gui.custom_mobs.creator.goal.accuracy"; fallback = "Accuracy"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.angle_or_spiral_factor"; fallback = "Angle / Spiral Factor"; }
         } else if (paramNum == 8) {
             key = "gui.custom_mobs.creator.goal.param8";
             if (type.contains("LAYERED")) { key = "gui.custom_mobs.creator.goal.delay_ticks"; fallback = "Delay Ticks"; }
+            else if (type.startsWith("SUMMON_GROUND_ATTACK_AOE")) { key = "gui.custom_mobs.creator.goal.radius"; fallback = "Radius"; }
             else if (type.startsWith("SUMMON_") && type.contains("GROUND")) { key = "gui.custom_mobs.creator.goal.max_height"; fallback = "Max Height"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.upward_knockback"; fallback = "Upward Knockback"; }
         }
