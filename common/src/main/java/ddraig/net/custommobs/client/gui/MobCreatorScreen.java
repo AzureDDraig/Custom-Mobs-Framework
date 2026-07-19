@@ -4718,12 +4718,27 @@ public class MobCreatorScreen extends Screen {
         if (paramNum == 1) {
             key = "gui.custom_mobs.creator.goal.param1";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_mob_id"; fallback = "Portal Mob ID"; }
-            else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
+            else if (type.equals("SPAWN_MINIONS") || type.equals("SUMMON_MINIONS") || type.equals("SPLIT_ON_DEATH")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
             else if (type.equals("STAGGER")) { key = "gui.custom_mobs.creator.goal.hp_threshold_percent"; fallback = "HP Threshold (%)"; }
             else if (type.equals("IDLE")) { key = "gui.custom_mobs.creator.goal.duration"; fallback = "Duration"; }
-            else if (type.startsWith("SUMMON_") || type.startsWith("MELEE") || type.startsWith("KNOCKBACK") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
+            else if (type.startsWith("SUMMON_") || type.startsWith("MELEE") || type.startsWith("KNOCKBACK") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED") || type.equals("HEAL_ALLIES")) {
                 key = "gui.custom_mobs.creator.goal.sound_event"; fallback = "Sound Event";
             }
+            else if (type.equals("AVOID_LIGHT")) { key = "gui.custom_mobs.creator.goal.light_level"; fallback = "Light Level"; }
+            else if (type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP")) { key = "gui.custom_mobs.creator.goal.avoid_mob_id"; fallback = "Avoid Mob ID / Group ID"; }
+            else if (type.equals("SCARE_MOB")) { key = "gui.custom_mobs.creator.goal.scare_target_id"; fallback = "Scare Target ID"; }
+            else if (type.equals("AVOID_PLAYER_WEARING")) { key = "gui.custom_mobs.creator.goal.item_id"; fallback = "Item ID"; }
+            else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.explosion_power"; fallback = "Explosion Power"; }
+            else if (type.equals("DAMAGE_ON_CONTACT")) { key = "gui.custom_mobs.creator.goal.contact_damage"; fallback = "Contact Damage"; }
+            else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK")) { key = "gui.custom_mobs.creator.goal.effect_id"; fallback = "Effect ID"; }
+            else if (type.equals("TELEPORT_ON_LOW_HEALTH") || type.equals("RAGE_MODE")) { key = "gui.custom_mobs.creator.goal.hp_threshold_percent"; fallback = "HP Threshold %"; }
+            else if (type.equals("TELEPORT_ON_HIT") || type.equals("DISARM_STRIKE") || type.equals("STEAL_ITEM")) { key = "gui.custom_mobs.creator.goal.chance_percent"; fallback = "Chance %"; }
+            else if (type.equals("TELEPORT_BEHIND_TARGET") || type.equals("PULL_TARGET") || type.equals("BURROW") || type.equals("IMITATE_SOUNDS")) { key = "gui.custom_mobs.creator.goal.cooldown_ticks"; fallback = "Cooldown Ticks"; }
+            else if (type.equals("AMBUSH")) { key = "gui.custom_mobs.creator.goal.stalk_ticks"; fallback = "Stalk Ticks"; }
+            else if (type.equals("FIRE_TRAIL") || type.equals("FROST_TOUCH")) { key = "gui.custom_mobs.creator.goal.duration_ticks"; fallback = "Duration Ticks"; }
+            else if (type.equals("LIGHTNING_STRIKE")) { key = "gui.custom_mobs.creator.goal.strike_chance"; fallback = "Strike Chance"; }
+            else if (type.equals("GIFT_GIVER")) { key = "gui.custom_mobs.creator.goal.gift_item_id"; fallback = "Gift Item ID"; }
+            else if (type.equals("CALL_HELP")) { key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Call Range"; }
         } else if (paramNum == 2) {
             key = "gui.custom_mobs.creator.goal.param2";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.minion_mob_id"; fallback = "Minion Mob ID"; }
@@ -4733,6 +4748,15 @@ public class MobCreatorScreen extends Screen {
             else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
                 key = "gui.custom_mobs.creator.goal.projectile_id"; fallback = "Projectile/Particle ID";
             }
+            else if (type.equals("HEAL_ALLIES") || type.equals("AVOID_MOB") || type.equals("AVOID_GROUP") || type.equals("TARGET_GROUP") || type.equals("AVOID_PLAYER_WEARING")) {
+                key = "gui.custom_mobs.creator.goal.call_range"; fallback = "Range";
+            }
+            else if (type.startsWith("EXPLODE_ON_")) { key = "gui.custom_mobs.creator.goal.break_blocks"; fallback = "Break Blocks"; }
+            else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK") || type.equals("FROST_TOUCH")) { key = "gui.custom_mobs.creator.goal.duration_ticks"; fallback = "Duration Ticks"; }
+            else if (type.equals("SUMMON_MINIONS") || type.equals("SPLIT_ON_DEATH")) { key = "gui.custom_mobs.creator.goal.spawn_count"; fallback = "Spawn Count"; }
+            else if (type.equals("PULL_TARGET")) { key = "gui.custom_mobs.creator.goal.pull_strength"; fallback = "Pull Strength"; }
+            else if (type.equals("RAGE_MODE") || type.equals("FROST_TOUCH")) { key = "gui.custom_mobs.creator.goal.slowness_level"; fallback = "Amplifier"; }
+            else if (type.equals("LIGHTNING_STRIKE") || type.equals("GIFT_GIVER")) { key = "gui.custom_mobs.creator.goal.cooldown_ticks"; fallback = "Cooldown Ticks"; }
         } else if (paramNum == 3) {
             key = "gui.custom_mobs.creator.goal.param3";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.portal_duration_ticks"; fallback = "Portal Duration (Ticks)"; }
@@ -4743,6 +4767,9 @@ public class MobCreatorScreen extends Screen {
             else if (type.startsWith("SUMMON_") || type.equals("RANGED") || type.equals("SHOTGUN_ATTACK") || type.equals("ORBITING_SHIELD") || type.startsWith("AERIAL_RANGED")) {
                 key = "gui.custom_mobs.creator.goal.damage"; fallback = "Damage";
             }
+            else if (type.equals("HEAL_ALLIES")) { key = "gui.custom_mobs.creator.goal.heal_amount"; fallback = "Heal Amount"; }
+            else if (type.equals("EFFECT_ON_CONTACT") || type.equals("EFFECT_ON_ATTACK")) { key = "gui.custom_mobs.creator.goal.slowness_level"; fallback = "Amplifier"; }
+            else if (type.equals("SUMMON_MINIONS")) { key = "gui.custom_mobs.creator.goal.cooldown_ticks"; fallback = "Cooldown Ticks"; }
         } else if (paramNum == 4) {
             key = "gui.custom_mobs.creator.goal.param4";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }

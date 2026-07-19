@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 117] - Parameter Mappings for All AI Goals (Issue #2)
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Expanded `getParamLabel()` to fully support parameter translations and descriptive fallback labels for all remaining AI goals in the framework, including: Heal Allies, Avoid Light/Mob/Group, Target Group, Scare Mob, Avoid Player Wearing, Explode on Death/Contact/Low Health, Damage/Effect on Contact/Attack, Split on Death, Summon Minions, Teleport on Low Health/Hit, Teleport Behind Target, Pull Target, Rage Mode, Ambush, Fire Trail, Frost Touch, Disarm Strike, Lightning Strike, Gift Giver, Call Help, Steal Item, Burrow, and Imitate Sounds.
+### Layman's Explanation
+*   **Descriptive AI Parameter Labels (Full Coverage):** Mapped and verified descriptive parameter labels for every remaining AI goal behavior in the custom mob creator interface. Now, rather than displaying generic labels like "Param 1" or "Param 2", all parameters describe exactly what configuration value they represent (such as "Light Level", "Heal Amount", "Explosion Power", "Stalk Ticks", "Cooldown Ticks", etc.) in all languages.
+
+---
+
 ## [Build 116] - Projectile UI & Gameplay Fixes (Issue #3)
 ### Technical Changes (By Class)
 *   **`ProjectileCreatorScreen.java`**:
