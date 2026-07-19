@@ -4,6 +4,16 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 126] - Raid Editor Mobs List Autocomplete Search Filter
+### Technical Changes (By Class)
+*   **`RaidEditorScreen.java`**:
+    *   **Add Mob Search Filter:** Integrated an `addMobSearchField` text box to filter the addable mobs list, matching the search functionality of `SpawnerEditScreen`. Toggles visible only inside the Waves tab.
+    *   **Ticking & Scrolling Fixes:** Updated `tick()` to tick `rewardCountField` and the new search field. Modified `mouseClicked()`, `mouseScrolled()`, and rendering to use the filtered list `filteredAddMobs` instead of `availableAddMobs`.
+### Layman's Explanation
+*   **Raid Editor Mob Template Search:** You can now filter/search templates in the Raid Editor's "Add Mob" list using a new search input box, making it significantly faster to configure complex raid waves.
+
+---
+
 ## [Build 125] - Customizable Avoid Range & Goal Parameter Mismatch Fixes
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

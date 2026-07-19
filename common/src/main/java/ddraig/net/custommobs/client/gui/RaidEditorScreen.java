@@ -55,6 +55,9 @@ public class RaidEditorScreen extends Screen {
     private EditBox mobCountField;
     private EditBox eliteChanceField;
     private final List<String> availableAddMobs = new ArrayList<>();
+    private final List<String> filteredAddMobs = new ArrayList<>();
+    private EditBox addMobSearchField;
+    private String addMobSearchQuery = "";
     private int addMobScroll = 0;
     private int waveMobsScroll = 0;
     private int wavesScroll = 0;
@@ -123,6 +126,7 @@ public class RaidEditorScreen extends Screen {
                 "minecraft:blaze", "minecraft:ghast", "minecraft:magma_cube", "minecraft:slime",
                 "minecraft:cave_spider", "minecraft:pillager", "minecraft:ravager", "minecraft:evoker"
         ));
+        this.updateFilteredAddMobs();
 
         // Populate item selector list
         BuiltInRegistries.ITEM.keySet().forEach(res -> {
@@ -298,6 +302,16 @@ public class RaidEditorScreen extends Screen {
         }).bounds(left + 260, top + 10, 100, 16).build();
         this.saveSettingsBtn.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.save")));
         this.addRenderableWidget(this.saveSettingsBtn);
+
+        this.addMobSearchField = new EditBox(this.font, left + 95, top + 164, 100, 10, Component.literal("Search"));
+        this.addMobSearchField.setValue(this.addMobSearchQuery);
+        this.addMobSearchField.setBordered(false);
+        this.addMobSearchField.visible = false;
+        this.addMobSearchField.setResponder(val -> {
+            this.addMobSearchQuery = val.trim().toLowerCase();
+            this.updateFilteredAddMobs();
+        });
+        this.addRenderableWidget(this.addMobSearchField);
     }
 
     private void updateWavesCountFromField(String text) {
@@ -362,7 +376,11 @@ public class RaidEditorScreen extends Screen {
         this.commandInputField.tick();
         this.itemRewardField.tick();
         this.chanceField.tick();
+        this.rewardCountField.tick();
         this.itemSearchField.tick();
+        if (this.addMobSearchField != null) {
+            this.addMobSearchField.tick();
+        }
     }
 
     @Override
@@ -403,7 +421,7 @@ public class RaidEditorScreen extends Screen {
             }
             // Bottom left list: Add Mob list
             else if (mouseX >= left + 15 && mouseX <= left + 195 && mouseY >= top + 175 && mouseY <= top + 230) {
-                int maxScroll = Math.max(0, availableAddMobs.size() - 5);
+                int maxScroll = Math.max(0, filteredAddMobs.size() - 5);
                 addMobScroll = Math.max(0, Math.min(maxScroll, addMobScroll - (int) amount));
             }
         } else if (activeTab.equals("Loot")) {
@@ -549,8 +567,8 @@ public class RaidEditorScreen extends Screen {
             // Add Mob list click
             if (mouseX >= left + 15 && mouseX <= left + 195 && mouseY >= top + 175 && mouseY <= top + 230) {
                 int clicked = (int) ((mouseY - (top + 178)) / 10) + addMobScroll;
-                if (clicked >= 0 && clicked < availableAddMobs.size()) {
-                    String clickedMob = availableAddMobs.get(clicked);
+                if (clicked >= 0 && clicked < filteredAddMobs.size()) {
+                    String clickedMob = filteredAddMobs.get(clicked);
                     addMobToSelectedWave(clickedMob);
                     playClickSound();
                     return true;
@@ -639,6 +657,9 @@ public class RaidEditorScreen extends Screen {
         boolean modifiersVisible = !modalOpen && activeTab.equals("Waves") && selectedWaveIndex >= 0 && selectedWaveIndex < waves.size() && !selectedWaveMobTemplate.isEmpty();
         mobCountField.visible = modifiersVisible;
         eliteChanceField.visible = modifiersVisible;
+        if (this.addMobSearchField != null) {
+            this.addMobSearchField.visible = !modalOpen && activeTab.equals("Waves");
+        }
 
         boolean isLootTab = !modalOpen && activeTab.equals("Loot");
         addItemBtn.visible = isLootTab;
@@ -752,10 +773,13 @@ public class RaidEditorScreen extends Screen {
 
             // Draw Add Mob list (bottom left)
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.add_mob_header"), left + 15, top + 168, 0xFFFFFFFF, false);
+            if (this.addMobSearchField != null && this.addMobSearchField.visible) {
+                UIHelper.drawRecessedSlot(graphics, this.addMobSearchField.getX() - 4, this.addMobSearchField.getY() - 3, this.addMobSearchField.getWidth() + 8, this.addMobSearchField.getHeight() + 6, borderC, slotC);
+            }
             UIHelper.drawRecessedSlot(graphics, left + 15, top + 175, 180, 56, borderC, slotC);
-            for (int i = 0; i < Math.min(5, availableAddMobs.size() - addMobScroll); i++) {
+            for (int i = 0; i < Math.min(5, filteredAddMobs.size() - addMobScroll); i++) {
                 int idx = i + addMobScroll;
-                String mobId = availableAddMobs.get(idx);
+                String mobId = filteredAddMobs.get(idx);
                 int rowY = top + 178 + i * 10;
                 ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
                 String displayName = (m != null) ? m.name : mobId;
@@ -853,8 +877,8 @@ public class RaidEditorScreen extends Screen {
                 else if (mouseX >= left + 15 && mouseX <= left + 195 && mouseY >= top + 175 && mouseY <= top + 230) {
                     int clickedRow = (int) ((mouseY - (top + 178)) / 10);
                     int idx = clickedRow + addMobScroll;
-                    if (idx >= 0 && idx < availableAddMobs.size()) {
-                        String mobId = availableAddMobs.get(idx);
+                    if (idx >= 0 && idx < filteredAddMobs.size()) {
+                        String mobId = filteredAddMobs.get(idx);
                         ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
                         String displayName = (m != null) ? m.name : mobId;
                         customTooltip = List.of(
@@ -1010,6 +1034,21 @@ public class RaidEditorScreen extends Screen {
             String[] split = val.split(" ");
             String itemId = split[0];
             return itemId + " " + count;
+        }
+    }
+
+    private void updateFilteredAddMobs() {
+        this.filteredAddMobs.clear();
+        for (String mobId : this.availableAddMobs) {
+            ddraig.net.custommobs.data.MobData m = ddraig.net.custommobs.data.MobRegistry.loadedMobs.get(mobId);
+            String displayName = (m != null) ? m.name : mobId;
+            if (this.addMobSearchQuery.isEmpty() || mobId.toLowerCase().contains(this.addMobSearchQuery) || displayName.toLowerCase().contains(this.addMobSearchQuery)) {
+                this.filteredAddMobs.add(mobId);
+            }
+        }
+        int maxScroll = Math.max(0, this.filteredAddMobs.size() - 5);
+        if (this.addMobScroll > maxScroll) {
+            this.addMobScroll = maxScroll;
         }
     }
 
