@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class BestiaryScreen extends Screen {
     private final List<MobData> neutrals = new ArrayList<>();
     private final List<MobData> hostiles = new ArrayList<>();
     private final List<SidebarItem> sidebarItems = new ArrayList<>();
+    private final List<RaidSystem.RaidDefinition> loadedRaids = new ArrayList<>();
+    private EditBox searchField;
+    private String searchQuery = "";
 
     private MobData selectedMob;
     private RaidSystem.RaidDefinition selectedRaid;
@@ -82,6 +86,7 @@ public class BestiaryScreen extends Screen {
         passives.clear();
         neutrals.clear();
         hostiles.clear();
+        loadedRaids.clear();
 
         for (MobData m : MobRegistry.loadedMobs.values()) {
             if (m.id.startsWith("__proj_preview_")) continue;
@@ -89,6 +94,7 @@ public class BestiaryScreen extends Screen {
             else if (m.behaviorMode.equalsIgnoreCase("neutral")) neutrals.add(m);
             else hostiles.add(m);
         }
+        loadedRaids.addAll(RaidSystem.getRaids());
 
         selectedMob = null;
         selectedRaid = null;
@@ -108,33 +114,29 @@ public class BestiaryScreen extends Screen {
             }
         }
         if (selectedMob == null) {
-            List<RaidSystem.RaidDefinition> loadedRaids = new ArrayList<>(RaidSystem.getRaids());
             if (!loadedRaids.isEmpty()) {
                 selectedRaid = loadedRaids.get(0);
             }
         }
 
-        sidebarItems.clear();
-        if (!passives.isEmpty()) {
-            sidebarItems.add(new SidebarItem("PASSIVE"));
-            for (MobData m : passives) sidebarItems.add(new SidebarItem(m));
-        }
-        if (!neutrals.isEmpty()) {
-            sidebarItems.add(new SidebarItem("NEUTRAL"));
-            for (MobData m : neutrals) sidebarItems.add(new SidebarItem(m));
-        }
-        if (!hostiles.isEmpty()) {
-            sidebarItems.add(new SidebarItem("HOSTILE"));
-            for (MobData m : hostiles) sidebarItems.add(new SidebarItem(m));
-        }
+        int panelW = Math.max(340, Math.min(440, (int)(this.width * 0.85)));
+        int panelH = Math.max(200, Math.min(280, (int)(this.height * 0.85)));
+        int left = (this.width - panelW) / 2;
+        int top = (this.height - panelH) / 2;
+        int listX = left + 8;
+        int listY = top + 8;
+        int listW = (int)(panelW * 0.32);
 
-        List<RaidSystem.RaidDefinition> loadedRaids = new ArrayList<>(RaidSystem.getRaids());
-        if (!loadedRaids.isEmpty()) {
-            sidebarItems.add(new SidebarItem("RAIDS"));
-            for (RaidSystem.RaidDefinition rd : loadedRaids) {
-                sidebarItems.add(new SidebarItem(rd));
-            }
-        }
+        this.searchField = new EditBox(this.font, listX + 6, listY + 5, listW - 12, 10, net.minecraft.network.chat.Component.translatable("gui.custom_mobs.raid_editor.search"));
+        this.searchField.setValue(this.searchQuery);
+        this.searchField.setBordered(false);
+        this.searchField.setResponder(val -> {
+            this.searchQuery = val.trim().toLowerCase();
+            this.updateSidebarItems();
+        });
+        this.addRenderableWidget(this.searchField);
+
+        this.updateSidebarItems();
     }
 
     private CustomMobEntity getPreviewEntity(String templateId) {
@@ -196,20 +198,30 @@ public class BestiaryScreen extends Screen {
         int statsY = top + 8;
         int statsH = panelH - 16;
 
-        // Draw Left sidebar recessed slot
-        UIHelper.drawRecessedSlot(graphics, listX, listY, listW, listH, borderC, slotC);
+        if (this.searchField != null) {
+            this.searchField.setX(listX + 6);
+            this.searchField.setY(listY + 5);
+            this.searchField.setWidth(listW - 12);
+        }
+
+        // Draw search box and sidebar recessed slots
+        UIHelper.drawRecessedSlot(graphics, listX + 2, listY + 2, listW - 4, 16, borderC, slotC);
+
+        int listContentY = listY + 20;
+        int listContentH = listH - 20;
+        UIHelper.drawRecessedSlot(graphics, listX, listContentY, listW, listContentH, borderC, slotC);
 
         // Draw Left Sidebar list rows
         int rowH = 12;
-        int visibleRows = (listH - 4) / rowH;
-        int itemY = listY + 3;
+        int visibleRows = (listContentH - 4) / rowH;
+        int itemY = listContentY + 3;
         int maxVisible = Math.min(scrollOffset + visibleRows, sidebarItems.size());
 
         double scaleVal = this.minecraft.getWindow().getGuiScale();
         int scissorX = (int) (listX * scaleVal);
-        int scissorY = (int) ((this.minecraft.getWindow().getGuiScaledHeight() - (listY + listH - 1)) * scaleVal);
+        int scissorY = (int) ((this.minecraft.getWindow().getGuiScaledHeight() - (listContentY + listContentH - 1)) * scaleVal);
         int scissorW = (int) (listW * scaleVal);
-        int scissorH = (int) ((listH - 2) * scaleVal);
+        int scissorH = (int) ((listContentH - 2) * scaleVal);
 
         com.mojang.blaze3d.systems.RenderSystem.enableScissor(scissorX, scissorY, scissorW, scissorH);
         for (int i = scrollOffset; i < maxVisible; i++) {
@@ -259,9 +271,9 @@ public class BestiaryScreen extends Screen {
         // Draw Left sidebar scrollbar
         if (sidebarItems.size() > visibleRows) {
             int scrollbarX = listX + listW - 6;
-            int scrollbarY = listY + 2;
+            int scrollbarY = listContentY + 2;
             int scrollbarW = 4;
-            int scrollbarH = listH - 4;
+            int scrollbarH = listContentH - 4;
             graphics.fill(scrollbarX, scrollbarY, scrollbarX + scrollbarW, scrollbarY + scrollbarH, 0x40000000);
 
             int thumbH = Math.max(10, scrollbarH * visibleRows / sidebarItems.size());
@@ -586,6 +598,42 @@ public class BestiaryScreen extends Screen {
             }
         }
 
+        // Draw hover tooltips for sidebar items
+        List<Component> hoveredTooltip = null;
+        for (int i = scrollOffset; i < maxVisible; i++) {
+            SidebarItem item = sidebarItems.get(i);
+            int drawY = itemY + (i - scrollOffset) * rowH;
+            if (!item.isHeader) {
+                if (mouseX >= listX + 2 && mouseX <= listX + listW - (sidebarItems.size() > visibleRows ? 8 : 2) && mouseY >= drawY && mouseY <= drawY + rowH - 1) {
+                    if (item.mob != null) {
+                        boolean isUnlocked = isMobDiscovered(item.mob.id);
+                        if (isUnlocked) {
+                            hoveredTooltip = List.of(
+                                Component.literal(item.mob.name),
+                                Component.literal("ID: " + item.mob.id).withStyle(net.minecraft.ChatFormatting.GRAY)
+                            );
+                        } else {
+                            hoveredTooltip = List.of(Component.literal("Undiscovered Mob"));
+                        }
+                    } else if (item.raid != null) {
+                        boolean isUnlocked = isRaidDiscovered(item.raid.raidId);
+                        if (isUnlocked) {
+                            hoveredTooltip = List.of(
+                                Component.literal(item.raid.raidId)
+                            );
+                        } else {
+                            hoveredTooltip = List.of(Component.literal("Undiscovered Raid"));
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (hoveredTooltip != null) {
+            graphics.renderComponentTooltip(this.font, hoveredTooltip, mouseX, mouseY);
+        }
+
         super.render(graphics, mouseX, mouseY, partialTicks);
     }
 
@@ -601,9 +649,12 @@ public class BestiaryScreen extends Screen {
         int listW = (int)(panelW * 0.32);
         int listH = panelH - 16;
 
-        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
+        int listContentY = listY + 20;
+        int listContentH = listH - 20;
+
+        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listContentY && mouseY <= listContentY + listContentH) {
             int rowH = 12;
-            int visibleRows = (listH - 4) / rowH;
+            int visibleRows = (listContentH - 4) / rowH;
             int maxOffset = Math.max(0, sidebarItems.size() - visibleRows);
             if (amount > 0) {
                 scrollOffset = Math.max(0, scrollOffset - 1);
@@ -695,10 +746,18 @@ public class BestiaryScreen extends Screen {
             }
         }
 
+        if (button == 0 && this.searchField != null && this.searchField.visible) {
+            if (this.searchField.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+
         // Left sidebar selection click
+        int listContentY = listY + 20;
+        int listContentH = listH - 20;
         int rowH = 12;
-        int visibleRows = (listH - 4) / rowH;
-        int itemY = listY + 3;
+        int visibleRows = (listContentH - 4) / rowH;
+        int itemY = listContentY + 3;
         int maxVisible = Math.min(scrollOffset + visibleRows, sidebarItems.size());
 
         if (button == 0) {
@@ -732,11 +791,82 @@ public class BestiaryScreen extends Screen {
         if (this.previewEntity != null) {
             this.previewEntity.tickCount++;
         }
+        if (this.searchField != null) {
+            this.searchField.tick();
+        }
     }
 
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private void updateSidebarItems() {
+        sidebarItems.clear();
+
+        List<MobData> filteredPassives = new ArrayList<>();
+        for (MobData m : passives) {
+            boolean isUnlocked = isMobDiscovered(m.id);
+            String displayName = isUnlocked ? m.name : "???";
+            if (searchQuery.isEmpty() || displayName.toLowerCase().contains(searchQuery) || m.id.toLowerCase().contains(searchQuery)) {
+                filteredPassives.add(m);
+            }
+        }
+        if (!filteredPassives.isEmpty()) {
+            sidebarItems.add(new SidebarItem("PASSIVE"));
+            for (MobData m : filteredPassives) sidebarItems.add(new SidebarItem(m));
+        }
+
+        List<MobData> filteredNeutrals = new ArrayList<>();
+        for (MobData m : neutrals) {
+            boolean isUnlocked = isMobDiscovered(m.id);
+            String displayName = isUnlocked ? m.name : "???";
+            if (searchQuery.isEmpty() || displayName.toLowerCase().contains(searchQuery) || m.id.toLowerCase().contains(searchQuery)) {
+                filteredNeutrals.add(m);
+            }
+        }
+        if (!filteredNeutrals.isEmpty()) {
+            sidebarItems.add(new SidebarItem("NEUTRAL"));
+            for (MobData m : filteredNeutrals) sidebarItems.add(new SidebarItem(m));
+        }
+
+        List<MobData> filteredHostiles = new ArrayList<>();
+        for (MobData m : hostiles) {
+            boolean isUnlocked = isMobDiscovered(m.id);
+            String displayName = isUnlocked ? m.name : "???";
+            if (searchQuery.isEmpty() || displayName.toLowerCase().contains(searchQuery) || m.id.toLowerCase().contains(searchQuery)) {
+                filteredHostiles.add(m);
+            }
+        }
+        if (!filteredHostiles.isEmpty()) {
+            sidebarItems.add(new SidebarItem("HOSTILE"));
+            for (MobData m : filteredHostiles) sidebarItems.add(new SidebarItem(m));
+        }
+
+        List<RaidSystem.RaidDefinition> filteredRaids = new ArrayList<>();
+        for (RaidSystem.RaidDefinition rd : loadedRaids) {
+            boolean isUnlocked = isRaidDiscovered(rd.raidId);
+            String displayName = isUnlocked ? rd.raidId : "???";
+            if (searchQuery.isEmpty() || displayName.toLowerCase().contains(searchQuery) || rd.raidId.toLowerCase().contains(searchQuery)) {
+                filteredRaids.add(rd);
+            }
+        }
+        if (!filteredRaids.isEmpty()) {
+            sidebarItems.add(new SidebarItem("RAIDS"));
+            for (RaidSystem.RaidDefinition rd : filteredRaids) {
+                sidebarItems.add(new SidebarItem(rd));
+            }
+        }
+
+        int panelW = Math.max(340, Math.min(440, (int)(this.width * 0.85)));
+        int panelH = Math.max(200, Math.min(280, (int)(this.height * 0.85)));
+        int listContentH = (panelH - 16) - 20;
+        int rowH = 12;
+        int visibleRows = (listContentH - 4) / rowH;
+        int maxOffset = Math.max(0, sidebarItems.size() - visibleRows);
+        if (scrollOffset > maxOffset) {
+            scrollOffset = maxOffset;
+        }
     }
 
     private static String truncate(String text, int max) {

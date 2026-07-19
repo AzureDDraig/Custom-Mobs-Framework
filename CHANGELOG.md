@@ -4,6 +4,16 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 128] - Bestiary Screen Search Filter & Sidebar Hover Tooltips
+### Technical Changes (By Class)
+*   **`BestiaryScreen.java`**:
+    *   **Bestiary Search Filter:** Integrated an `EditBox` search field at the top of the sidebar. Shuffled list viewport and scrollbar math downwards by 20 pixels, allowing players to filter discoverable custom mobs and raids.
+    *   **Sidebar Tooltips:** Added premium hover tooltips displaying the full display name and internal resource/template ID of hovered sidebar items, making it easy to read long truncated names.
+### Layman's Explanation
+*   **Bestiary Quality of Life:** Added a search box to the Bestiary Screen to quickly find mobs or raids. Hovering over a list entry now shows a tooltip with the full name and internal ID.
+
+---
+
 ## [Build 127] - Raid Editor Item Selector Scroll Reset Fix
 ### Technical Changes (By Class)
 *   **`RaidEditorScreen.java`**:
