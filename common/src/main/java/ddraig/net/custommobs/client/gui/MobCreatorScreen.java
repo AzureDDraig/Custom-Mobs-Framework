@@ -1118,8 +1118,9 @@ public class MobCreatorScreen extends Screen {
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
                     } else if (goal.type.startsWith("MELEE") || goal.type.startsWith("KNOCKBACK") || goal.type.equals("RANGED")
-                            || goal.type.startsWith("SUMMON_GROUND_ATTACK") || goal.type.startsWith("AERIAL_RANGED")
-                            || goal.type.equals("SHOTGUN_ATTACK") || goal.type.equals("ORBITING_SHIELD")) {
+                            || (goal.type.startsWith("SUMMON_") && !goal.type.equals("SUMMON_MINION_PORTAL"))
+                            || goal.type.startsWith("AERIAL_RANGED") || goal.type.equals("SHOTGUN_ATTACK")
+                            || goal.type.equals("ORBITING_SHIELD")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         cache = MobRegistry.cachedSounds;
                     } else if (goal.type.equals("USE_ABILITY")) {
@@ -1134,7 +1135,7 @@ public class MobCreatorScreen extends Screen {
                     } else if (goal.type.equals("EFFECT_ON_CONTACT") || goal.type.equals("EFFECT_ON_ATTACK")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         cache = new ArrayList<>(BuiltInRegistries.MOB_EFFECT.keySet().stream().map(ResourceLocation::toString).toList());
-                    } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("SUMMON_MINIONS")) {
+                    } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("SUMMON_MINIONS") || goal.type.equals("SUMMON_MINION_PORTAL")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
@@ -1147,12 +1148,18 @@ public class MobCreatorScreen extends Screen {
                         cache = list;
                     }
                 } else if (goalParam2Field.isFocused()) {
-                    if (goal.type.equals("RANGED") || goal.type.startsWith("SUMMON_GROUND_ATTACK")
+                    if (goal.type.equals("SUMMON_MINION_PORTAL")) {
+                        focused = goalParam2Field; yOffset = 157 + 10;
+                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
+                        list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
+                        cache = list;
+                    } else if (goal.type.equals("RANGED") || (goal.type.startsWith("SUMMON_") && !goal.type.equals("SUMMON_MINION_PORTAL"))
                             || goal.type.startsWith("AERIAL_RANGED") || goal.type.equals("SHOTGUN_ATTACK")
                             || goal.type.equals("ORBITING_SHIELD")) {
                         focused = goalParam2Field; yOffset = 157 + 10;
                         List<String> list = new ArrayList<>(MobRegistry.loadedProjectiles.keySet());
                         list.addAll(net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
+                        list.addAll(net.minecraft.core.registries.BuiltInRegistries.PARTICLE_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
                     } else if (goal.type.equals("EXPLODE_ON_DEATH")) {
                         focused = goalParam2Field; yOffset = 157 + 10;
@@ -1165,6 +1172,17 @@ public class MobCreatorScreen extends Screen {
                     }
                 } else if (goalParam4Field.isFocused()) {
                     focused = goalParam4Field; yOffset = 207 + 10;
+                } else if (goalParam5Field.isFocused()) {
+                    focused = goalParam5Field; yOffset = 232 + 10;
+                } else if (goalParam6Field.isFocused()) {
+                    focused = goalParam6Field; yOffset = 257 + 10;
+                } else if (goalParam7Field.isFocused()) {
+                    focused = goalParam7Field; yOffset = 282 + 10;
+                    if (goal.type.equals("SUMMON_CHASE_SNAKE")) {
+                        cache = new ArrayList<>(BuiltInRegistries.PARTICLE_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
+                    }
+                } else if (goalParam8Field.isFocused()) {
+                    focused = goalParam8Field; yOffset = 307 + 10;
                 }
             }
 
@@ -1986,6 +2004,54 @@ public class MobCreatorScreen extends Screen {
                 goal.params.put("cooldown", goalParam1Field.getValue());
             } else if (type.equals("IMITATE_SOUNDS")) {
                 goal.params.put("cooldown", goalParam1Field.getValue());
+            } else if (type.startsWith("SUMMON_")) {
+                goal.params.put("sound", goalParam1Field.getValue());
+                goal.params.put("projectileId", goalParam2Field.getValue());
+                goal.params.put("damage", goalParam3Field.getValue());
+                goal.params.put("speed", goalParam4Field.getValue());
+                goal.params.put("count", goalParam5Field.getValue());
+
+                if (type.equals("SUMMON_MINION_PORTAL")) {
+                    goal.params.put("portalMobId", goalParam1Field.getValue());
+                    goal.params.put("minionMobId", goalParam2Field.getValue());
+                    goal.params.put("portalDuration", goalParam3Field.getValue());
+                    goal.params.put("spawnInterval", goalParam4Field.getValue());
+                    goal.params.put("maxMinions", goalParam5Field.getValue());
+                    goal.params.put("spawnRadius", goalParam6Field.getValue());
+                } else if (type.equals("SUMMON_TETHER_DRAIN")) {
+                    goal.params.put("projectileId", goalParam2Field.getValue());
+                    goal.params.put("damage", goalParam3Field.getValue());
+                    goal.params.put("maxDuration", goalParam4Field.getValue());
+                    goal.params.put("maxDistance", goalParam5Field.getValue());
+                    goal.params.put("slownessLevel", goalParam6Field.getValue());
+                    goal.params.put("healAmount", goalParam7Field.getValue());
+                } else {
+                    if (type.contains("DOME") || type.contains("VORTEX")) {
+                        goal.params.put("radius", goalParam6Field.getValue());
+                    } else if (type.equals("SUMMON_CHASE_SNAKE")) {
+                        goal.params.put("spawnInterval", goalParam6Field.getValue());
+                    } else {
+                        goal.params.put("linesCount", goalParam6Field.getValue());
+                    }
+
+                    if (type.contains("SPIRAL")) {
+                        goal.params.put("spiralFactor", goalParam7Field.getValue());
+                    } else if (type.equals("SUMMON_CHASE_SNAKE")) {
+                        goal.params.put("particleType", goalParam7Field.getValue());
+                        goal.params.put("warning_particle_type", goalParam7Field.getValue());
+                    } else {
+                        goal.params.put("angle", goalParam7Field.getValue());
+                    }
+
+                    if (type.contains("LAYERED")) {
+                        goal.params.put("delayTicks", goalParam8Field.getValue());
+                        goal.params.put("delay", goalParam8Field.getValue());
+                    } else if (type.contains("GROUND")) {
+                        goal.params.put("maxHeight", goalParam8Field.getValue());
+                    } else {
+                        goal.params.put("upwardKnockback", goalParam8Field.getValue());
+                    }
+                }
             } else if (type.equals("IDLE")) {
                 goal.params.put("duration", goalParam1Field.getValue());
             }
@@ -4671,6 +4737,7 @@ public class MobCreatorScreen extends Screen {
             key = "gui.custom_mobs.creator.goal.param4";
             if (type.equals("SUMMON_MINION_PORTAL")) { key = "gui.custom_mobs.creator.goal.spawn_interval"; fallback = "Spawn Interval"; }
             else if (type.equals("SPAWN_MINIONS")) { key = "gui.custom_mobs.creator.goal.spawn_radius"; fallback = "Spawn Radius"; }
+            else if (type.equals("SUMMON_TETHER_DRAIN")) { key = "gui.custom_mobs.creator.goal.max_duration_ticks"; fallback = "Max Duration (Ticks)"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.speed"; fallback = "Speed"; }
         } else if (paramNum == 5) {
             key = "gui.custom_mobs.creator.goal.param5";
@@ -4692,6 +4759,7 @@ public class MobCreatorScreen extends Screen {
         } else if (paramNum == 8) {
             key = "gui.custom_mobs.creator.goal.param8";
             if (type.contains("LAYERED")) { key = "gui.custom_mobs.creator.goal.delay_ticks"; fallback = "Delay Ticks"; }
+            else if (type.startsWith("SUMMON_") && type.contains("GROUND")) { key = "gui.custom_mobs.creator.goal.max_height"; fallback = "Max Height"; }
             else if (type.startsWith("SUMMON_")) { key = "gui.custom_mobs.creator.goal.upward_knockback"; fallback = "Upward Knockback"; }
         }
         String translated = Component.translatable(key).getString();

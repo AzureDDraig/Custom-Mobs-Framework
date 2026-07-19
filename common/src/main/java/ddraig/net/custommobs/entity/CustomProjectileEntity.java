@@ -377,6 +377,10 @@ public class CustomProjectileEntity extends ThrowableProjectile implements net.m
                     this.hasImpulse = true;
                 }
             }
+            if (this.tickCount > 200) {
+                this.discard();
+                return;
+            }
         }
 
         super.tick();

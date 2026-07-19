@@ -5525,23 +5525,23 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 castDelay = Integer.parseInt(aiGoal.params.getOrDefault("delay", "20"));
             } catch (Exception ignored) {}
 
-            if (goalType.equals("SUMMON_CHASE_SNAKE")) {
-                executeChaseSnake(target, aiGoal, count);
-                return;
-            }
-
-            if (goalType.equals("SUMMON_GALE_VORTEX_PULL") || goalType.equals("SUMMON_GALE_VORTEX_PUSH")) {
-                executeVortexSpawn(target, aiGoal);
-                return;
-            }
-
-            if (goalType.equals("SUMMON_MINION_PORTAL")) {
-                executeMinionPortal(target, aiGoal);
-                return;
-            }
-
             attackTime++;
             if (attackTime >= castDelay) {
+                if (goalType.equals("SUMMON_CHASE_SNAKE")) {
+                    executeChaseSnake(target, aiGoal, count);
+                    return;
+                }
+
+                if (goalType.equals("SUMMON_GALE_VORTEX_PULL") || goalType.equals("SUMMON_GALE_VORTEX_PUSH")) {
+                    executeVortexSpawn(target, aiGoal);
+                    return;
+                }
+
+                if (goalType.equals("SUMMON_MINION_PORTAL")) {
+                    executeMinionPortal(target, aiGoal);
+                    return;
+                }
+
                 boolean isLayered = goalType.contains("LAYERED");
                 if (isLayered) {
                     stepTimer++;
@@ -5706,6 +5706,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 double h = radius * Math.sin(Math.toRadians(theta));
                 int numProj = Math.max(1, (int) (linesCount * Math.cos(Math.toRadians(theta))));
 
+                double maxHeight = -1.0D;
+                try {
+                    maxHeight = Double.parseDouble(aiGoal.params.getOrDefault("maxHeight", "-1.0"));
+                } catch (Exception ignored) {}
+
                 for (int j = 0; j < numProj; j++) {
                     double phi = j * (360.0D / numProj);
                     double px = casterPos.x + r * Math.cos(Math.toRadians(phi));
@@ -5713,10 +5718,15 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     double pz = casterPos.z + r * Math.sin(Math.toRadians(phi));
                     Vec3 shootDir = new Vec3(Math.cos(Math.toRadians(phi)), 0.1D, Math.sin(Math.toRadians(phi))).normalize();
                     
-                    spawnProjectileAt(serverLevel, mob, projId, px, py, pz, shootDir.x, shootDir.y, shootDir.z, speed, damage, 0.0f, false, -1.0D);
+                    spawnProjectileAt(serverLevel, mob, projId, px, py, pz, shootDir.x, shootDir.y, shootDir.z, speed, damage, 0.0f, false, maxHeight);
                 }
                 return;
             }
+
+            double maxHeight = -1.0D;
+            try {
+                maxHeight = Double.parseDouble(aiGoal.params.getOrDefault("maxHeight", "-1.0"));
+            } catch (Exception ignored) {}
 
             List<Vec3> positions = getSpawnPositions(step, casterPos, targetPos, dir, spacing, count, aiGoal);
             for (Vec3 pos : positions) {
@@ -5725,7 +5735,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 double dy = isGround ? 1.0D : 0.0D;
                 double dz = isGround ? 0.0D : dir.z;
                 
-                spawnProjectileAt(serverLevel, mob, projId, pos.x, sy, pos.z, dx, dy, dz, speed, damage, 0.0f, isGround, -1.0D);
+                spawnProjectileAt(serverLevel, mob, projId, pos.x, sy, pos.z, dx, dy, dz, speed, damage, 0.0f, isGround, maxHeight);
             }
         }
 
@@ -5822,7 +5832,12 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     double dy = isGround ? 1.0D : -1.0D;
                     double dz = isGround ? 0.0D : 0.0D;
 
-                    spawnProjectileAt(serverLevel, mob, projId, spawnPos.x, sy, spawnPos.z, dx, dy, dz, speed, damage, 0.0f, isGround, -1.0D);
+                    double maxHeight = -1.0D;
+                    try {
+                        maxHeight = Double.parseDouble(aiGoal.params.getOrDefault("maxHeight", "-1.0"));
+                    } catch (Exception ignored) {}
+
+                    spawnProjectileAt(serverLevel, mob, projId, spawnPos.x, sy, spawnPos.z, dx, dy, dz, speed, damage, 0.0f, isGround, maxHeight);
                     
                     net.minecraft.core.particles.ParticleOptions opt = getParticleOptions(particleId);
                     serverLevel.sendParticles(opt, spawnPos.x, sy, spawnPos.z, 20, 0.25D, 0.25D, 0.25D, 0.05D);
@@ -6019,24 +6034,43 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             if (!(mob.level() instanceof ServerLevel serverLevel)) return;
 
             MobData.AIGoalData aiGoal = mob.getGoalData("SPAWN_MINIONS");
-            if (aiGoal == null) return;
+            CustomMobEntity summoner = null;
+            if (mob.getSummonerId() != -1) {
+                var ent = serverLevel.getEntity(mob.getSummonerId());
+                if (ent instanceof CustomMobEntity) {
+                    summoner = (CustomMobEntity) ent;
+                }
+            }
+            MobData.AIGoalData summonerGoal = null;
+            if (summoner != null) {
+                summonerGoal = summoner.getGoalData("SUMMON_MINION_PORTAL");
+            }
 
-            String minionMobId = aiGoal.params.getOrDefault("minionMobId", "zombie");
-            
+            String minionMobIdVal = "zombie";
+            if (summonerGoal != null && summonerGoal.params.containsKey("minionMobId")) {
+                minionMobIdVal = summonerGoal.params.get("minionMobId");
+            } else if (aiGoal != null) {
+                minionMobIdVal = aiGoal.params.getOrDefault("minionMobId", "zombie");
+            }
+            final String minionMobId = minionMobIdVal;
+
             int spawnInterval = 100;
-            try {
-                spawnInterval = Integer.parseInt(aiGoal.params.getOrDefault("spawnInterval", "100"));
-            } catch (Exception ignored) {}
+            String spawnIntervalStr = summonerGoal != null ? summonerGoal.params.get("spawnInterval") : (aiGoal != null ? aiGoal.params.get("spawnInterval") : null);
+            if (spawnIntervalStr != null) {
+                try { spawnInterval = Integer.parseInt(spawnIntervalStr); } catch (Exception ignored) {}
+            }
 
             int maxMinions = 3;
-            try {
-                maxMinions = Integer.parseInt(aiGoal.params.getOrDefault("maxMinions", "3"));
-            } catch (Exception ignored) {}
+            String maxMinionsStr = summonerGoal != null ? summonerGoal.params.get("maxMinions") : (aiGoal != null ? aiGoal.params.get("maxMinions") : null);
+            if (maxMinionsStr != null) {
+                try { maxMinions = Integer.parseInt(maxMinionsStr); } catch (Exception ignored) {}
+            }
 
             float spawnRadius = 3.0f;
-            try {
-                spawnRadius = Float.parseFloat(aiGoal.params.getOrDefault("spawnRadius", "3.0"));
-            } catch (Exception ignored) {}
+            String spawnRadiusStr = summonerGoal != null ? summonerGoal.params.get("spawnRadius") : (aiGoal != null ? aiGoal.params.get("spawnRadius") : null);
+            if (spawnRadiusStr != null) {
+                try { spawnRadius = Float.parseFloat(spawnRadiusStr); } catch (Exception ignored) {}
+            }
 
             this.cooldown++;
             if (this.cooldown >= spawnInterval) {

@@ -4,6 +4,26 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 114] - AI Goal Param Saving, Suggestions, and Minion Portal Sync (Issue 2)
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   Added a fallback branch for `type.startsWith("SUMMON_")` in `saveTextFieldsToActiveMob()` to correctly serialize all 8 parameters for custom summon goals on save/export (fixing tether drain, minion portals, spirals, lines, shockwaves, domes, vortexes, etc.).
+    *   Updated the focused field checks in `tick()` to suggest Sound Events for all summon goals, suggest Projectile, Entity, and Particle IDs for all projectile parameters, and added focused checks for parameter input fields 5 through 8 with Particle Type autocompletion support.
+    *   Modified `getParamLabel()` to display `"Max Height"` for non-layered ground summons, and `"Max Duration (Ticks)"` for tether drain.
+*   **`CustomMobEntity.java`**:
+    *   Restructured `CustomSummonAttackGoal.tick()` to enforce the `castDelay` check before initiating chase snake, vortex, or minion portal summons, preventing them from spawning every tick.
+    *   Parsed the `maxHeight` parameter from AI goal parameters in `executeSummonStep()` and `executeChaseSnake()` and passed it to the spawned ground/dome projectiles.
+    *   Updated `SpawnMinionsGoal.tick()` to synchronize `spawnInterval`, `maxMinions`, and `spawnRadius` from the summoner boss's `SUMMON_MINION_PORTAL` parameters if the portal itself does not have overrides.
+*   **`CustomProjectileEntity.java`**:
+    *   Implemented a default 10-second (200-tick) lifespan safety cleanup inside the server-side `tick()` routine for flying projectiles to prevent orphaned/stuck projectiles from persisting indefinitely.
+### Layman's Explanation
+*   **AI Goal Param Saving:** Fixed a critical bug where the parameters (like Portal Mob ID, Minion Mob ID, Spawn Intervals, Radii, etc.) for custom summon skills were completely discarded when saving or exporting.
+*   **Search and Autocomplete:** Added fully functional suggestion overlays for all summon goals in the editor. The editor now correctly suggests sounds, projectiles, entity templates, and particle types when editing these fields.
+*   **Minion Portal Sync:** Enforced cast cooldowns on minion portals, vortexes, and chase snakes so they no longer spam hundreds of objects at once. Portal minion limits, spawn rates, and radii are now correctly synchronized from the boss mob configurations.
+*   **Ground Projectile Height and Cleanup:** Ground projectiles now support playtester-defined maximum heights. A safety cleanup was added to automatically delete any lost or stuck projectiles after 10 seconds to prevent server lag.
+
+---
+
 ## [Build 113] - Custom Death Animations Support
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:
