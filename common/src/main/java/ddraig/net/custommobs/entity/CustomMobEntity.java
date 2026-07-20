@@ -1407,16 +1407,29 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
 
         if (data.spawnRules.biomes != null && !data.spawnRules.biomes.isEmpty() && !biome.isEmpty()) {
             boolean matched = false;
+            net.minecraft.core.Holder<net.minecraft.world.level.biome.Biome> biomeHolder = level.getBiome(pos);
             for (String b : data.spawnRules.biomes) {
-                if (b.equalsIgnoreCase(biome)) {
-                    matched = true;
-                    break;
-                }
-                if (!b.contains(":") && biome.contains(":")) {
-                    String ns = biome.substring(biome.indexOf(":") + 1);
-                    if (b.equalsIgnoreCase(ns)) {
+                if (b.startsWith("#")) {
+                    try {
+                        String tagStr = b.substring(1);
+                        net.minecraft.resources.ResourceLocation tagLoc = new net.minecraft.resources.ResourceLocation(tagStr);
+                        net.minecraft.tags.TagKey<net.minecraft.world.level.biome.Biome> tagKey = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BIOME, tagLoc);
+                        if (biomeHolder.is(tagKey)) {
+                            matched = true;
+                            break;
+                        }
+                    } catch (Exception ignored) {}
+                } else {
+                    if (b.equalsIgnoreCase(biome)) {
                         matched = true;
                         break;
+                    }
+                    if (!b.contains(":") && biome.contains(":")) {
+                        String ns = biome.substring(biome.indexOf(":") + 1);
+                        if (b.equalsIgnoreCase(ns)) {
+                            matched = true;
+                            break;
+                        }
                     }
                 }
             }

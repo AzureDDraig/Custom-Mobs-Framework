@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 131] - Biome Tag Support for Spawn Rules
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Biome Tag Spawning:** Added support for biome tags inside custom mob spawn rules. Biome specifications starting with `#` (e.g., `#minecraft:is_forest`) will be validated against the biome holder's registry tags via `Holder.is(TagKey)`.
+### Layman's Explanation
+*   **Biome Tag Spawning:** Spawning rules now support biome tags, allowing custom mobs to spawn across groups of biomes (such as all forests or oceans) using `#namespace:tag_id` syntax.
+
+---
+
 ## [Build 130] - Projectile Creator Sidebar Search Filter
 ### Technical Changes (By Class)
 *   **`ProjectileCreatorScreen.java`**:
