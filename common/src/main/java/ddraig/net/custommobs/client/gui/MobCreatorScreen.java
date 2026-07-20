@@ -1682,6 +1682,19 @@ public class MobCreatorScreen extends Screen {
                 goalParam1Field.setValue(goal.params.getOrDefault("minion_id", "zombie"));
                 goalParam2Field.setValue(goal.params.getOrDefault("count", "3"));
                 goalParam3Field.setValue(goal.params.getOrDefault("cooldown", "300"));
+            } else if (type.equals("SUMMON_MINION_PORTAL")) {
+                p1Visible = true;
+                p2Visible = true;
+                p3Visible = true;
+                p4Visible = true;
+                p5Visible = true;
+                p6Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("portalMobId", "minion_portal"));
+                goalParam2Field.setValue(goal.params.getOrDefault("minionMobId", "zombie"));
+                goalParam3Field.setValue(goal.params.getOrDefault("portalDuration", "600"));
+                goalParam4Field.setValue(goal.params.getOrDefault("spawnInterval", "100"));
+                goalParam5Field.setValue(goal.params.getOrDefault("maxMinions", "5"));
+                goalParam6Field.setValue(goal.params.getOrDefault("spawnRadius", "4.0"));
             } else if (type.equals("TELEPORT_BEHIND_TARGET")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("cooldown", "100"));

@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 129] - Mob Creator Summon Minion Portal Load Parameters Fix
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   **Goal Loading Parameters:** Fixed a bug where parameters for the `SUMMON_MINION_PORTAL` AI goal were not being loaded into the configuration textboxes when selecting or loading the goal in the Mob Creator UI. Added parameter mapping overrides inside `loadActiveMobGoalDetails()` to populate portalMobId, minionMobId, portalDuration, spawnInterval, maxMinions, and spawnRadius parameters properly.
+### Layman's Explanation
+*   **Minion Portal Goal Editing Fix:** Fixed an issue where the parameters of the "SUMMON_MINION_PORTAL" AI behavior would not load or display inside the editing boxes in the Mob Creator Screen, preventing quick edits of active minion portals.
+
+---
+
 ## [Build 128] - Bestiary Screen Search Filter & Sidebar Hover Tooltips
 ### Technical Changes (By Class)
 *   **`BestiaryScreen.java`**:
