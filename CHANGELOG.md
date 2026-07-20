@@ -4,6 +4,17 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 134] - Fix Avoid Mob & Avoid Player Wearing Goal Parameter Mismatches
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Avoid Goals Parameter Mismatch:** Fixed parameter key mismatches for `AvoidMobGoal` and `AvoidPlayerWearingGoal`. The goals now read `"mobs"` and `"item"` respectively (as saved by the Mob Creator UI), falling back to `"mobId"` and `"armorItem"` for legacy configurations.
+    *   **Custom Mob Fleeing:** Enhanced `AvoidMobGoal` to support custom mob template IDs, allowing mobs to successfully detect and flee from other configured custom mobs.
+    *   **Namespace Fallbacks:** Added namespace-stripped fallback matching for avoid goals, letting them match registry items/entities like `diamond_chestplate` or `zombie` without explicit namespaces.
+### Layman's Explanation
+*   **Avoid Behaviors Fix:** Fixed bugs where the "Avoid Mob" and "Avoid Player Wearing" AI goals would be completely ignored when saving/editing them via the Mob Creator UI due to a settings key mismatch. Custom mobs will now correctly flee from the specified items or entities (including other custom mobs).
+
+---
+
 ## [Build 133] - Mob Creator Avoid Mob & Avoid Player Wearing Suggestions
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

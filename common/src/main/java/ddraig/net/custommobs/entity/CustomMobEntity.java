@@ -3800,7 +3800,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             if (!mob.hasGoalType("AVOID_PLAYER_WEARING") || mob.isGoalOnCooldown("AVOID_PLAYER_WEARING")) return false;
             MobData.AIGoalData aiGoal = mob.getGoalData("AVOID_PLAYER_WEARING");
             if (aiGoal == null) return false;
-            String armorItem = aiGoal.params.getOrDefault("armorItem", "");
+            String armorItem = aiGoal.params.getOrDefault("item", aiGoal.params.getOrDefault("armorItem", ""));
             if (armorItem.isEmpty()) return false;
 
             double range = 12.0D;
@@ -3809,11 +3809,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 if (rangeStr != null && !rangeStr.isEmpty()) range = Double.parseDouble(rangeStr);
             } catch (Exception ignored) {}
 
+            final String cleanItem = armorItem.contains(":") ? armorItem : "minecraft:" + armorItem;
+
             List<Player> players = mob.level().getEntitiesOfClass(Player.class, mob.getBoundingBox().inflate(range));
             for (Player p : players) {
                 for (ItemStack armor : p.getArmorSlots()) {
                     String key = BuiltInRegistries.ITEM.getKey(armor.getItem()).toString();
-                    if (key.equalsIgnoreCase(armorItem)) {
+                    if (key.equalsIgnoreCase(armorItem) || key.equalsIgnoreCase(cleanItem)) {
                         targetPlayer = p;
                         return true;
                     }
@@ -3866,12 +3868,8 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             if (!mob.hasGoalType("AVOID_MOB") || mob.isGoalOnCooldown("AVOID_MOB")) return false;
             MobData.AIGoalData aiGoal = mob.getGoalData("AVOID_MOB");
             if (aiGoal == null) return false;
-            String targetMobId = aiGoal.params.getOrDefault("mobId", "");
+            String targetMobId = aiGoal.params.getOrDefault("mobs", aiGoal.params.getOrDefault("mobId", ""));
             if (targetMobId.isEmpty()) return false;
-
-            var res = new ResourceLocation(targetMobId);
-            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(res);
-            if (type == null) return false;
 
             double range = 12.0D;
             try {
@@ -3879,8 +3877,17 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 if (rangeStr != null && !rangeStr.isEmpty()) range = Double.parseDouble(rangeStr);
             } catch (Exception ignored) {}
 
+            final String cleanTarget = targetMobId.contains(":") ? targetMobId : "minecraft:" + targetMobId;
+
             List<? extends LivingEntity> list = mob.level().getEntitiesOfClass(LivingEntity.class, mob.getBoundingBox().inflate(range),
-                e -> e.getType() == type);
+                e -> {
+                    if (e == mob) return false;
+                    if (e instanceof CustomMobEntity c) {
+                        if (c.getTemplateId().equals(targetMobId)) return true;
+                    }
+                    ResourceLocation loc = BuiltInRegistries.ENTITY_TYPE.getKey(e.getType());
+                    return loc.toString().equalsIgnoreCase(targetMobId) || loc.toString().equalsIgnoreCase(cleanTarget);
+                });
             if (!list.isEmpty()) {
                 targetMob = list.get(0);
                 return true;
