@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 130] - Projectile Creator Sidebar Search Filter
+### Technical Changes (By Class)
+*   **`ProjectileCreatorScreen.java`**:
+    *   **Sidebar Search Filter:** Integrated an `EditBox` search field at the top of the sidebar. Shuffled list viewport and scrollbar math downwards by 18 pixels, allowing players to filter custom projectiles.
+### Layman's Explanation
+*   **Projectile Creator Quality of Life:** Added a search box to the Projectile Creator Screen sidebar to quickly filter and find custom projectiles.
+
+---
+
 ## [Build 129] - Mob Creator Summon Minion Portal Load Parameters Fix
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

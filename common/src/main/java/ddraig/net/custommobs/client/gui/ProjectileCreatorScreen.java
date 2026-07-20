@@ -55,6 +55,9 @@ public class ProjectileCreatorScreen extends Screen {
     private EditBox activeField = null;
     private int suggestionsScrollOffset = 0;
     private int sidebarScrollOffset = 0;
+    private final List<ProjectileData> filteredTemplates = new ArrayList<>();
+    private EditBox searchField;
+    private String searchQuery = "";
 
     // Tooltip overlay
     private List<Component> hoveredTooltip = null;
@@ -84,9 +87,20 @@ public class ProjectileCreatorScreen extends Screen {
         int top = (this.height - this.panelH) / 2;
 
         int listH = this.panelH - 55;
-        int visibleCount = (listH - 10) / 12;
-        int maxScroll = Math.max(0, templatesList.size() - visibleCount);
-        this.sidebarScrollOffset = Math.max(0, Math.min(maxScroll, this.sidebarScrollOffset));
+        int listW = 100;
+        int listX = left + 10;
+        int listY = top + 25;
+
+        this.searchField = new EditBox(this.font, listX + 6, listY + 5, listW - 12, 10, Component.translatable("gui.custom_mobs.raid_editor.search"));
+        this.searchField.setValue(this.searchQuery);
+        this.searchField.setBordered(false);
+        this.searchField.setResponder(val -> {
+            this.searchQuery = val.trim().toLowerCase();
+            this.updateFilteredTemplates();
+        });
+        this.addRenderableWidget(this.searchField);
+
+        this.updateFilteredTemplates();
 
         int formX = left + 120;
         int formY = top + 45;
@@ -208,6 +222,9 @@ public class ProjectileCreatorScreen extends Screen {
         effectDurField.tick();
         effectAmpField.tick();
         explosionRadiusField.tick();
+        if (this.searchField != null) {
+            this.searchField.tick();
+        }
 
         try {
             EditBox focused = null;
@@ -267,10 +284,12 @@ public class ProjectileCreatorScreen extends Screen {
         int listY = top + 25;
         int listW = 100;
         int listH = this.panelH - 55;
+        int listContentY = listY + 18;
+        int listContentH = listH - 18;
 
-        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
-            int visibleCount = (listH - 10) / 12;
-            int maxScroll = Math.max(0, templatesList.size() - visibleCount);
+        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listContentY && mouseY <= listContentY + listContentH) {
+            int visibleCount = (listContentH - 10) / 12;
+            int maxScroll = Math.max(0, filteredTemplates.size() - visibleCount);
             sidebarScrollOffset = Math.max(0, Math.min(maxScroll, sidebarScrollOffset - (int) amount));
             return true;
         }
@@ -510,14 +529,25 @@ public class ProjectileCreatorScreen extends Screen {
         int listW = 100;
         int listH = panelH - 55;
 
-        UIHelper.drawRecessedSlot(graphics, listX, listY, listW, listH, borderC, slotC);
+        if (this.searchField != null) {
+            this.searchField.setX(listX + 6);
+            this.searchField.setY(listY + 5);
+            this.searchField.setWidth(listW - 12);
+        }
 
-        int visibleCount = (listH - 10) / 12;
-        int sidebarY = listY + 5;
+        // Draw search box and sidebar recessed slots
+        UIHelper.drawRecessedSlot(graphics, listX + 2, listY + 2, listW - 4, 16, borderC, slotC);
+
+        int listContentY = listY + 18;
+        int listContentH = listH - 18;
+        UIHelper.drawRecessedSlot(graphics, listX, listContentY, listW, listContentH, borderC, slotC);
+
+        int visibleCount = (listContentH - 10) / 12;
+        int sidebarY = listContentY + 5;
         for (int i = 0; i < visibleCount; i++) {
             int index = i + sidebarScrollOffset;
-            if (index >= templatesList.size()) break;
-            ProjectileData p = templatesList.get(index);
+            if (index >= filteredTemplates.size()) break;
+            ProjectileData p = filteredTemplates.get(index);
             int c = (p == selectedProj) ? textActiveC : textNormalC;
             graphics.drawString(this.font, truncate(p.name, 14), listX + 5, sidebarY, c, false);
             
@@ -812,6 +842,8 @@ public class ProjectileCreatorScreen extends Screen {
         int listY = top + 25;
         int listW = 100;
         int listH = panelH - 55;
+        int listContentY = listY + 18;
+        int listContentH = listH - 18;
 
         if (showSuggestions && !activeSuggestions.isEmpty() && activeField != null) {
             int dropX = activeField.getX();
@@ -846,12 +878,18 @@ public class ProjectileCreatorScreen extends Screen {
             return true;
         }
 
-        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listY && mouseY <= listY + listH) {
-            int clickedIdx = (int) ((mouseY - listY - 5) / 12) + sidebarScrollOffset;
-            int visibleCount = (listH - 10) / 12;
-            int screenIdx = (int) ((mouseY - listY - 5) / 12);
-            if (screenIdx >= 0 && screenIdx < visibleCount && clickedIdx >= 0 && clickedIdx < templatesList.size()) {
-                selectProj(templatesList.get(clickedIdx));
+        if (button == 0 && this.searchField != null && this.searchField.visible) {
+            if (this.searchField.mouseClicked(mouseX, mouseY, button)) {
+                return true;
+            }
+        }
+
+        if (mouseX >= listX && mouseX <= listX + listW && mouseY >= listContentY && mouseY <= listContentY + listContentH) {
+            int clickedIdx = (int) ((mouseY - listContentY - 5) / 12) + sidebarScrollOffset;
+            int visibleCount = (listContentH - 10) / 12;
+            int screenIdx = (int) ((mouseY - listContentY - 5) / 12);
+            if (screenIdx >= 0 && screenIdx < visibleCount && clickedIdx >= 0 && clickedIdx < filteredTemplates.size()) {
+                selectProj(filteredTemplates.get(clickedIdx));
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
@@ -1047,6 +1085,22 @@ public class ProjectileCreatorScreen extends Screen {
     private String truncateByWidth(String text, int width) {
         if (this.font.width(text) <= width) return text;
         return this.font.plainSubstrByWidth(text, width - 8) + "..";
+    }
+
+    private void updateFilteredTemplates() {
+        this.filteredTemplates.clear();
+        for (ProjectileData p : this.templatesList) {
+            if (this.searchQuery.isEmpty() || p.id.toLowerCase().contains(this.searchQuery) || p.name.toLowerCase().contains(this.searchQuery)) {
+                this.filteredTemplates.add(p);
+            }
+        }
+        int listH = this.panelH - 55;
+        int listContentH = listH - 18;
+        int visibleCount = (listContentH - 10) / 12;
+        int maxScroll = Math.max(0, this.filteredTemplates.size() - visibleCount);
+        if (this.sidebarScrollOffset > maxScroll) {
+            this.sidebarScrollOffset = maxScroll;
+        }
     }
 
     private static String truncate(String text, int max) {
