@@ -1144,12 +1144,12 @@ public class MobCreatorScreen extends Screen {
                             }
                         }
                         cache = list;
-                    } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("SUMMON_MINIONS") || goal.type.equals("SUMMON_MINION_PORTAL")) {
+                    } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("AVOID_MOB") || goal.type.equals("SUMMON_MINIONS") || goal.type.equals("SUMMON_MINION_PORTAL")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
-                    } else if (goal.type.equals("GIFT_GIVER")) {
+                    } else if (goal.type.equals("GIFT_GIVER") || goal.type.equals("AVOID_PLAYER_WEARING")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
                         List<String> list = new ArrayList<>();
                         list.add("loot");

@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 133] - Mob Creator Avoid Mob & Avoid Player Wearing Suggestions
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   **Goal Autocomplete Suggestions:** Added autocomplete suggestions dropdown support for the `AVOID_MOB` goal's parameter 1 (suggesting custom mobs and entity registry types) and the `AVOID_PLAYER_WEARING` goal's parameter 1 (suggesting item registry types).
+### Layman's Explanation
+*   **Autocomplete Suggestions Coverage:** Adding missing autocomplete suggestions to the "Avoid Mob" and "Avoid Player Wearing" AI goals inside the Mob Creator Screen, making it easy to select the entities to avoid or armor items to flee from.
+
+---
+
 ## [Build 132] - Mob Creator General Summon Goal Loading Support
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:
