@@ -4,6 +4,15 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 132] - Mob Creator General Summon Goal Loading Support
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   **Goal Loading Parameters:** Added a general fallback loading case in `loadActiveMobGoalDetails()` for all goals starting with `SUMMON_` (e.g. `SUMMON_TETHER_DRAIN`, `SUMMON_CHASE_SNAKE`, etc.). This fixes a bug where their parameters were hidden and could not be loaded/edited from the list of AI goals.
+### Layman's Explanation
+*   **Summon AI Editing Fixes:** Fixed a bug where parameters of various Summon AI behaviors (like Tether Drain, Chase Snake, and Vortexes) would not load or display inside the Mob Creator Screen.
+
+---
+
 ## [Build 131] - Biome Tag Support for Spawn Rules
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

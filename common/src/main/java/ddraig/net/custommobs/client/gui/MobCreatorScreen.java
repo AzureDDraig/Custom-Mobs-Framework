@@ -1695,6 +1695,54 @@ public class MobCreatorScreen extends Screen {
                 goalParam4Field.setValue(goal.params.getOrDefault("spawnInterval", "100"));
                 goalParam5Field.setValue(goal.params.getOrDefault("maxMinions", "5"));
                 goalParam6Field.setValue(goal.params.getOrDefault("spawnRadius", "4.0"));
+            } else if (type.startsWith("SUMMON_")) {
+                p1Visible = true;
+                p2Visible = true;
+                p3Visible = true;
+                p4Visible = true;
+                p5Visible = true;
+                p6Visible = true;
+                p7Visible = true;
+                p8Visible = true;
+                goalParam1Field.setValue(goal.params.getOrDefault("sound", ""));
+                goalParam2Field.setValue(goal.params.getOrDefault("projectileId", "fireball"));
+                goalParam3Field.setValue(goal.params.getOrDefault("damage", "4.0"));
+                goalParam4Field.setValue(goal.params.getOrDefault("speed", "1.0"));
+                goalParam5Field.setValue(goal.params.getOrDefault("count", "3"));
+                
+                if (type.equals("SUMMON_TETHER_DRAIN")) {
+                    goalParam2Field.setValue(goal.params.getOrDefault("projectileId", "fireball"));
+                    goalParam3Field.setValue(goal.params.getOrDefault("damage", "4.0"));
+                    goalParam4Field.setValue(goal.params.getOrDefault("maxDuration", "100"));
+                    goalParam5Field.setValue(goal.params.getOrDefault("maxDistance", "16.0"));
+                    goalParam6Field.setValue(goal.params.getOrDefault("slownessLevel", "1"));
+                    goalParam7Field.setValue(goal.params.getOrDefault("healAmount", "2.0"));
+                    p8Visible = false;
+                } else {
+                    if (type.contains("DOME") || type.contains("VORTEX")) {
+                        goalParam6Field.setValue(goal.params.getOrDefault("radius", "6.0"));
+                    } else if (type.equals("SUMMON_CHASE_SNAKE")) {
+                        goalParam6Field.setValue(goal.params.getOrDefault("spawnInterval", "10"));
+                    } else {
+                        goalParam6Field.setValue(goal.params.getOrDefault("linesCount", "1"));
+                    }
+
+                    if (type.contains("SPIRAL")) {
+                        goalParam7Field.setValue(goal.params.getOrDefault("spiralFactor", "0.05"));
+                    } else if (type.equals("SUMMON_CHASE_SNAKE")) {
+                        goalParam7Field.setValue(goal.params.getOrDefault("warning_particle_type", "minecraft:ambient_entity_effect"));
+                    } else {
+                        goalParam7Field.setValue(goal.params.getOrDefault("angle", "0.0"));
+                    }
+
+                    if (type.contains("LAYERED")) {
+                        goalParam8Field.setValue(goal.params.getOrDefault("delayTicks", "20"));
+                    } else if (type.contains("GROUND")) {
+                        goalParam8Field.setValue(goal.params.getOrDefault("maxHeight", "8.0"));
+                    } else {
+                        goalParam8Field.setValue(goal.params.getOrDefault("upwardKnockback", "0.0"));
+                    }
+                }
             } else if (type.equals("TELEPORT_BEHIND_TARGET")) {
                 p1Visible = true;
                 goalParam1Field.setValue(goal.params.getOrDefault("cooldown", "100"));
