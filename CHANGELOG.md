@@ -4,6 +4,16 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 135] - Optional Coordinates for custom_mobs spawn-mob Command
+### Technical Changes (By Class)
+*   **`CustomMobsCommands.java`**:
+    *   **Coordinates Argument:** Updated the `/custom_mobs spawn-mob` command to accept an optional `x y z` coordinate block argument (as `pos`) before the optional `is_elite` boolean parameter.
+    *   **Helper Signature:** Adjusted `spawnMobCustom()` helper to accept and use the custom target coordinate `Vec3` position instead of defaulting to the player's position.
+### Layman's Explanation
+*   **Optional Summon Coordinates:** You can now specify custom `x y z` coordinates when running `/custom_mobs spawn-mob` to spawn custom mobs at specific locations instead of only at the player's current location.
+
+---
+
 ## [Build 134] - Fix Avoid Mob & Avoid Player Wearing Goal Parameter Mismatches
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

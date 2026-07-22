@@ -112,8 +112,15 @@ public class CustomMobsCommands {
                 .then(Commands.literal("spawn-mob")
                         .then(Commands.argument("mob_id", StringArgumentType.string())
                                 .suggests(MOB_SUGGESTIONS)
+                                .executes(context -> spawnMobCustom(context.getSource(), StringArgumentType.getString(context, "mob_id"), false, context.getSource().getPosition()))
                                 .then(Commands.argument("is_elite", com.mojang.brigadier.arguments.BoolArgumentType.bool())
-                                        .executes(context -> spawnMobCustom(context.getSource(), StringArgumentType.getString(context, "mob_id"), com.mojang.brigadier.arguments.BoolArgumentType.getBool(context, "is_elite")))
+                                        .executes(context -> spawnMobCustom(context.getSource(), StringArgumentType.getString(context, "mob_id"), com.mojang.brigadier.arguments.BoolArgumentType.getBool(context, "is_elite"), context.getSource().getPosition()))
+                                )
+                                .then(Commands.argument("pos", net.minecraft.commands.arguments.coordinates.Vec3Argument.vec3())
+                                        .executes(context -> spawnMobCustom(context.getSource(), StringArgumentType.getString(context, "mob_id"), false, net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(context, "pos")))
+                                        .then(Commands.argument("is_elite", com.mojang.brigadier.arguments.BoolArgumentType.bool())
+                                                .executes(context -> spawnMobCustom(context.getSource(), StringArgumentType.getString(context, "mob_id"), com.mojang.brigadier.arguments.BoolArgumentType.getBool(context, "is_elite"), net.minecraft.commands.arguments.coordinates.Vec3Argument.getVec3(context, "pos")))
+                                        )
                                 )
                         )
                 )
@@ -353,19 +360,19 @@ public class CustomMobsCommands {
         return count;
     }
 
-    private static int spawnMobCustom(CommandSourceStack source, String mobId, boolean isElite) {
+    private static int spawnMobCustom(CommandSourceStack source, String mobId, boolean isElite, net.minecraft.world.phys.Vec3 position) {
         if (!MobRegistry.loadedMobs.containsKey(mobId)) {
             source.sendFailure(Component.translatable("command.custom_mobs.spawn.unknown", mobId));
             return 0;
         }
 
-        BlockPos pos = BlockPos.containing(source.getPosition());
+        BlockPos pos = BlockPos.containing(position);
         ServerLevel level = source.getLevel();
         CustomMobEntity mob = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(level);
         if (mob != null) {
             mob.setTemplateId(mobId);
             mob.setElite(isElite);
-            mob.moveTo(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, source.getRotation().y, 0.0F);
+            mob.moveTo(position.x, position.y, position.z, source.getRotation().y, 0.0F);
             mob.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), MobSpawnType.COMMAND, null, null);
             level.addFreshEntity(mob);
             source.sendSuccess(() -> Component.translatable("command.custom_mobs.spawn.success_single", isElite ? "Elite " : "", mobId), true);
