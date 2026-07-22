@@ -4,6 +4,19 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 138] - Item Search Input Fix & Spawner HUD Name/Tooltip Fix (Issues #108 & #106)
+### Technical Changes (By Class)
+*   **`RaidEditorScreen.java`**:
+    *   **Keyboard Input Routing:** Added `charTyped` and `keyPressed` overrides. Keyboard events are now properly routed to `itemSearchField` when searching items in the Raid Loot popup.
+*   **`MobCreatorScreen.java`**:
+    *   **Item Search Keyboard Input:** Updated `charTyped` and `keyPressed` to pass inputs (including Backspace, Arrow keys, Delete) to `itemSearchField` when the Item Selector modal is open.
+    *   **Spawner HUD Truncation & Tooltips:** Updated `SpawnerEditScreen` to use dynamic font-width truncation (`font.width(displayName)`) for template entry names instead of hardcoded 14-character cutoff. Fixed `hoveredTooltip` initialization order so hovering over template entries correctly displays full mob display names and template IDs.
+### Layman's Explanation
+*   **Item Search Box Fix (Issue #108):** Fixed typing in item search boxes in both the Mob Creator and Raid Editor menus so players can type item names directly to filter items.
+*   **Spawner HUD Names & Tooltips (Issue #106):** Fixed mob template names getting cut off too short in the Spawner block menu, and fixed hover tooltips showing full mob display names and IDs.
+
+---
+
 ## [Build 137] - Worldwide Mob Spawn Limit
 ### Technical Changes (By Class)
 *   **`MobData.java`**:

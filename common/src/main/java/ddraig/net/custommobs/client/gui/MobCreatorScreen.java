@@ -4078,6 +4078,11 @@ public class MobCreatorScreen extends Screen {
 
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
+        if (showItemSelector && selectAllItems && itemSearchField != null && itemSearchField.visible) {
+            if (itemSearchField.charTyped(codePoint, modifiers)) {
+                return true;
+            }
+        }
         for (var widget : this.children()) {
             if (widget instanceof EditBox editBox && editBox.isFocused()) {
                 if (editBox.charTyped(codePoint, modifiers)) {
@@ -4090,6 +4095,11 @@ public class MobCreatorScreen extends Screen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (showItemSelector && selectAllItems && itemSearchField != null && itemSearchField.visible) {
+            if (itemSearchField.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+        }
         if (keyCode == 257 || keyCode == 335) { // GLFW_KEY_ENTER || GLFW_KEY_KP_ENTER
             if (this.biomeSearchField != null && this.biomeSearchField.isFocused()) {
                 String val = this.biomeSearchField.getValue().trim();
@@ -4386,6 +4396,7 @@ public class MobCreatorScreen extends Screen {
 
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+            hoveredTooltip = null;
             this.renderBackground(graphics);
             int left = (this.width - 320) / 2;
             int top = (this.height - 220) / 2;
@@ -4444,7 +4455,15 @@ public class MobCreatorScreen extends Screen {
 
                 MobData m = MobRegistry.loadedMobs.get(tId);
                 String displayName = (m != null) ? m.name : tId;
-                graphics.drawString(this.font, truncate(displayName, 14), listX + 9, rowY + 1, selected ? textActiveC : textNormalC, false);
+                String textToDraw = displayName;
+                int maxPx = listW - 25;
+                if (this.font.width(textToDraw) > maxPx) {
+                    while (textToDraw.length() > 3 && this.font.width(textToDraw + "...") > maxPx) {
+                        textToDraw = textToDraw.substring(0, textToDraw.length() - 1);
+                    }
+                    textToDraw += "...";
+                }
+                graphics.drawString(this.font, textToDraw, listX + 9, rowY + 1, selected ? textActiveC : textNormalC, false);
 
                 if (mouseX >= listX + 5 && mouseX <= listX + listW - 15 && mouseY >= rowY - 1 && mouseY <= rowY + 11) {
                     hoveredTooltip = List.of(
@@ -4484,7 +4503,6 @@ public class MobCreatorScreen extends Screen {
                 UIHelper.drawRecessedSlot(graphics, spawnerCooldownField.getX() - 4, spawnerCooldownField.getY() - 3, spawnerCooldownField.getWidth() + 8, spawnerCooldownField.getHeight() + 6, borderC, slotC);
             }
 
-            hoveredTooltip = null;
             if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 30 && mouseY <= top + 42) {
                 hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.spawner_edit.tooltip.rate"));
             } else if (mouseX >= left + 15 && mouseX <= left + 140 && mouseY >= top + 50 && mouseY <= top + 62) {

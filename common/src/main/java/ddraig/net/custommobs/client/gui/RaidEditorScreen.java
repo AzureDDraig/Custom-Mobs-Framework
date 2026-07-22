@@ -1060,4 +1060,38 @@ public class RaidEditorScreen extends Screen {
         if (s.length() <= max) return s;
         return s.substring(0, max - 3) + "...";
     }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        if (showItemSelector && selectAllItems && itemSearchField != null && itemSearchField.visible) {
+            if (itemSearchField.charTyped(codePoint, modifiers)) {
+                return true;
+            }
+        }
+        for (var widget : this.children()) {
+            if (widget instanceof EditBox editBox && editBox.isFocused()) {
+                if (editBox.charTyped(codePoint, modifiers)) {
+                    return true;
+                }
+            }
+        }
+        return super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (showItemSelector && selectAllItems && itemSearchField != null && itemSearchField.visible) {
+            if (itemSearchField.keyPressed(keyCode, scanCode, modifiers)) {
+                return true;
+            }
+        }
+        for (var widget : this.children()) {
+            if (widget instanceof EditBox editBox && editBox.isFocused()) {
+                if (editBox.keyPressed(keyCode, scanCode, modifiers)) {
+                    return true;
+                }
+            }
+        }
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
 }
