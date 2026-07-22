@@ -35,7 +35,7 @@ public class ModEntities {
         );
         dev.architectury.registry.level.entity.SpawnPlacementsRegistry.register(
                 CUSTOM_MOB,
-                net.minecraft.world.entity.SpawnPlacements.Type.NO_RESTRICTIONS,
+                net.minecraft.world.entity.SpawnPlacements.Type.ON_GROUND,
                 net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 CustomMobEntity::checkCustomMobSpawnRules
         );

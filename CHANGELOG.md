@@ -4,6 +4,21 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 139] - Cave/Any Natural Spawning Engine Fix (Issue #109) & Spawning Tab 2-Column UI Overhaul
+### Technical Changes (By Class)
+*   **`ModEntities.java`**:
+    *   **Natural Spawn Candidate Sampling:** Changed `SpawnPlacements` type in `SpawnPlacementsRegistry.register` for `CUSTOM_MOB` from `NO_RESTRICTIONS` to `ON_GROUND`. This enables Minecraft's `NaturalSpawner` engine to sample random candidate `Y` coordinates across subterranean cave depths, aquatic water bodies, and lava lakes instead of locking all candidates to the top surface.
+*   **`MobCreatorScreen.java`**:
+    *   **Spawning Tab 2-Column Layout:** Restructured the Spawning tab into two clean, non-overlapping columns.
+        *   **Left Column (`formX + 10` labels, `formX + 110` controls):** Moon Phase, Time of Day, Dimension, Weather, Environment (ANY / SURFACE / CAVES), Raid/Spawner Only, Aquatic Only, Lava Only, World Limit.
+        *   **Right Column (`formX + 180` labels, `formX + 270` controls):** Height (min/max), Light (min/max), Pack Qty (min/max), Spawn Weight, Spawn Block ID, Structure, Biome Filter.
+    *   **Hitbox & Render Alignment:** Updated `init()`, `renderTabFormText()`, and `mouseClicked()` coordinates to ensure 0% text/control overlap regardless of translation string length (e.g. English, Portuguese, Spanish).
+### Layman's Explanation
+*   **Cave & Subterranean Spawning Fix (Issue #109):** Fixed a bug where mobs set to spawn in Caves or Any environment were failing to spawn naturally underground. Spawning now works correctly in caves, water, lava, and on the surface.
+*   **Spawning Tab UI Layout Overhaul:** Redesigned the Spawning tab layout in the Mob Creator UI into two clean columns, preventing long translated labels from overlapping into text boxes and buttons.
+
+---
+
 ## [Build 138] - Item Search Input Fix & Spawner HUD Name/Tooltip Fix (Issues #108 & #106)
 ### Technical Changes (By Class)
 *   **`RaidEditorScreen.java`**:

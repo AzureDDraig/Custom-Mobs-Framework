@@ -633,42 +633,40 @@ public class MobCreatorScreen extends Screen {
         this.xpField.setValue(String.valueOf(selectedMob.loot.xpReward));
         this.xpField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.creator.xp")));
 
-        // Spawning rules
-        int spawnLeftOffset = getSpawnLeftOffset();
-        int spawnY = formY + 87;
-        this.minHeightField = new EditBox(this.font, formX + spawnLeftOffset, spawnY, 40, 9, Component.literal("Min Height"));
+        // Spawning rules (Right column controls starting at formX + 270)
+        this.minHeightField = new EditBox(this.font, formX + 270, formY + 19, 30, 9, Component.literal("Min Height"));
         this.minHeightField.setValue(String.valueOf(selectedMob.spawnRules.minHeight));
-        this.maxHeightField = new EditBox(this.font, formX + spawnLeftOffset + 55, spawnY, 40, 9, Component.literal("Max Height"));
+        this.maxHeightField = new EditBox(this.font, formX + 305, formY + 19, 30, 9, Component.literal("Max Height"));
         this.maxHeightField.setValue(String.valueOf(selectedMob.spawnRules.maxHeight));
 
-        int spawnFieldW = fieldW - 8 - (spawnLeftOffset - 114);
-        this.spawnBlockField = new EditBox(this.font, formX + spawnLeftOffset, formY + 102, spawnFieldW, 9, Component.literal("Block"));
-        this.spawnBlockField.setValue(selectedMob.spawnRules.spawnBlock);
-        this.spawnBlockField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.creator.spawn_block")));
-
-        this.minLightField = new EditBox(this.font, formX + spawnLeftOffset, formY + 117, 40, 9, Component.literal("Min Light"));
+        this.minLightField = new EditBox(this.font, formX + 270, formY + 35, 30, 9, Component.literal("Min Light"));
         this.minLightField.setValue(String.valueOf(selectedMob.spawnRules.minLight));
-        this.maxLightField = new EditBox(this.font, formX + spawnLeftOffset + 55, formY + 117, 40, 9, Component.literal("Max Light"));
+        this.maxLightField = new EditBox(this.font, formX + 305, formY + 35, 30, 9, Component.literal("Max Light"));
         this.maxLightField.setValue(String.valueOf(selectedMob.spawnRules.maxLight));
 
-        this.minGroupField = new EditBox(this.font, formX + spawnLeftOffset, formY + 132, 40, 9, Component.literal("Min Group"));
+        this.minGroupField = new EditBox(this.font, formX + 270, formY + 51, 30, 9, Component.literal("Min Group"));
         this.minGroupField.setValue(String.valueOf(selectedMob.spawnRules.minGroup));
-        this.maxGroupField = new EditBox(this.font, formX + spawnLeftOffset + 55, formY + 132, 40, 9, Component.literal("Max Group"));
+        this.maxGroupField = new EditBox(this.font, formX + 305, formY + 51, 30, 9, Component.literal("Max Group"));
         this.maxGroupField.setValue(String.valueOf(selectedMob.spawnRules.maxGroup));
 
-        this.naturalWeightField = new EditBox(this.font, formX + spawnLeftOffset, formY + 147, 55, 9, Component.literal("Weight"));
+        this.naturalWeightField = new EditBox(this.font, formX + 270, formY + 67, 55, 9, Component.literal("Weight"));
         this.naturalWeightField.setValue(String.valueOf(selectedMob.spawnRules.weight));
         this.naturalWeightField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.natural_weight")));
 
-        this.biomeSearchField = new EditBox(this.font, formX + spawnLeftOffset, formY + 162, spawnFieldW, 9, Component.literal("Search Biome"));
-        this.biomeSearchField.setValue("");
-        this.biomeSearchField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.biome_search")));
+        this.spawnBlockField = new EditBox(this.font, formX + 270, formY + 83, 65, 9, Component.literal("Block"));
+        this.spawnBlockField.setValue(selectedMob.spawnRules.spawnBlock);
+        this.spawnBlockField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.creator.spawn_block")));
 
-        this.structureField = new EditBox(this.font, formX + spawnLeftOffset, formY + 177, spawnFieldW, 9, Component.literal("Structure"));
+        this.structureField = new EditBox(this.font, formX + 270, formY + 99, 65, 9, Component.literal("Structure"));
         this.structureField.setValue(selectedMob.spawnRules.allowedStructure != null ? selectedMob.spawnRules.allowedStructure : "");
         this.structureField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.structure")));
 
-        this.worldwideLimitField = new EditBox(this.font, formX + 280, formY + 94, 50, 9, Component.literal("World Limit"));
+        this.biomeSearchField = new EditBox(this.font, formX + 270, formY + 115, 65, 9, Component.literal("Search Biome"));
+        this.biomeSearchField.setValue("");
+        this.biomeSearchField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.biome_search")));
+
+        // Left column control (World Limit)
+        this.worldwideLimitField = new EditBox(this.font, formX + 110, formY + 146, 50, 9, Component.literal("World Limit"));
         this.worldwideLimitField.setValue(String.valueOf(selectedMob.spawnRules.worldwideLimit));
         this.worldwideLimitField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.worldwide_limit")));
 
@@ -3270,77 +3268,79 @@ public class MobCreatorScreen extends Screen {
         } else if (activeTab.equals("Spawning")) {
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_rules"), formX + 10, formY + 4, labelC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.raid_spawner_only"), formX + 190, formY + 21, textC);
-            boolean hoverRaidOnly = mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 19 && mouseY <= formY + 29;
-            graphics.fill(formX + 280, formY + 19, formX + 290, formY + 29, selectedMob.spawnRules.raidOnly ? 0xFF00FF00 : 0xFFFF0000);
-            if (hoverRaidOnly) {
-                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.raid_spawner_only"));
-            }
+            // Left Column Controls (formX + 10 labels, formX + 110 controls)
+            int leftBtnX = formX + 110;
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_env"), formX + 190, formY + 36, textC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.moon_phase"), formX + 10, formY + 20, textC);
+            boolean hoverMoon = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 18 && mouseY <= formY + 30;
+            UIHelper.drawShadedButton(graphics, leftBtnX, formY + 18, 60, 12, hoverMoon, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.spawnRules.moonPhase.toUpperCase(), leftBtnX + 4, formY + 20, 0xFFFFFFFF, false);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.time_of_day"), formX + 10, formY + 36, textC);
+            boolean hoverTime = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 34 && mouseY <= formY + 46;
+            UIHelper.drawShadedButton(graphics, leftBtnX, formY + 34, 60, 12, hoverTime, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.spawnRules.timeOfDay.toUpperCase(), leftBtnX + 4, formY + 36, 0xFFFFFFFF, false);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.dimension"), formX + 10, formY + 52, textC);
+            boolean hoverDim = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 50 && mouseY <= formY + 62;
+            UIHelper.drawShadedButton(graphics, leftBtnX, formY + 50, 60, 12, hoverDim, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.spawnRules.dimension.toUpperCase(), leftBtnX + 4, formY + 52, 0xFFFFFFFF, false);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.weather"), formX + 10, formY + 68, textC);
+            boolean hoverWeather = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 66 && mouseY <= formY + 78;
+            UIHelper.drawShadedButton(graphics, leftBtnX, formY + 66, 60, 12, hoverWeather, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.spawnRules.weather.toUpperCase(), leftBtnX + 4, formY + 68, 0xFFFFFFFF, false);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_env"), formX + 10, formY + 84, textC);
             String envText = "ANY";
             if (selectedMob.spawnRules.surfaceOnly) envText = "SURFACE";
             else if (selectedMob.spawnRules.cavesOnly) envText = "CAVES";
-            boolean hoverEnv = mouseX >= formX + 280 && mouseX <= formX + 330 && mouseY >= formY + 33 && mouseY <= formY + 45;
-            UIHelper.drawShadedButton(graphics, formX + 280, formY + 33, 50, 12, hoverEnv, 0xFF3C3C3C);
-            graphics.drawString(this.font, envText, formX + 283, formY + 35, 0xFFFFFFFF, false);
+            boolean hoverEnv = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 82 && mouseY <= formY + 94;
+            UIHelper.drawShadedButton(graphics, leftBtnX, formY + 82, 60, 12, hoverEnv, 0xFF3C3C3C);
+            graphics.drawString(this.font, envText, leftBtnX + 4, formY + 84, 0xFFFFFFFF, false);
             if (hoverEnv) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.spawn_env"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.aquatic"), formX + 190, formY + 66, textC);
-            boolean hoverAquatic = mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 64 && mouseY <= formY + 74;
-            graphics.fill(formX + 280, formY + 64, formX + 290, formY + 74, selectedMob.spawnRules.aquatic ? 0xFF00FF00 : 0xFFFF0000);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.raid_spawner_only"), formX + 10, formY + 100, textC);
+            boolean hoverRaidOnly = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 98 && mouseY <= formY + 108;
+            graphics.fill(leftBtnX, formY + 98, leftBtnX + 10, formY + 108, selectedMob.spawnRules.raidOnly ? 0xFF00FF00 : 0xFFFF0000);
+            if (hoverRaidOnly) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.raid_spawner_only"));
+            }
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.aquatic"), formX + 10, formY + 116, textC);
+            boolean hoverAquatic = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 114 && mouseY <= formY + 124;
+            graphics.fill(leftBtnX, formY + 114, leftBtnX + 10, formY + 124, selectedMob.spawnRules.aquatic ? 0xFF00FF00 : 0xFFFF0000);
             if (hoverAquatic) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.aquatic"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.lava"), formX + 190, formY + 81, textC);
-            boolean hoverLava = mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 79 && mouseY <= formY + 89;
-            graphics.fill(formX + 280, formY + 79, formX + 290, formY + 89, selectedMob.spawnRules.lava ? 0xFF00FF00 : 0xFFFF0000);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.lava"), formX + 10, formY + 132, textC);
+            boolean hoverLava = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 130 && mouseY <= formY + 140;
+            graphics.fill(leftBtnX, formY + 130, leftBtnX + 10, formY + 140, selectedMob.spawnRules.lava ? 0xFF00FF00 : 0xFFFF0000);
             if (hoverLava) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.lava"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.worldwide_limit"), formX + 190, formY + 96, textC);
-            
-            int spawnLeftOffset = getSpawnLeftOffset();
-            int btnX = formX + spawnLeftOffset - 4;
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.worldwide_limit"), formX + 10, formY + 148, textC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.moon_phase"), formX + 10, formY + 21, textC);
-            boolean hoverMoon = mouseX >= btnX && mouseX <= btnX + 70 && mouseY >= formY + 18 && mouseY <= formY + 30;
-            UIHelper.drawShadedButton(graphics, btnX, formY + 18, 70, 12, hoverMoon, 0xFF3C3C3C);
-            graphics.drawString(this.font, selectedMob.spawnRules.moonPhase.toUpperCase(), btnX + 5, formY + 20, 0xFFFFFFFF, false);
+            // Right Column Controls (formX + 180 labels, formX + 270 controls)
+            int rightX = formX + 180;
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.height"), rightX, formY + 20, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.light"), rightX, formY + 36, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.pack_qty"), rightX, formY + 52, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_weight"), rightX, formY + 68, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_block"), rightX, formY + 84, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.structure"), rightX, formY + 100, labelC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.biome_filter"), rightX, formY + 116, labelC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.time_of_day"), formX + 10, formY + 36, textC);
-            boolean hoverTime = mouseX >= btnX && mouseX <= btnX + 70 && mouseY >= formY + 33 && mouseY <= formY + 45;
-            UIHelper.drawShadedButton(graphics, btnX, formY + 33, 70, 12, hoverTime, 0xFF3C3C3C);
-            graphics.drawString(this.font, selectedMob.spawnRules.timeOfDay.toUpperCase(), btnX + 5, formY + 35, 0xFFFFFFFF, false);
-
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.dimension"), formX + 10, formY + 51, textC);
-            boolean hoverDim = mouseX >= btnX && mouseX <= btnX + 70 && mouseY >= formY + 48 && mouseY <= formY + 60;
-            UIHelper.drawShadedButton(graphics, btnX, formY + 48, 70, 12, hoverDim, 0xFF3C3C3C);
-            graphics.drawString(this.font, selectedMob.spawnRules.dimension.toUpperCase(), btnX + 5, formY + 50, 0xFFFFFFFF, false);
-
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.weather"), formX + 10, formY + 66, textC);
-            boolean hoverWeather = mouseX >= btnX && mouseX <= btnX + 70 && mouseY >= formY + 63 && mouseY <= formY + 75;
-            UIHelper.drawShadedButton(graphics, btnX, formY + 63, 70, 12, hoverWeather, 0xFF3C3C3C);
-            graphics.drawString(this.font, selectedMob.spawnRules.weather.toUpperCase(), btnX + 5, formY + 65, 0xFFFFFFFF, false);
-
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.height"), formX + 10, formY + 87, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_block"), formX + 10, formY + 102, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.light"), formX + 10, formY + 117, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.pack_qty"), formX + 10, formY + 132, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_weight"), formX + 10, formY + 147, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.biome_filter"), formX + 10, formY + 162, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.structure"), formX + 10, formY + 177, labelC);
-
-            int biomeY = formY + 192;
+            int biomeY = formY + 130;
             for (int i = 0; i < selectedMob.spawnRules.biomes.size(); i++) {
                 String b = selectedMob.spawnRules.biomes.get(i);
-                graphics.drawString(this.font, "- " + truncate(b, 16), formX + 110, biomeY, textC);
+                graphics.drawString(this.font, "- " + truncate(b, 10), formX + 270, biomeY, textC);
                 
-                int xBtnX = formX + 215;
+                int xBtnX = formX + 325;
                 boolean hoverDel = mouseX >= xBtnX && mouseX <= xBtnX + 12 && mouseY >= biomeY && mouseY < biomeY + 10;
                 graphics.drawString(this.font, "§c[X]", xBtnX, biomeY, hoverDel ? 0xFFFFFFFF : 0xFFAAAAAA, false);
                 if (hoverDel) {
@@ -3932,12 +3932,44 @@ public class MobCreatorScreen extends Screen {
             }
 
         } else if (activeTab.equals("Spawning")) {
-            if (mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 19 && mouseY <= formY + 29) {
-                selectedMob.spawnRules.raidOnly = !selectedMob.spawnRules.raidOnly;
+            int leftBtnX = formX + 110;
+
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 18 && mouseY <= formY + 30) {
+                String moon = selectedMob.spawnRules.moonPhase;
+                if (moon.equalsIgnoreCase("any")) selectedMob.spawnRules.moonPhase = "full";
+                else if (moon.equalsIgnoreCase("full")) selectedMob.spawnRules.moonPhase = "new";
+                else if (moon.equalsIgnoreCase("new")) selectedMob.spawnRules.moonPhase = "quarters";
+                else selectedMob.spawnRules.moonPhase = "any";
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
-            if (mouseX >= formX + 280 && mouseX <= formX + 330 && mouseY >= formY + 33 && mouseY <= formY + 45) {
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 34 && mouseY <= formY + 46) {
+                String time = selectedMob.spawnRules.timeOfDay;
+                if (time.equalsIgnoreCase("any")) selectedMob.spawnRules.timeOfDay = "day";
+                else if (time.equalsIgnoreCase("day")) selectedMob.spawnRules.timeOfDay = "night";
+                else selectedMob.spawnRules.timeOfDay = "any";
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 50 && mouseY <= formY + 62) {
+                String dim = selectedMob.spawnRules.dimension;
+                if (dim.equalsIgnoreCase("any")) selectedMob.spawnRules.dimension = "overworld";
+                else if (dim.equalsIgnoreCase("overworld")) selectedMob.spawnRules.dimension = "nether";
+                else if (dim.equalsIgnoreCase("nether")) selectedMob.spawnRules.dimension = "end";
+                else selectedMob.spawnRules.dimension = "any";
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 66 && mouseY <= formY + 78) {
+                String weather = selectedMob.spawnRules.weather;
+                if (weather.equalsIgnoreCase("any")) selectedMob.spawnRules.weather = "clear";
+                else if (weather.equalsIgnoreCase("clear")) selectedMob.spawnRules.weather = "rain";
+                else if (weather.equalsIgnoreCase("rain")) selectedMob.spawnRules.weather = "thunder";
+                else selectedMob.spawnRules.weather = "any";
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 82 && mouseY <= formY + 94) {
                 if (!selectedMob.spawnRules.surfaceOnly && !selectedMob.spawnRules.cavesOnly) {
                     selectedMob.spawnRules.surfaceOnly = true;
                     selectedMob.spawnRules.cavesOnly = false;
@@ -3951,56 +3983,25 @@ public class MobCreatorScreen extends Screen {
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
-            if (mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 64 && mouseY <= formY + 74) {
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 98 && mouseY <= formY + 108) {
+                selectedMob.spawnRules.raidOnly = !selectedMob.spawnRules.raidOnly;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 114 && mouseY <= formY + 124) {
                 selectedMob.spawnRules.aquatic = !selectedMob.spawnRules.aquatic;
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
-            if (mouseX >= formX + 280 && mouseX <= formX + 290 && mouseY >= formY + 79 && mouseY <= formY + 89) {
+            if (mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 130 && mouseY <= formY + 140) {
                 selectedMob.spawnRules.lava = !selectedMob.spawnRules.lava;
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }
 
-            int spawnLeftOffset = getSpawnLeftOffset();
-            int btnX = formX + spawnLeftOffset - 4;
-            if (mouseX >= btnX && mouseX <= btnX + 70) {
-                if (mouseY >= formY + 18 && mouseY <= formY + 30) {
-                    String moon = selectedMob.spawnRules.moonPhase;
-                    if (moon.equalsIgnoreCase("any")) selectedMob.spawnRules.moonPhase = "full";
-                    else if (moon.equalsIgnoreCase("full")) selectedMob.spawnRules.moonPhase = "new";
-                    else if (moon.equalsIgnoreCase("new")) selectedMob.spawnRules.moonPhase = "quarters";
-                    else selectedMob.spawnRules.moonPhase = "any";
-                    return true;
-                }
-                if (mouseY >= formY + 33 && mouseY <= formY + 45) {
-                    String time = selectedMob.spawnRules.timeOfDay;
-                    if (time.equalsIgnoreCase("any")) selectedMob.spawnRules.timeOfDay = "day";
-                    else if (time.equalsIgnoreCase("day")) selectedMob.spawnRules.timeOfDay = "night";
-                    else selectedMob.spawnRules.timeOfDay = "any";
-                    return true;
-                }
-                if (mouseY >= formY + 48 && mouseY <= formY + 60) {
-                    String dim = selectedMob.spawnRules.dimension;
-                    if (dim.equalsIgnoreCase("any")) selectedMob.spawnRules.dimension = "overworld";
-                    else if (dim.equalsIgnoreCase("overworld")) selectedMob.spawnRules.dimension = "nether";
-                    else if (dim.equalsIgnoreCase("nether")) selectedMob.spawnRules.dimension = "end";
-                    else selectedMob.spawnRules.dimension = "any";
-                    return true;
-                }
-                if (mouseY >= formY + 63 && mouseY <= formY + 75) {
-                    String weather = selectedMob.spawnRules.weather;
-                    if (weather.equalsIgnoreCase("any")) selectedMob.spawnRules.weather = "clear";
-                    else if (weather.equalsIgnoreCase("clear")) selectedMob.spawnRules.weather = "rain";
-                    else if (weather.equalsIgnoreCase("rain")) selectedMob.spawnRules.weather = "thunder";
-                    else selectedMob.spawnRules.weather = "any";
-                    return true;
-                }
-            }
-
-            int biomeY = formY + 192;
+            int biomeY = formY + 130;
             for (int i = 0; i < selectedMob.spawnRules.biomes.size(); i++) {
-                int xBtnX = formX + 215;
+                int xBtnX = formX + 325;
                 if (mouseX >= xBtnX && mouseX <= xBtnX + 12 && mouseY >= biomeY && mouseY < biomeY + 10) {
                     selectedMob.spawnRules.biomes.remove(i);
                     Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
@@ -4008,7 +4009,6 @@ public class MobCreatorScreen extends Screen {
                 }
                 biomeY += 11;
             }
-
         }
 
         return super.mouseClicked(mouseX, mouseY, button);
