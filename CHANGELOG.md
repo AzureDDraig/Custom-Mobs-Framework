@@ -4,6 +4,21 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 143] - Redstone Raid Trigger, Despawn Protection & 0-Second Cooldown Support
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Despawn Prevention (`removeWhenFarAway`):** Overrode `removeWhenFarAway(distanceToClosestPlayer)` to return `false` whenever `activeRaidId != null`, `spawnerPos != null`, or `isSpawnerMob == true`. Prevents custom raid/spawner mobs from despawning when players move >32 blocks away to kite or heal.
+*   **`RaidBlock.java` & `RaidBlockEntity.java`**:
+    *   **Redstone Signal Activation (`neighborChanged`):** Added `neighborChanged` block update handler and `triggerRaidByRedstone()`. Raid Blocks can now be activated via Redstone pulses (levers, buttons, pressure plates, redstone clocks, sensors).
+    *   **Vanilla Raid Mob Persistence:** Called `mob.setPersistenceRequired()` on all vanilla mobs spawned during raid waves to prevent vanilla mobs (e.g., cows, sheep, zombies) from despawning when players move away.
+    *   **0-Second Cooldown NBT Loading:** Updated NBT loading logic in `load()` (`!tag.contains(...) || value < 0`), allowing 0-second wave and raid cooldowns to be preserved across server restarts when explicitly configured.
+### Layman's Explanation
+*   **Redstone Activation:** Raid Blocks can now be triggered by Redstone pulses (levers, buttons, pressure plates).
+*   **Mob Despawn Protection:** Raid and Spawner mobs no longer despawn when players move more than 32 blocks away during combat.
+*   **0-Second Cooldown Fix:** Saved 0-second wave or raid cooldowns no longer reset to 10 or 60 seconds upon world reload.
+
+---
+
 ## [Build 142] - Raid Block Cooldown, Spawn Restrictions Bypass & Passive Mob Selection (Issues #110 & #111)
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

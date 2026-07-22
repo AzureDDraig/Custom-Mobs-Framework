@@ -229,6 +229,26 @@ public class RaidBlockEntity extends BlockEntity {
         broadcastMessage(Component.translatable("chat.custom_mobs.raid.triggered_by", raidId.isEmpty() ? "Unknown" : raidId, player.getScoreboardName()));
         startNextWave();
     }
+    public void triggerRaidByRedstone() {
+        if (level == null || level.isClientSide) return;
+        if (activeRaidState != RaidState.IDLE) return;
+        if (raidCooldownRemaining > 0) return;
+        if (waves.isEmpty()) return;
+
+        activeRaidState = RaidState.RUNNING;
+        currentWave = -1;
+        spawnedMobUuids.clear();
+        participatingPlayers.clear();
+        
+        AABB searchBox = new AABB(worldPosition).inflate(Math.max(32.0, radius + 16.0));
+        List<Player> players = level.getEntitiesOfClass(Player.class, searchBox);
+        for (Player p : players) {
+            participatingPlayers.add(p.getGameProfile().getName());
+        }
+
+        broadcastMessage(Component.translatable("chat.custom_mobs.raid.triggered_by", raidId.isEmpty() ? "Redstone" : raidId, "Redstone"));
+        startNextWave();
+    }
 
     private void startNextWave() {
         if (level == null || level.isClientSide) return;
@@ -306,6 +326,7 @@ public class RaidBlockEntity extends BlockEntity {
                         if (entityTypeOpt.isPresent()) {
                             net.minecraft.world.entity.Entity entity = entityTypeOpt.get().create(level);
                             if (entity instanceof net.minecraft.world.entity.Mob mob) {
+                                mob.setPersistenceRequired();
                                 mob.moveTo(spawnPos.getX() + 0.5, spawnPos.getY() + 0.1, spawnPos.getZ() + 0.5, level.random.nextFloat() * 360F, 0.0F);
                                 mob.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnPos), MobSpawnType.EVENT, null, null);
                                 
@@ -544,8 +565,8 @@ public class RaidBlockEntity extends BlockEntity {
         this.description = tag.getString("Description");
 
         if (this.radius <= 0) this.radius = 16;
-        if (this.waveCooldown <= 0) this.waveCooldown = 10;
-        if (this.raidCooldown <= 0) this.raidCooldown = 60;
+        if (!tag.contains("WaveCooldown") || this.waveCooldown < 0) this.waveCooldown = 10;
+        if (!tag.contains("RaidCooldown") || this.raidCooldown < 0) this.raidCooldown = 60;
 
         try {
             String wavesJson = tag.getString("WavesJson");

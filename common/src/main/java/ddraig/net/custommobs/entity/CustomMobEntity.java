@@ -1533,6 +1533,14 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     }
 
     @Override
+    public boolean removeWhenFarAway(double distanceToClosestPlayer) {
+        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob) {
+            return false;
+        }
+        return super.removeWhenFarAway(distanceToClosestPlayer);
+    }
+
+    @Override
     public void addAdditionalSaveData(CompoundTag tag) {
         super.addAdditionalSaveData(tag);
         tag.putString("TemplateId", getTemplateId());

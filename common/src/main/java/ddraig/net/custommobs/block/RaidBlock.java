@@ -54,4 +54,17 @@ public class RaidBlock extends BaseEntityBlock {
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
     }
+
+    @Override
+    public void neighborChanged(BlockState state, Level level, BlockPos pos, net.minecraft.world.level.block.Block block, BlockPos fromPos, boolean isMoving) {
+        if (!level.isClientSide) {
+            boolean hasSignal = level.hasNeighborSignal(pos);
+            if (hasSignal) {
+                BlockEntity be = level.getBlockEntity(pos);
+                if (be instanceof RaidBlockEntity spawner) {
+                    spawner.triggerRaidByRedstone();
+                }
+            }
+        }
+    }
 }
