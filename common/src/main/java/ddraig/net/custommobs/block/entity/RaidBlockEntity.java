@@ -36,6 +36,7 @@ public class RaidBlockEntity extends BlockEntity {
     private int cooldownTicksRemaining = 0;
     private int raidCooldownRemaining = 0;
     private int waveGraceTicks = 0;
+    private int noPlayersTicks = 0;
     private final Set<UUID> spawnedMobUuids = new HashSet<>();
     public final Set<String> participatingPlayers = new HashSet<>();
 
@@ -138,12 +139,23 @@ public class RaidBlockEntity extends BlockEntity {
                 AABB playerSearchBox = new AABB(pos).inflate(Math.max(32.0, spawner.radius + 16.0));
                 List<Player> playersInRange = level.getEntitiesOfClass(Player.class, playerSearchBox);
                 if (playersInRange.isEmpty()) {
-                    spawner.broadcastMessage(Component.translatable("chat.custom_mobs.raid.failed_no_players"));
-                    spawner.abortRaidWithCooldown();
-                    return;
-                }
-                for (Player p : playersInRange) {
-                    spawner.participatingPlayers.add(p.getGameProfile().getName());
+                    spawner.noPlayersTicks++;
+                    int remainingSec = Math.max(1, (10 - spawner.noPlayersTicks) * 2);
+                    spawner.sendTitleToParticipants(
+                            Component.translatable("title.custom_mobs.raid.return_to_area"),
+                            Component.translatable("subtitle.custom_mobs.raid.failing_in", remainingSec)
+                    );
+                    if (spawner.noPlayersTicks >= 10) {
+                        spawner.broadcastMessage(Component.translatable("chat.custom_mobs.raid.failed_no_players"));
+                        spawner.abortRaidWithCooldown();
+                        spawner.noPlayersTicks = 0;
+                        return;
+                    }
+                } else {
+                    spawner.noPlayersTicks = 0;
+                    for (Player p : playersInRange) {
+                        spawner.participatingPlayers.add(p.getGameProfile().getName());
+                    }
                 }
 
                 // Scan alive mobs for players who damaged them
@@ -517,6 +529,20 @@ public class RaidBlockEntity extends BlockEntity {
                         msg,
                         false
                 );
+            }
+        }
+
+        private void sendTitleToParticipants(Component title, Component subtitle) {
+            if (level != null && !level.isClientSide && level.getServer() != null) {
+                var server = level.getServer();
+                for (String name : participatingPlayers) {
+                    var p = server.getPlayerList().getPlayerByName(name);
+                    if (p != null) {
+                        p.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket(0, 30, 5));
+                        p.connection.send(new net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket(title));
+                        p.connection.send(new net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket(subtitle));
+                    }
+                }
             }
         }
 

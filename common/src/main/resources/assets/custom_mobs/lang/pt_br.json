@@ -555,5 +555,7 @@
   "ability.custom_mobs.trample": "Trample",
   "ability_desc.custom_mobs.trample": "Crushes crops and steps on targets.",
   "ability.custom_mobs.feather_hover": "Feather Hover",
-  "ability_desc.custom_mobs.feather_hover": "Allows hovering in air for a short duration."
+  "ability_desc.custom_mobs.feather_hover": "Allows hovering in air for a short duration.",
+  "title.custom_mobs.raid.return_to_area": "§cVOLTE PARA A ÁREA DA INVASÃO!",
+  "subtitle.custom_mobs.raid.failing_in": "§eA invasão falhará em %d segundos"
 }

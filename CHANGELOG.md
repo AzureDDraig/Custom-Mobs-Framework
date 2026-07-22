@@ -4,6 +4,16 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 144] - On-Screen Raid Absence Warning Title & Live Countdown UI
+### Technical Changes (By Class)
+*   **`RaidBlockEntity.java`**:
+    *   **Absence Title & Live Subtitle Countdown:** When 0 players are in range of an active Raid Block during a wave, `sendTitleToParticipants()` displays a bold red on-screen warning title (`"§cRETURN TO RAID AREA!"`) accompanied by a live counting-down subtitle (`"§eRaid will fail in X seconds"`).
+    *   **Multi-Language Translations:** Added `title.custom_mobs.raid.return_to_area` and `subtitle.custom_mobs.raid.failing_in` entries across English (`en_us.json`), Portuguese (`pt_br.json`), and Spanish (`es_es.json`).
+### Layman's Explanation
+*   **Raid Area Warning UI:** If players step away from an active Raid Block during combat, a red on-screen warning title (`RETURN TO RAID AREA!`) and live countdown subtitle prompt them to return before the raid fails.
+
+---
+
 ## [Build 143] - Redstone Raid Trigger, Despawn Protection & 0-Second Cooldown Support
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:
