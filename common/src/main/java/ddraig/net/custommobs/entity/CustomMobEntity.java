@@ -148,6 +148,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     private final List<net.minecraft.world.item.ItemStack> stolenItems = new java.util.ArrayList<>();
     public BlockPos spawnerPos = null;
     public String activeRaidId = null;
+    public boolean isSpawnerMob = false;
 
     public CustomMobEntity(EntityType<? extends CustomMobEntity> type, Level level) {
         super(type, level);
@@ -1349,6 +1350,10 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             }
         }
 
+        if (spawnType == MobSpawnType.SPAWNER) {
+            this.isSpawnerMob = true;
+        }
+
         SpawnGroupData result = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);
         
         reapplyTemplate();
@@ -1370,6 +1375,21 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         return false;
     }
 
+    public static int countActiveWorldwideLimitMobs(ServerLevelAccessor level, String templateId) {
+        if (level == null || level.getServer() == null || templateId == null || templateId.isEmpty()) return 0;
+        int count = 0;
+        for (net.minecraft.server.level.ServerLevel sl : level.getServer().getAllLevels()) {
+            for (net.minecraft.world.entity.Entity entity : sl.getAllEntities()) {
+                if (entity instanceof CustomMobEntity custom && custom.isAlive() && !custom.isRemoved()) {
+                    if (templateId.equals(custom.getTemplateId()) && custom.activeRaidId == null && custom.spawnerPos == null && !custom.isSpawnerMob) {
+                        count++;
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
     public static boolean isValidSpawnTemplate(MobData data, ServerLevelAccessor level, BlockPos pos, MobSpawnType spawnType, String biome) {
         if (data == null) return false;
         if (data.id.startsWith("__proj_")) return false;
@@ -1377,6 +1397,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             return false;
         }
         if (!data.spawnRules.naturalSpawning) return false;
+        if (spawnType != MobSpawnType.EVENT && spawnType != MobSpawnType.SPAWNER && data.spawnRules.worldwideLimit > 0) {
+            if (countActiveWorldwideLimitMobs(level, data.id) >= data.spawnRules.worldwideLimit) {
+                return false;
+            }
+        }
         if (data.spawnRules.surfaceOnly && !level.canSeeSky(pos)) return false;
         if (data.spawnRules.cavesOnly && level.canSeeSky(pos)) return false;
 
@@ -1522,6 +1547,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         if (this.activeRaidId != null) {
             tag.putString("ActiveRaidId", this.activeRaidId);
         }
+        tag.putBoolean("IsSpawnerMob", this.isSpawnerMob);
     }
 
     @Override
@@ -1531,6 +1557,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         if (tag.contains("IsElite")) setElite(tag.getBoolean("IsElite"));
         if (tag.contains("SpawnedFromBlock")) this.spawnedFromBlock = tag.getBoolean("SpawnedFromBlock");
         if (tag.contains("BillboardName")) setBillboardName(tag.getString("BillboardName"));
+        if (tag.contains("IsSpawnerMob")) this.isSpawnerMob = tag.getBoolean("IsSpawnerMob");
         if (tag.contains("StolenItems", 9)) {
             stolenItems.clear();
             var list = tag.getList("StolenItems", 10);

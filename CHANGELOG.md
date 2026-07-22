@@ -4,6 +4,23 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 137] - Worldwide Mob Spawn Limit
+### Technical Changes (By Class)
+*   **`MobData.java`**:
+    *   **Spawn Rules Field:** Added `public int worldwideLimit = 100;` to `SpawnRulesData`. Defaulting to 100 for newly constructed or unconfigured mob templates.
+*   **`CustomMobEntity.java`**:
+    *   **World Entity Counter:** Added `countActiveWorldwideLimitMobs(ServerLevelAccessor level, String templateId)` iterating across all loaded server levels to count active instances of a mob template.
+    *   **Exclusion Logic:** Excluded raid mobs (`activeRaidId != null`), spawner block mobs (`spawnerPos != null`), and spawner-spawned mobs (`isSpawnerMob == true`) from counting towards or being restricted by the worldwide limit.
+    *   **Spawn Rule Check:** Updated `isValidSpawnTemplate()` to check if active non-raid, non-spawner mobs reach or exceed `worldwideLimit`, blocking further natural/chunk generation spawning.
+    *   **NBT Serialization:** Added `IsSpawnerMob` NBT tag saving and loading in `addAdditionalSaveData` and `readAdditionalSaveData`.
+*   **`MobCreatorScreen.java` & `en_us.json`**:
+    *   **Spawning Tab UI:** Added `World Limit:` input box (`worldwideLimitField`) to the Spawning tab layout.
+    *   **Tooltips & Language Keys:** Added tooltips explaining that `0` means unlimited, and raid/spawner mobs are excluded from the limit.
+### Layman's Explanation
+*   **Worldwide Mob Spawn Limit:** Added a configurable "World Limit" setting (default: 100) under the Spawning tab in the Mob Creator UI. Naturally spawning mobs respect this cap, while raid mobs and spawner block mobs bypass the limit and do not count towards it.
+
+---
+
 ## [Build 136] - Mob Creator Search & Sorting, Projectile Leak Fix, Sound/Particle Autocomplete Fix
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

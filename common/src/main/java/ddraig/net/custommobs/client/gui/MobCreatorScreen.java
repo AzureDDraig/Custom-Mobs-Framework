@@ -98,6 +98,7 @@ public class MobCreatorScreen extends Screen {
     private EditBox minLightField;
     private EditBox maxLightField;
     private EditBox structureField;
+    private EditBox worldwideLimitField;
 
     // Edit fields for selected Loot drop
     private EditBox lootChanceField;
@@ -667,6 +668,10 @@ public class MobCreatorScreen extends Screen {
         this.structureField.setValue(selectedMob.spawnRules.allowedStructure != null ? selectedMob.spawnRules.allowedStructure : "");
         this.structureField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.structure")));
 
+        this.worldwideLimitField = new EditBox(this.font, formX + 280, formY + 94, 50, 9, Component.literal("World Limit"));
+        this.worldwideLimitField.setValue(String.valueOf(selectedMob.spawnRules.worldwideLimit));
+        this.worldwideLimitField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.worldwide_limit")));
+
         // Goal mapping (aligned in left column)
         this.goalAnimationField = new EditBox(this.font, formX + 9, formY + 148, leftW - 18, 10, Component.literal("Animation"));
         this.goalAnimationField.setValue("");
@@ -844,6 +849,8 @@ public class MobCreatorScreen extends Screen {
         applyBorderless(naturalWeightField);
         applyBorderless(biomeSearchField);
         applyBorderless(structureField);
+        applyBorderless(worldwideLimitField);
+        worldwideLimitField.setMaxLength(1024);
         applyBorderless(goalAnimationField);
         applyBorderless(goalGroupField);
         applyBorderless(goalDelayField);
@@ -930,6 +937,7 @@ public class MobCreatorScreen extends Screen {
                 this.addRenderableWidget(this.naturalWeightField);
                 this.addRenderableWidget(this.biomeSearchField);
                 this.addRenderableWidget(this.structureField);
+                this.addRenderableWidget(this.worldwideLimitField);
             } else if (activeTab.equals("AI")) {
                 this.addRenderableWidget(this.behaviorSearchField);
                 boolean aiGoalSelected = selectedGoalIndex >= 0 && selectedGoalIndex < selectedMob.aiGoals.size();
@@ -1061,8 +1069,9 @@ public class MobCreatorScreen extends Screen {
         maxGroupField.tick();
         naturalWeightField.tick();
         biomeSearchField.tick();
-        behaviorSearchField.tick();
         structureField.tick();
+        worldwideLimitField.tick();
+        behaviorSearchField.tick();
         goalAnimationField.tick();
         goalGroupField.tick();
         goalDelayField.tick();
@@ -1438,6 +1447,7 @@ public class MobCreatorScreen extends Screen {
         naturalWeightField.visible = spawn; naturalWeightField.active = spawn;
         biomeSearchField.visible = spawn; biomeSearchField.active = spawn;
         structureField.visible = spawn; structureField.active = spawn;
+        worldwideLimitField.visible = spawn; worldwideLimitField.active = spawn;
 
         boolean aiGoalSelected = activeTab.equals("AI") && selectedGoalIndex >= 0;
         goalAnimationField.visible = aiGoalSelected; goalAnimationField.active = aiGoalSelected;
@@ -1882,6 +1892,7 @@ public class MobCreatorScreen extends Screen {
         naturalWeightField.setVisible(false);
         biomeSearchField.setVisible(false);
         structureField.setVisible(false);
+        worldwideLimitField.setVisible(false);
         goalAnimationField.setVisible(false);
         goalGroupField.setVisible(false);
         goalDelayField.setVisible(false);
@@ -1987,6 +1998,7 @@ public class MobCreatorScreen extends Screen {
         try { selectedMob.spawnRules.minGroup = Integer.parseInt(minGroupField.getValue()); } catch (Exception ignored) {}
         try { selectedMob.spawnRules.maxGroup = Integer.parseInt(maxGroupField.getValue()); } catch (Exception ignored) {}
         try { selectedMob.spawnRules.weight = Integer.parseInt(naturalWeightField.getValue()); } catch (Exception ignored) {}
+        try { selectedMob.spawnRules.worldwideLimit = Integer.parseInt(worldwideLimitField.getValue()); } catch (Exception ignored) {}
 
         selectedMob.sounds.ambient = ambientSoundField.getValue();
         selectedMob.sounds.step = stepSoundField.getValue();
@@ -2503,6 +2515,7 @@ public class MobCreatorScreen extends Screen {
         drawEditBoxBackground(graphics, naturalWeightField, borderC, slotC);
         drawEditBoxBackground(graphics, biomeSearchField, borderC, slotC);
         drawEditBoxBackground(graphics, structureField, borderC, slotC);
+        drawEditBoxBackground(graphics, worldwideLimitField, borderC, slotC);
         drawEditBoxBackground(graphics, goalAnimationField, borderC, slotC);
         drawEditBoxBackground(graphics, goalGroupField, borderC, slotC);
         drawEditBoxBackground(graphics, goalDelayField, borderC, slotC);
@@ -3288,6 +3301,8 @@ public class MobCreatorScreen extends Screen {
             if (hoverLava) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.lava"));
             }
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.worldwide_limit"), formX + 190, formY + 96, textC);
             
             int spawnLeftOffset = getSpawnLeftOffset();
             int btnX = formX + spawnLeftOffset - 4;

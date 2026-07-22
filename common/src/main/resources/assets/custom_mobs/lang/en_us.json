@@ -286,6 +286,8 @@
   "gui.custom_mobs.creator.label.spawn_weight": "Spawn Weight:",
   "gui.custom_mobs.creator.label.biome_filter": "Biome Filter:",
   "gui.custom_mobs.creator.label.structure": "Structure:",
+  "gui.custom_mobs.creator.label.worldwide_limit": "World Limit:",
+  "gui.custom_mobs.tooltip.worldwide_limit": "Maximum active non-raid, non-spawner mobs of this type allowed in the world at once (Default: 100, 0 = unlimited).",
   "gui.custom_mobs.creator.goal.param1": "Param 1:",
   "gui.custom_mobs.creator.goal.param2": "Param 2:",
   "gui.custom_mobs.creator.goal.param3": "Param 3:",

@@ -93,6 +93,7 @@ public class MobData {
         public int minLight = 0;
         public int maxLight = 15;
         public String allowedStructure = "";
+        public int worldwideLimit = 100;
     }
 
     public static class AbilityData {
