@@ -234,7 +234,7 @@ public class MobRegistry {
     }
 
     public static void saveMob(MobData mob, String oldId) {
-        if (mob.id == null || mob.id.isEmpty()) return;
+        if (mob.id == null || mob.id.isEmpty() || mob.id.startsWith("__proj_")) return;
 
         if (oldId != null && !oldId.isEmpty() && !oldId.equalsIgnoreCase(mob.id)) {
             // Delete old packs if they exist

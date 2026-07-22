@@ -245,7 +245,9 @@ public class ProjectileCreatorScreen extends Screen {
             } else if (activeTab.equals("Sounds")) {
                 if (landSoundField.isFocused()) {
                     focused = landSoundField;
-                    cache = MobRegistry.cachedSounds;
+                    cache = MobRegistry.cachedSounds.isEmpty() 
+                            ? new ArrayList<>(BuiltInRegistries.SOUND_EVENT.keySet().stream().map(ResourceLocation::toString).toList()) 
+                            : MobRegistry.cachedSounds;
                 } else if (particleTypeField.isFocused()) {
                     focused = particleTypeField;
                     cache = new ArrayList<>(BuiltInRegistries.PARTICLE_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
@@ -605,6 +607,7 @@ public class ProjectileCreatorScreen extends Screen {
         drawEditBoxBackground(graphics, modelIdField, borderC, slotC);
         drawEditBoxBackground(graphics, textureField, borderC, slotC);
         drawEditBoxBackground(graphics, landSoundField, borderC, slotC);
+        drawEditBoxBackground(graphics, particleTypeField, borderC, slotC);
         drawEditBoxBackground(graphics, effectIdField, borderC, slotC);
         drawEditBoxBackground(graphics, effectDurField, borderC, slotC);
         drawEditBoxBackground(graphics, effectAmpField, borderC, slotC);

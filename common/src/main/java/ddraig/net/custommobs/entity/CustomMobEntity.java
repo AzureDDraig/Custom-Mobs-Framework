@@ -1372,7 +1372,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
 
     public static boolean isValidSpawnTemplate(MobData data, ServerLevelAccessor level, BlockPos pos, MobSpawnType spawnType, String biome) {
         if (data == null) return false;
-        if (data.id.startsWith("__proj_preview_")) return false;
+        if (data.id.startsWith("__proj_")) return false;
         if (data.spawnRules.raidOnly && (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION)) {
             return false;
         }

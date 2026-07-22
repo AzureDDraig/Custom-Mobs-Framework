@@ -24,7 +24,7 @@ import java.util.Map;
 
 public class CustomMobsCommands {
     private static final SuggestionProvider<CommandSourceStack> MOB_SUGGESTIONS = (context, builder) -> 
-            SharedSuggestionProvider.suggest(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList(), builder);
+            SharedSuggestionProvider.suggest(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_")).toList(), builder);
 
     private static final SuggestionProvider<CommandSourceStack> REWARD_TYPE_SUGGESTIONS = (context, builder) ->
             SharedSuggestionProvider.suggest(List.of("command", "item", "hand"), builder);

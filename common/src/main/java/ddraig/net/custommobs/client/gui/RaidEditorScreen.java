@@ -116,7 +116,7 @@ public class RaidEditorScreen extends Screen {
         }
 
         for (String id : MobRegistry.loadedMobs.keySet()) {
-            if (!id.startsWith("__proj_preview_")) {
+            if (!id.startsWith("__proj_")) {
                 availableAddMobs.add(id);
             }
         }

@@ -31,9 +31,24 @@ import java.util.Map;
 
 public class MobCreatorScreen extends Screen {
     private final List<MobData> mobTemplates = new ArrayList<>();
+    private final List<MobData> filteredMobTemplates = new ArrayList<>();
+    private EditBox searchField;
+    private String searchQuery = "";
     private MobData selectedMob;
     private int sidebarScroll = 0;
     private String activeTab = "General"; // General, Model, AI, Stats, Abilities, Sounds, Loot, Spawning
+
+    private void updateFilteredMobTemplates() {
+        filteredMobTemplates.clear();
+        String query = searchQuery.toLowerCase(java.util.Locale.ROOT).trim();
+        for (MobData m : mobTemplates) {
+            String name = m.name != null ? m.name : "";
+            String id = m.id != null ? m.id : "";
+            if (query.isEmpty() || name.toLowerCase(java.util.Locale.ROOT).contains(query) || id.toLowerCase(java.util.Locale.ROOT).contains(query)) {
+                filteredMobTemplates.add(m);
+            }
+        }
+    }
 
     private int panelW = 440;
     private int panelH = 260;
@@ -383,26 +398,33 @@ public class MobCreatorScreen extends Screen {
 
         mobTemplates.clear();
         for (var m : MobRegistry.loadedMobs.values()) {
-            if (!m.id.startsWith("__proj_preview_")) {
+            if (!m.id.startsWith("__proj_")) {
                 mobTemplates.add(m);
             }
         }
+        mobTemplates.sort((a, b) -> {
+            String nameA = (a.name != null && !a.name.isEmpty()) ? a.name : a.id;
+            String nameB = (b.name != null && !b.name.isEmpty()) ? b.name : b.id;
+            return nameA.compareToIgnoreCase(nameB);
+        });
+        updateFilteredMobTemplates();
+
         if (selectedMob != null) {
             MobData fresh = MobRegistry.loadedMobs.get(selectedMob.id);
             if (fresh != null) {
                 selectedMob = fresh;
             } else if (selectedMob.id.startsWith("new_mob_")) {
                 // Keep unsaved newly created template
-            } else if (!mobTemplates.isEmpty()) {
-                selectedMob = mobTemplates.get(0);
+            } else if (!filteredMobTemplates.isEmpty()) {
+                selectedMob = filteredMobTemplates.get(0);
             } else {
                 selectedMob = new MobData();
                 selectedMob.id = "new_mob";
                 selectedMob.name = "New Mob";
             }
         } else {
-            if (!mobTemplates.isEmpty()) {
-                selectedMob = mobTemplates.get(0);
+            if (!filteredMobTemplates.isEmpty()) {
+                selectedMob = filteredMobTemplates.get(0);
             } else {
                 selectedMob = new MobData();
                 selectedMob.id = "new_mob";
@@ -414,6 +436,21 @@ public class MobCreatorScreen extends Screen {
         this.panelH = (int) (this.height * 0.85);
         int left = (this.width - this.panelW) / 2;
         int top = (this.height - this.panelH) / 2;
+
+        int listX = left + 10;
+        int listY = top + 25;
+        int listW = 100;
+
+        this.searchField = new EditBox(this.font, listX + 6, listY + 5, listW - 12, 10, Component.literal("Search..."));
+        this.searchField.setValue(this.searchQuery);
+        this.searchField.setBordered(false);
+        this.searchField.setMaxLength(256);
+        this.searchField.setResponder(query -> {
+            this.searchQuery = query;
+            this.sidebarScroll = 0;
+            updateFilteredMobTemplates();
+        });
+        this.addRenderableWidget(this.searchField);
 
         int formX = left + 120;
         int formY = top + 42;
@@ -1000,6 +1037,7 @@ public class MobCreatorScreen extends Screen {
         followRangeField.tick();
         damageField.tick();
         armorField.tick();
+        if (this.searchField != null) this.searchField.tick();
         attackSpeedField.tick();
         attackReachField.tick();
         knockbackResistanceField.tick();
@@ -1101,7 +1139,7 @@ public class MobCreatorScreen extends Screen {
             } else if (activeTab.equals("General")) {
                 if (mobGroupField.isFocused()) {
                     focused = mobGroupField; yOffset = 33 + 10;
-                    cache = new ArrayList<>(MobRegistry.loadedMobs.values().stream().filter(m -> !m.id.startsWith("__proj_preview_")).map(m -> m.mobGroup).filter(g -> g != null && !g.isEmpty()).distinct().toList());
+                    cache = new ArrayList<>(MobRegistry.loadedMobs.values().stream().filter(m -> !m.id.startsWith("__proj_")).map(m -> m.mobGroup).filter(g -> g != null && !g.isEmpty()).distinct().toList());
                 }
             } else if (activeTab.equals("AI") && selectedGoalIndex >= 0) {
                 var goal = selectedMob.aiGoals.get(selectedGoalIndex);
@@ -1114,7 +1152,7 @@ public class MobCreatorScreen extends Screen {
                         cache = new ArrayList<>(BuiltInRegistries.ITEM.keySet().stream().map(ResourceLocation::toString).toList());
                     } else if (goal.type.equals("AVOID_MOB")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
-                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
+                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_")).toList());
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
                     } else if (goal.type.startsWith("MELEE") || goal.type.startsWith("KNOCKBACK") || goal.type.equals("RANGED")
@@ -1146,7 +1184,7 @@ public class MobCreatorScreen extends Screen {
                         cache = list;
                     } else if (goal.type.equals("SPLIT_ON_DEATH") || goal.type.equals("SCARE_MOB") || goal.type.equals("AVOID_MOB") || goal.type.equals("SUMMON_MINIONS") || goal.type.equals("SUMMON_MINION_PORTAL")) {
                         focused = goalParam1Field; yOffset = 132 + 10;
-                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
+                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_")).toList());
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
                     } else if (goal.type.equals("GIFT_GIVER") || goal.type.equals("AVOID_PLAYER_WEARING")) {
@@ -1159,7 +1197,7 @@ public class MobCreatorScreen extends Screen {
                 } else if (goalParam2Field.isFocused()) {
                     if (goal.type.equals("SUMMON_MINION_PORTAL")) {
                         focused = goalParam2Field; yOffset = 157 + 10;
-                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_preview_")).toList());
+                        List<String> list = new ArrayList<>(MobRegistry.loadedMobs.keySet().stream().filter(id -> !id.startsWith("__proj_")).toList());
                         list.addAll(BuiltInRegistries.ENTITY_TYPE.keySet().stream().map(ResourceLocation::toString).toList());
                         cache = list;
                     } else if (goal.type.equals("RANGED") || (goal.type.startsWith("SUMMON_") && !goal.type.equals("SUMMON_MINION_PORTAL"))
@@ -4150,7 +4188,7 @@ public class MobCreatorScreen extends Screen {
             this.availableTemplates.clear();
             List<String> raw = new ArrayList<>();
             for (String key : MobRegistry.loadedMobs.keySet()) {
-                if (!key.startsWith("__proj_preview_")) {
+                if (!key.startsWith("__proj_")) {
                     raw.add(key);
                 }
             }

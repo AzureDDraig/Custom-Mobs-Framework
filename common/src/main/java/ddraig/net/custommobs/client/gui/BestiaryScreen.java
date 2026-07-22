@@ -89,7 +89,7 @@ public class BestiaryScreen extends Screen {
         loadedRaids.clear();
 
         for (MobData m : MobRegistry.loadedMobs.values()) {
-            if (m.id.startsWith("__proj_preview_")) continue;
+            if (m.id.startsWith("__proj_")) continue;
             if (m.behaviorMode.equalsIgnoreCase("passive")) passives.add(m);
             else if (m.behaviorMode.equalsIgnoreCase("neutral")) neutrals.add(m);
             else hostiles.add(m);
@@ -99,7 +99,7 @@ public class BestiaryScreen extends Screen {
         selectedMob = null;
         selectedRaid = null;
         for (MobData m : MobRegistry.loadedMobs.values()) {
-            if (m.id.startsWith("__proj_preview_")) continue;
+            if (m.id.startsWith("__proj_")) continue;
             if (isMobDiscovered(m.id)) {
                 selectedMob = m;
                 break;
@@ -107,7 +107,7 @@ public class BestiaryScreen extends Screen {
         }
         if (selectedMob == null) {
             for (MobData m : MobRegistry.loadedMobs.values()) {
-                if (!m.id.startsWith("__proj_preview_")) {
+                if (!m.id.startsWith("__proj_")) {
                     selectedMob = m;
                     break;
                 }

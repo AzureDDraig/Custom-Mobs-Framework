@@ -4,6 +4,24 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 136] - Mob Creator Search & Sorting, Projectile Leak Fix, Sound/Particle Autocomplete Fix
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   **Sidebar Search & Alphabetical Sorting:** Added an `EditBox` search bar to the Mob Creator sidebar, filtering mob templates dynamically in real-time. Sorted mob templates alphabetically by display name. Updated viewport, mouse clicks, wheel scroll bounds, and scrollbar drag calculations.
+    *   **Preview Filter Standardization:** Updated template filters to exclude any template ID starting with `__proj_`.
+*   **`ProjectileCreatorScreen.java`**:
+    *   **Sound & Particle Autocomplete Fix:** Added fallback to `BuiltInRegistries.SOUND_EVENT` and `BuiltInRegistries.PARTICLE_TYPE` when sound caches are empty. Added missing `drawEditBoxBackground` call for `particleTypeField`.
+*   **`MobRegistry.java`**:
+    *   **Save Safeguard:** Added guard check in `saveMob()` to reject saving any projectile preview template starting with `__proj_`.
+*   **`BestiaryScreen.java`, `RaidEditorScreen.java`, `CustomMobEntity.java`, `CustomMobsCommands.java`**:
+    *   **Framework Preview Filter Standardization:** Standardized all template checks to filter `__proj_` prefixes, preventing projectile preview models from appearing in bestiary/raid lists or spawning as natural mobs.
+### Layman's Explanation
+*   **Mob Creator Search & Alphabetical List:** Added a search box to the Mob Creator Screen sidebar and sorted all custom mobs alphabetically.
+*   **Projectile Mob Leak Fixed:** Fixed a bug where custom projectiles would leak into the Mob Creator UI list and spawn naturally in the world like mobs.
+*   **Projectile Sound & Particle Search Fixed:** Fixed sound and particle search suggestion dropdowns in the Projectile Creator Screen so they pop up and register selections reliably.
+
+---
+
 ## [Build 135] - Optional Coordinates for custom_mobs spawn-mob Command
 ### Technical Changes (By Class)
 *   **`CustomMobsCommands.java`**:
