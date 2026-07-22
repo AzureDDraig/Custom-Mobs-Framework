@@ -4,6 +4,16 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 140] - Marquee Scrolling Text for Spawning Tab UI Labels
+### Technical Changes (By Class)
+*   **`MobCreatorScreen.java`**:
+    *   **Marquee Text Scissor Renderer (`drawScrollingText`):** Implemented a smooth horizontal marquee text scrolling helper using `graphics.enableScissor()` and time-based trigonometric ping-pong interpolation (`Math.cos`).
+    *   **Automatic Overflow Handling:** Whenever a label's translated string width (`font.width(text)`) exceeds column width limits (95px for left column, 85px for right column), `drawScrollingText` smoothly scrolls the text back and forth, keeping it 100% clipped within its column boundary with zero text overlap.
+### Layman's Explanation
+*   **Marquee Scrolling Labels:** Added automatic marquee scrolling for Spawning tab text labels when running long translations (like Portuguese or Spanish). Labels that are too wide now smoothly scroll horizontally within their column box instead of spilling into buttons or adjacent fields.
+
+---
+
 ## [Build 139] - Cave/Any Natural Spawning Engine Fix (Issue #109) & Spawning Tab 2-Column UI Overhaul
 ### Technical Changes (By Class)
 *   **`ModEntities.java`**:

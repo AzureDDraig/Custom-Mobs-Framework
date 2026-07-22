@@ -3270,28 +3270,29 @@ public class MobCreatorScreen extends Screen {
 
             // Left Column Controls (formX + 10 labels, formX + 110 controls)
             int leftBtnX = formX + 110;
+            int leftMaxW = 95;
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.moon_phase"), formX + 10, formY + 20, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.moon_phase"), formX + 10, formY + 20, leftMaxW, textC);
             boolean hoverMoon = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 18 && mouseY <= formY + 30;
             UIHelper.drawShadedButton(graphics, leftBtnX, formY + 18, 60, 12, hoverMoon, 0xFF3C3C3C);
             graphics.drawString(this.font, selectedMob.spawnRules.moonPhase.toUpperCase(), leftBtnX + 4, formY + 20, 0xFFFFFFFF, false);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.time_of_day"), formX + 10, formY + 36, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.time_of_day"), formX + 10, formY + 36, leftMaxW, textC);
             boolean hoverTime = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 34 && mouseY <= formY + 46;
             UIHelper.drawShadedButton(graphics, leftBtnX, formY + 34, 60, 12, hoverTime, 0xFF3C3C3C);
             graphics.drawString(this.font, selectedMob.spawnRules.timeOfDay.toUpperCase(), leftBtnX + 4, formY + 36, 0xFFFFFFFF, false);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.dimension"), formX + 10, formY + 52, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.dimension"), formX + 10, formY + 52, leftMaxW, textC);
             boolean hoverDim = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 50 && mouseY <= formY + 62;
             UIHelper.drawShadedButton(graphics, leftBtnX, formY + 50, 60, 12, hoverDim, 0xFF3C3C3C);
             graphics.drawString(this.font, selectedMob.spawnRules.dimension.toUpperCase(), leftBtnX + 4, formY + 52, 0xFFFFFFFF, false);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.weather"), formX + 10, formY + 68, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.weather"), formX + 10, formY + 68, leftMaxW, textC);
             boolean hoverWeather = mouseX >= leftBtnX && mouseX <= leftBtnX + 60 && mouseY >= formY + 66 && mouseY <= formY + 78;
             UIHelper.drawShadedButton(graphics, leftBtnX, formY + 66, 60, 12, hoverWeather, 0xFF3C3C3C);
             graphics.drawString(this.font, selectedMob.spawnRules.weather.toUpperCase(), leftBtnX + 4, formY + 68, 0xFFFFFFFF, false);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_env"), formX + 10, formY + 84, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.spawn_env"), formX + 10, formY + 84, leftMaxW, textC);
             String envText = "ANY";
             if (selectedMob.spawnRules.surfaceOnly) envText = "SURFACE";
             else if (selectedMob.spawnRules.cavesOnly) envText = "CAVES";
@@ -3302,38 +3303,39 @@ public class MobCreatorScreen extends Screen {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.spawn_env"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.raid_spawner_only"), formX + 10, formY + 100, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.raid_spawner_only"), formX + 10, formY + 100, leftMaxW, textC);
             boolean hoverRaidOnly = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 98 && mouseY <= formY + 108;
             graphics.fill(leftBtnX, formY + 98, leftBtnX + 10, formY + 108, selectedMob.spawnRules.raidOnly ? 0xFF00FF00 : 0xFFFF0000);
             if (hoverRaidOnly) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.raid_spawner_only"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.aquatic"), formX + 10, formY + 116, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.aquatic"), formX + 10, formY + 116, leftMaxW, textC);
             boolean hoverAquatic = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 114 && mouseY <= formY + 124;
             graphics.fill(leftBtnX, formY + 114, leftBtnX + 10, formY + 124, selectedMob.spawnRules.aquatic ? 0xFF00FF00 : 0xFFFF0000);
             if (hoverAquatic) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.aquatic"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.lava"), formX + 10, formY + 132, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.lava"), formX + 10, formY + 132, leftMaxW, textC);
             boolean hoverLava = mouseX >= leftBtnX && mouseX <= leftBtnX + 10 && mouseY >= formY + 130 && mouseY <= formY + 140;
             graphics.fill(leftBtnX, formY + 130, leftBtnX + 10, formY + 140, selectedMob.spawnRules.lava ? 0xFF00FF00 : 0xFFFF0000);
             if (hoverLava) {
                 this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.lava"));
             }
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.worldwide_limit"), formX + 10, formY + 148, textC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.worldwide_limit"), formX + 10, formY + 148, leftMaxW, textC);
 
             // Right Column Controls (formX + 180 labels, formX + 270 controls)
             int rightX = formX + 180;
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.height"), rightX, formY + 20, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.light"), rightX, formY + 36, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.pack_qty"), rightX, formY + 52, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_weight"), rightX, formY + 68, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.spawn_block"), rightX, formY + 84, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.structure"), rightX, formY + 100, labelC);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.biome_filter"), rightX, formY + 116, labelC);
+            int rightMaxW = 85;
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.height"), rightX, formY + 20, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.light"), rightX, formY + 36, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.pack_qty"), rightX, formY + 52, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.spawn_weight"), rightX, formY + 68, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.spawn_block"), rightX, formY + 84, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.structure"), rightX, formY + 100, rightMaxW, labelC);
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.biome_filter"), rightX, formY + 116, rightMaxW, labelC);
 
             int biomeY = formY + 130;
             for (int i = 0; i < selectedMob.spawnRules.biomes.size(); i++) {
@@ -3348,6 +3350,23 @@ public class MobCreatorScreen extends Screen {
                 }
                 biomeY += 11;
             }
+        }
+    }
+
+    private void drawScrollingText(GuiGraphics graphics, Component text, int x, int y, int maxW, int color) {
+        int textW = this.font.width(text);
+        if (textW <= maxW) {
+            graphics.drawString(this.font, text, x, y, color, false);
+        } else {
+            int overflow = textW - maxW;
+            long time = System.currentTimeMillis();
+            double cycle = (time % 4000L) / 4000.0;
+            double scrollPct = 0.5 - 0.5 * Math.cos(cycle * 2.0 * Math.PI);
+            int offsetX = (int) (scrollPct * (overflow + 6));
+
+            graphics.enableScissor(x, y - 1, x + maxW, y + 11);
+            graphics.drawString(this.font, text, x - offsetX, y, color, false);
+            graphics.disableScissor();
         }
     }
 
