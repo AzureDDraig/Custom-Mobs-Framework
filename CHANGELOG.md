@@ -4,6 +4,22 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 142] - Raid Block Cooldown, Spawn Restrictions Bypass & Passive Mob Selection (Issues #110 & #111)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Natural Spawn Restrictions Bypass for Raids & Spawners:** Updated `isValidSpawnTemplate` so that `MobSpawnType.EVENT` (Raids) and `MobSpawnType.SPAWNER` (Mob Spawners) immediately return `true`, bypassing all natural spawn rules (biomes, height limits, cave/surface rules, dimension, light levels, weather, and time of day). Mobs configured for caves can now spawn anywhere during Raid events or from spawners.
+*   **`RaidBlockEntity.java`**:
+    *   **Wave Spawn Grace Period (`waveGraceTicks = 40`):** Added a 2-second grace period when launching waves to ensure newly created entities are registered in `ServerLevel` before checking if all wave mobs are dead. Prevents premature wave advancement and infinite wave spawning loops.
+    *   **Raid Tagging & Cave/Indoor Spawn Positioning:** Tagged all spawned custom mobs with `activeRaidId` and `spawnerPos`. Improved position finding in `startNextWave()` to locate local solid floors within 8 blocks vertically around `worldPosition` for indoor, cave, and structure raid spawns.
+*   **`RaidEditorScreen.java`**:
+    *   **Dynamic Mob Selection List:** Replaced the hardcoded 16-monster list with a dynamic registry scan (`BuiltInRegistries.ENTITY_TYPE`) for all non-`MISC` mob categories (`MONSTER`, `CREATURE`, `AMBIENT`, `WATER_CREATURE`, etc.). All passive vanilla mobs (cows, sheep, bats, pigs, villagers) and modded mobs are now selectable for Raid waves.
+### Layman's Explanation
+*   **Raid Cooldown & Wave Loop Fix (Issue #110):** Fixed a bug where Raid Blocks ignored wave cooldown settings and continuously spawned waves. Added a 2-second spawn grace period and fixed entity lookup checks to ensure waves progress smoothly according to configured timers.
+*   **Raid Spawn Restrictions Bypass (Issue #111):** Mobs spawned during Raids now bypass natural spawn restrictions (such as cave-only or height requirements), allowing any mob to participate in Raid encounters regardless of biome or location.
+*   **Passive Vanilla & Modded Mobs in Raids (Issue #111):** Added full support for passive mobs (animals, bats, aquatic mobs) and modded entities in Raid wave configurations.
+
+---
+
 ## [Build 141] - Ranged & Shotgun Projectile Aiming Vector Fix (Issue #105)
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:

@@ -35,6 +35,7 @@ public class RaidBlockEntity extends BlockEntity {
     private int currentWave = -1;
     private int cooldownTicksRemaining = 0;
     private int raidCooldownRemaining = 0;
+    private int waveGraceTicks = 0;
     private final Set<UUID> spawnedMobUuids = new HashSet<>();
     public final Set<String> participatingPlayers = new HashSet<>();
 
@@ -125,6 +126,10 @@ public class RaidBlockEntity extends BlockEntity {
                 spawner.raidCooldownRemaining--;
             }
         } else if (spawner.activeRaidState == RaidState.RUNNING) {
+            if (spawner.waveGraceTicks > 0) {
+                spawner.waveGraceTicks--;
+            }
+
             spawner.checkCooldown++;
             if (spawner.checkCooldown >= 40) {
                 spawner.checkCooldown = 0;
@@ -154,34 +159,36 @@ public class RaidBlockEntity extends BlockEntity {
                     }
                 }
 
-                // Check if spawned mobs are all dead
-                spawner.spawnedMobUuids.removeIf(uuid -> {
-                    if (level instanceof net.minecraft.server.level.ServerLevel sl) {
-                        net.minecraft.world.entity.Entity ent = sl.getEntity(uuid);
-                        if (ent instanceof net.minecraft.world.entity.LivingEntity living) {
-                            Player p = getLastHurtByPlayerReflective(living);
-                            if (p != null) {
-                                spawner.participatingPlayers.add(p.getGameProfile().getName());
+                // Check if spawned mobs are all dead (only after grace period has expired)
+                if (spawner.waveGraceTicks <= 0) {
+                    spawner.spawnedMobUuids.removeIf(uuid -> {
+                        if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+                            net.minecraft.world.entity.Entity ent = sl.getEntity(uuid);
+                            if (ent instanceof net.minecraft.world.entity.LivingEntity living) {
+                                Player p = getLastHurtByPlayerReflective(living);
+                                if (p != null) {
+                                    spawner.participatingPlayers.add(p.getGameProfile().getName());
+                                }
                             }
+                            return ent == null || !ent.isAlive();
                         }
-                        return ent == null || !ent.isAlive();
-                    }
-                    return true;
-                });
+                        return true;
+                    });
 
-                if (spawner.spawnedMobUuids.isEmpty()) {
-                    // Current wave cleared!
-                    int nextWaveIdx = spawner.currentWave + 1;
-                    if (nextWaveIdx >= spawner.waves.size()) {
-                        // Raid victorious!
-                        spawner.completeRaid();
-                    } else {
-                        // Start wave cooldown
-                        spawner.activeRaidState = RaidState.WAVE_COOLDOWN;
-                        spawner.cooldownTicksRemaining = spawner.waveCooldown * 20;
-                        spawner.broadcastMessage(Component.translatable("chat.custom_mobs.raid.wave_cleared", spawner.currentWave + 1, spawner.waveCooldown));
-                        spawner.setChanged();
-                        level.sendBlockUpdated(pos, state, state, 3);
+                    if (spawner.spawnedMobUuids.isEmpty()) {
+                        // Current wave cleared!
+                        int nextWaveIdx = spawner.currentWave + 1;
+                        if (nextWaveIdx >= spawner.waves.size()) {
+                            // Raid victorious!
+                            spawner.completeRaid();
+                        } else {
+                            // Start wave cooldown
+                            spawner.activeRaidState = RaidState.WAVE_COOLDOWN;
+                            spawner.cooldownTicksRemaining = spawner.waveCooldown * 20;
+                            spawner.broadcastMessage(Component.translatable("chat.custom_mobs.raid.wave_cleared", spawner.currentWave + 1, spawner.waveCooldown));
+                            spawner.setChanged();
+                            level.sendBlockUpdated(pos, state, state, 3);
+                        }
                     }
                 }
             }
@@ -227,6 +234,7 @@ public class RaidBlockEntity extends BlockEntity {
         if (level == null || level.isClientSide) return;
         currentWave++;
         activeRaidState = RaidState.RUNNING;
+        waveGraceTicks = 40; // 2 second grace period for mobs to spawn and register
         
         if (currentWave >= waves.size()) {
             completeRaid();
@@ -251,16 +259,28 @@ public class RaidBlockEntity extends BlockEntity {
                 double rz = worldPosition.getZ() + Math.sin(theta) * d;
                 double ry = worldPosition.getY();
 
-                net.minecraft.core.BlockPos spawnPos = level.getHeightmapPos(
-                        net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                        BlockPos.containing(rx, ry, rz)
-                );
+                BlockPos candidatePos = BlockPos.containing(rx, ry, rz);
+                BlockPos spawnPos = candidatePos;
+                for (int dy = 8; dy >= -8; dy--) {
+                    BlockPos check = candidatePos.offset(0, dy, 0);
+                    if (!level.getBlockState(check).isAir() && level.getBlockState(check.above()).isAir() && level.getBlockState(check.above(2)).isAir()) {
+                        spawnPos = check.above();
+                        break;
+                    }
+                }
+                if (spawnPos.equals(candidatePos)) {
+                    spawnPos = level.getHeightmapPos(
+                            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                            candidatePos
+                    );
+                }
 
                 if (ddraig.net.custommobs.data.MobRegistry.loadedMobs.containsKey(templateId)) {
                     CustomMobEntity customMob = ModEntities.CUSTOM_MOB.get().create(level);
                     if (customMob != null) {
                         customMob.setTemplateId(templateId);
                         customMob.spawnerPos = this.worldPosition;
+                        customMob.activeRaidId = this.raidId.isEmpty() ? "raid_" + this.worldPosition.toShortString() : this.raidId;
                         if (level.random.nextInt(100) < eliteChance) {
                             customMob.setElite(true);
                         }

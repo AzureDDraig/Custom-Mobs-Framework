@@ -1396,8 +1396,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         if (data.spawnRules.raidOnly && (spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION)) {
             return false;
         }
+        if (spawnType == MobSpawnType.EVENT || spawnType == MobSpawnType.SPAWNER) {
+            return true;
+        }
         if (!data.spawnRules.naturalSpawning) return false;
-        if (spawnType != MobSpawnType.EVENT && spawnType != MobSpawnType.SPAWNER && data.spawnRules.worldwideLimit > 0) {
+        if (data.spawnRules.worldwideLimit > 0) {
             if (countActiveWorldwideLimitMobs(level, data.id) >= data.spawnRules.worldwideLimit) {
                 return false;
             }

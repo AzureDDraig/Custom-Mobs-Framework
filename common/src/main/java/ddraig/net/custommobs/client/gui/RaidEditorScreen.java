@@ -17,6 +17,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.nbt.CompoundTag;
@@ -120,12 +122,20 @@ public class RaidEditorScreen extends Screen {
                 availableAddMobs.add(id);
             }
         }
-        availableAddMobs.addAll(List.of(
-                "minecraft:zombie", "minecraft:skeleton", "minecraft:spider", "minecraft:creeper",
-                "minecraft:enderman", "minecraft:witch", "minecraft:wither_skeleton", "minecraft:piglin",
-                "minecraft:blaze", "minecraft:ghast", "minecraft:magma_cube", "minecraft:slime",
-                "minecraft:cave_spider", "minecraft:pillager", "minecraft:ravager", "minecraft:evoker"
-        ));
+        
+        // Dynamically add all vanilla and modded mob types (monsters, passive animals, water creatures, ambient mobs)
+        BuiltInRegistries.ENTITY_TYPE.forEach(type -> {
+            ResourceLocation loc = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+            if (loc != null && !loc.getNamespace().equals("custommobs")) {
+                MobCategory category = type.getCategory();
+                if (category != MobCategory.MISC) {
+                    String id = loc.toString();
+                    if (!availableAddMobs.contains(id)) {
+                        availableAddMobs.add(id);
+                    }
+                }
+            }
+        });
         this.updateFilteredAddMobs();
 
         // Populate item selector list
