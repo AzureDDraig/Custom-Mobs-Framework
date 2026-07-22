@@ -4,6 +4,17 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 141] - Ranged & Shotgun Projectile Aiming Vector Fix (Issue #105)
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **Target Height Aim Correction:** Changed target Y aim offset in `CustomRangedAttackGoal.fireProjectile` and `executeShotgunAttack` from `target.getY(0.3333333333333333)` (knees) to `target.getY(0.5D)` (center of body/torso), preventing projectiles from aiming low into the floor.
+    *   **Shotgun Cone 3D Pitch Vector Calculation:** Overhauled `executeShotgunAttack` vector math. Previously, `sy = dy` was combined with unit 2D horizontal vectors (`Math.cos(yaw)`, `Math.sin(yaw)`), which forced high pitch angles towards the ground when targets were more than a few blocks away. Now calculates pitch angle sine and cosine (`pitchSin = adjustedDy / totalDist`, `pitchCos = sqrt(1 - pitchSin^2)`) to scale X/Z components (`sx = cos(yaw) * pitchCos`, `sz = sin(yaw) * pitchCos`), creating a perfect 3D unit direction vector for every pellet in the shotgun spread cone.
+    *   **Gravity Arc Compensation Tuning:** Adjusted gravity arc compensation from `d * 0.2D` (overshooting at range and dipping close) to `d * 0.05D` for gravity projectiles, ensuring straight trajectory alignment for non-gravity projectiles (fireballs, magic spells, lasers).
+### Layman's Explanation
+*   **Ranged & Shotgun Aiming Fix (Issue #105):** Fixed a bug where mobs with Ranged or Shotgun AI goals would aim too low at the player's knees or hit the floor behind/in front of the target. Projectiles now aim accurately at the player's torso with realistic trajectory arcs.
+
+---
+
 ## [Build 140] - Marquee Scrolling Text for Spawning Tab UI Labels
 ### Technical Changes (By Class)
 *   **`MobCreatorScreen.java`**:

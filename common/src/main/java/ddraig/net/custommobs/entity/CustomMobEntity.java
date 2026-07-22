@@ -2124,8 +2124,9 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
 
         if (projId.isEmpty()) return;
 
+        double sourceEyeY = this.getY() + this.getEyeHeight() - 0.1D;
         double dx = target.getX() - this.getX();
-        double dy = target.getY(0.3333333333333333) - (this.getY() + this.getEyeHeight() - 0.1);
+        double dy = target.getY(0.5D) - sourceEyeY;
         double dz = target.getZ() - this.getZ();
         double d = Math.sqrt(dx * dx + dz * dz);
 
@@ -2135,11 +2136,11 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             CustomProjectileEntity proj = new CustomProjectileEntity(this.level(), this);
             proj.setProjectileId(projId);
             proj.setDamage(damage);
-            proj.setPos(this.getX(), this.getY() + this.getEyeHeight() - 0.1, this.getZ());
+            proj.setPos(this.getX(), sourceEyeY, this.getZ());
             double compensation = 0.0D;
             ddraig.net.custommobs.data.ProjectileData projData = MobRegistry.loadedProjectiles.get(projId);
             if (projData == null || projData.gravity) {
-                compensation = d * 0.2D;
+                compensation = d * 0.05D;
             }
             proj.shoot(dx, dy + compensation, dz, 1.6F, divergence);
             this.level().addFreshEntity(proj);
@@ -2151,12 +2152,14 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                 }
                 final float finalDamage = damage;
                 final float finalDivergence = divergence;
+                final double finalDy = dy;
+                final double finalD = d;
                 net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getOptional(resLoc).ifPresent(entityType -> {
                     net.minecraft.world.entity.Entity entity = entityType.create(this.level());
                     if (entity instanceof net.minecraft.world.entity.projectile.Projectile proj) {
                         proj.setOwner(this);
-                        proj.setPos(this.getX(), this.getY() + this.getEyeHeight() - 0.1, this.getZ());
-                        proj.shoot(dx, dy + d * 0.2D, dz, 1.6F, finalDivergence);
+                        proj.setPos(this.getX(), sourceEyeY, this.getZ());
+                        proj.shoot(dx, finalDy + finalD * 0.05D, dz, 1.6F, finalDivergence);
                         if (proj instanceof net.minecraft.world.entity.projectile.AbstractArrow arrow) {
                             arrow.setBaseDamage(finalDamage);
                         }
@@ -2878,9 +2881,23 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                     serverLevel.playSound(null, mob.getX(), mob.getY(), mob.getZ(), SoundEvents.SKELETON_SHOOT, SoundSource.HOSTILE, 1.0F, 1.0F);
                 }
 
+                double sourceEyeY = mob.getY() + mob.getEyeHeight() - 0.1D;
                 double dx = target.getX() - mob.getX();
-                double dy = target.getY(0.3333333333333333) - (mob.getY() + mob.getEyeHeight() - 0.1);
+                double dy = target.getY(0.5D) - sourceEyeY;
                 double dz = target.getZ() - mob.getZ();
+                double d = Math.sqrt(dx * dx + dz * dz);
+
+                double compensation = 0.0D;
+                if (MobRegistry.loadedProjectiles.containsKey(projId)) {
+                    var projData = MobRegistry.loadedProjectiles.get(projId);
+                    if (projData == null || projData.gravity) {
+                        compensation = d * 0.05D;
+                    }
+                }
+                double adjustedDy = dy + compensation;
+                double totalDist = Math.sqrt(dx * dx + adjustedDy * adjustedDy + dz * dz);
+                double pitchSin = adjustedDy / (totalDist > 0.0001D ? totalDist : 1.0D);
+                double pitchCos = Math.sqrt(Math.max(0.0D, 1.0D - pitchSin * pitchSin));
 
                 double yaw = Math.atan2(dz, dx);
                 double startAngle = yaw - Math.toRadians(coneAngle / 2.0D);
@@ -2888,15 +2905,15 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
 
                 for (int i = 0; i < quantity; i++) {
                     double currentYaw = startAngle + i * step;
-                    double sx = Math.cos(currentYaw);
-                    double sz = Math.sin(currentYaw);
-                    double sy = dy;
+                    double sx = Math.cos(currentYaw) * pitchCos;
+                    double sz = Math.sin(currentYaw) * pitchCos;
+                    double sy = pitchSin;
 
                     if (MobRegistry.loadedProjectiles.containsKey(projId)) {
                         CustomProjectileEntity proj = new CustomProjectileEntity(serverLevel, mob);
                         proj.setProjectileId(projId);
                         proj.setDamage(damage);
-                        proj.setPos(mob.getX(), mob.getY() + mob.getEyeHeight() - 0.1, mob.getZ());
+                        proj.setPos(mob.getX(), sourceEyeY, mob.getZ());
                         proj.shoot(sx, sy, sz, 1.6F, baseDivergence);
                         serverLevel.addFreshEntity(proj);
                     } else {
@@ -2906,7 +2923,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
                             BuiltInRegistries.ENTITY_TYPE.getOptional(resLoc).ifPresent(entityType -> {
                                 Entity entity = entityType.create(serverLevel);
                                 if (entity != null) {
-                                    entity.setPos(mob.getX(), mob.getY() + mob.getEyeHeight() - 0.1, mob.getZ());
+                                    entity.setPos(mob.getX(), sourceEyeY, mob.getZ());
                                     if (entity instanceof net.minecraft.world.entity.projectile.Projectile proj) {
                                         proj.setOwner(mob);
                                         proj.shoot(sx, sy, sz, 1.6F, finalDivergence);
