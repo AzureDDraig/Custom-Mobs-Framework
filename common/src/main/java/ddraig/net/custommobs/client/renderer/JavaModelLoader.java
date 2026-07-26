@@ -76,8 +76,10 @@ public class JavaModelLoader {
             java.lang.reflect.Method getModelsMethod = cacheClass.getMethod("getBakedModels");
             java.util.Map<?, ?> models = (java.util.Map<?, ?>) getModelsMethod.invoke(null);
             if (models != null && modelId != null) {
-                ResourceLocation modelLoc = new ResourceLocation("custom_mobs", "geo/" + modelId + ".geo.json");
-                models.remove(modelLoc);
+                ResourceLocation modelLoc = ResourceLocation.tryBuild("custom_mobs", "geo/" + modelId.toLowerCase(java.util.Locale.ROOT) + ".geo.json");
+                if (modelLoc != null) {
+                    models.remove(modelLoc);
+                }
             }
             
             java.lang.reflect.Method getAnimsMethod = cacheClass.getMethod("getBakedAnimations");

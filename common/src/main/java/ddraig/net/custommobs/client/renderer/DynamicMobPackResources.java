@@ -89,8 +89,12 @@ public class DynamicMobPackResources implements PackResources {
                         String modelId = folder.getName();
                         File modelFile = findFileInUnpacked(modelId, ".geo.json");
                         if (modelFile != null && modelFile.exists()) {
-                            ResourceLocation loc = new ResourceLocation("custom_mobs", "geo/" + modelId + ".geo.json");
-                            output.accept(loc, IoSupplier.create(modelFile.toPath()));
+                            try {
+                                ResourceLocation loc = ResourceLocation.tryBuild("custom_mobs", "geo/" + modelId.toLowerCase(java.util.Locale.ROOT) + ".geo.json");
+                                if (loc != null) {
+                                    output.accept(loc, IoSupplier.create(modelFile.toPath()));
+                                }
+                            } catch (Exception ignored) {}
                         }
                     }
                 }
@@ -104,8 +108,12 @@ public class DynamicMobPackResources implements PackResources {
                         String modelId = folder.getName();
                         File animFile = findFileInUnpacked(modelId, ".animation.json");
                         if (animFile != null && animFile.exists()) {
-                            ResourceLocation loc = new ResourceLocation("custom_mobs", "animations/" + modelId + ".animation.json");
-                            output.accept(loc, IoSupplier.create(animFile.toPath()));
+                            try {
+                                ResourceLocation loc = ResourceLocation.tryBuild("custom_mobs", "animations/" + modelId.toLowerCase(java.util.Locale.ROOT) + ".animation.json");
+                                if (loc != null) {
+                                    output.accept(loc, IoSupplier.create(animFile.toPath()));
+                                }
+                            } catch (Exception ignored) {}
                         }
                     }
                 }
@@ -140,8 +148,12 @@ public class DynamicMobPackResources implements PackResources {
                 listOggResourcesRecursive(f, nextRel, prefix, output);
             } else if (f.isFile() && f.getName().toLowerCase().endsWith(".ogg")) {
                 String resPath = "sounds/" + prefix + "/" + (relativePath.isEmpty() ? f.getName() : relativePath + "/" + f.getName());
-                ResourceLocation loc = new ResourceLocation("custom_mobs", resPath);
-                output.accept(loc, IoSupplier.create(f.toPath()));
+                try {
+                    ResourceLocation loc = ResourceLocation.tryBuild("custom_mobs", resPath.toLowerCase(java.util.Locale.ROOT));
+                    if (loc != null) {
+                        output.accept(loc, IoSupplier.create(f.toPath()));
+                    }
+                } catch (Exception ignored) {}
             }
         }
     }

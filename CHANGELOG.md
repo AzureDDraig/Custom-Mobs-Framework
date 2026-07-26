@@ -4,6 +4,18 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 145] - Epic Fight & GeckoLib Resource Pack Loading Crash Fix
+### Technical Changes (By Class)
+*   **`DynamicMobPackResources.java`**:
+    *   **Safe ResourceLocation Construction:** Replaced `new ResourceLocation("custom_mobs", "animations/" + modelId + ".animation.json")` and `geo/` calls with `ResourceLocation.tryBuild("custom_mobs", ...)` using lowercased paths (`modelId.toLowerCase(Locale.ROOT)`).
+    *   **Resource Pack Scanning Exception Handling:** Wrapped `output.accept` in try-catch blocks to safely skip any invalid filesystem folder names during startup resource pack scanning.
+*   **`JavaModelLoader.java`**:
+    *   **Safe ResourceLocation Lookup:** Updated GeckoLib baked model cache invalidation to use `ResourceLocation.tryBuild` with lowercased model IDs.
+### Layman's Explanation
+*   **Epic Fight & GeckoLib Startup Crash Fix:** Fixed a client startup crash that occurred when Epic Fight or GeckoLib scanned resource packs during the loading screen. Folder names with uppercase characters or spaces no longer throw `ResourceLocationException` during startup.
+
+---
+
 ## [Build 144] - On-Screen Raid Absence Warning Title & Live Countdown UI
 ### Technical Changes (By Class)
 *   **`RaidBlockEntity.java`**:
