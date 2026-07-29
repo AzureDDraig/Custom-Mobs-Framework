@@ -16,6 +16,13 @@ All notable changes to the Custom Mobs Framework project are documented in this 
     *   **AI Goal Parameter Descriptions:** Fixed parameter labels and added tooltips for `FLY_HOVER`, `FIRE_TRAIL`, `RETURN_TO_SPAWN`, `STALK`, `SWIM_UNDERWATER`, `USE_ABILITY`, and `AMPHIBIOUS`.
 *   **`BestiaryScreen.java` & `RaidEditorScreen.java`**:
     *   **Localized Raid Reward Tooltips:** Transformed raw item IDs into localized item hover names and added detailed hover tooltip cards for raid reward items and commands.
+### Layman's Explanation
+*   **Dual Raid Radii Settings:** Separated mob spawning distance (`Spawn Radius`) from player escape/warning distance (`Escape Radius`) in Raid Blocks. Monsters now spawn close to the block while players get a wider active zone.
+*   **Amphibious Crocodile Movement:** Mobs with the Amphibious goal now smoothly switch navigation and swimming pathfinding when entering water or stepping onto land.
+*   **Configurable Boss Bars:** Custom mobs can now feature customized Boss Health Bars on screen with configurable colors, bar styles, titles, and activation ranges.
+*   **Elite & Boss Name Icons:** ⭐ icons are prepended to Elite mob nameplates and ☠️ icons are prepended to Boss mob nameplates.
+*   **Localized Raid Rewards & Hover Tooltips:** Raid reward lists in both the Bestiary and Raid Editor now show clean localized item names (e.g., `Diamond` instead of `minecraft:diamond`) and hover tooltips showing item IDs, drop chances, counts, and command details.
+*   **AI Goal Parameter Descriptions:** Fixed parameter labels and hover tooltips in the Mob Creator for `FLY_HOVER`, `FIRE_TRAIL`, `RETURN_TO_SPAWN`, `STALK`, `SWIM_UNDERWATER`, `USE_ABILITY`, and `AMPHIBIOUS`.
 
 ---
 
