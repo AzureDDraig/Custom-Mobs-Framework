@@ -121,7 +121,8 @@ public class ModPackets {
         NetworkManager.registerReceiver(NetworkManager.c2s(), C2S_SAVE_RAID_SETTINGS, (buf, context) -> {
             BlockPos pos = buf.readBlockPos();
             String raidId = buf.readUtf();
-            int radius = buf.readInt();
+            int spawnRadius = buf.readInt();
+            int escapeRadius = buf.readInt();
             int waveCooldown = buf.readInt();
             int raidCooldown = buf.readInt();
             String desc = buf.readUtf(262144);
@@ -134,7 +135,8 @@ public class ModPackets {
                     BlockEntity be = player.level().getBlockEntity(pos);
                     if (be instanceof ddraig.net.custommobs.block.entity.RaidBlockEntity spawner) {
                         spawner.setRaidId(raidId);
-                        spawner.setRadius(radius);
+                        spawner.setSpawnRadius(spawnRadius);
+                        spawner.setEscapeRadius(escapeRadius);
                         spawner.setWaveCooldown(waveCooldown);
                         spawner.setRaidCooldown(raidCooldown);
                         spawner.setDescription(desc);
@@ -220,7 +222,8 @@ public class ModPackets {
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         buf.writeBlockPos(spawner.getBlockPos());
         buf.writeUtf(spawner.getRaidId());
-        buf.writeInt(spawner.getRadius());
+        buf.writeInt(spawner.getSpawnRadius());
+        buf.writeInt(spawner.getEscapeRadius());
         buf.writeInt(spawner.getWaveCooldown());
         buf.writeInt(spawner.getRaidCooldown());
         buf.writeUtf(spawner.getDescription(), 262144);

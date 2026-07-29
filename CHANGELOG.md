@@ -4,6 +4,21 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 147] - Dual Raid Radii, Amphibious AI Navigation, Boss Bars & Localized Raid Reward Tooltips
+### Technical Changes (By Class)
+*   **`RaidBlockEntity.java` & `RaidEditorScreen.java`**:
+    *   **Dual Raid Radii:** Separated mob spawning distance (`spawnRadius`, default 16) from player escape/absence distance (`escapeRadius`, default 32) in NBT loading/saving, server proximity checks, and Raid Editor UI.
+*   **`CustomMobEntity.java` & `MobData.java`**:
+    *   **Amphibious Navigation:** Added dynamic pathfinding navigation switching between land (`GroundPathNavigation`) and water (`WaterBoundPathNavigation`) for mobs with `AMPHIBIOUS` goal.
+    *   **Configurable Boss Bar:** Integrated `ServerBossEvent` boss bar support into mob data structures with configurable title, color, style, and range.
+    *   **Elite & Boss Display Name Icons:** Prepend ⭐ to entity display name for Elites and ☠️ for Boss mobs.
+*   **`MobCreatorScreen.java` & `en_us.json`**:
+    *   **AI Goal Parameter Descriptions:** Fixed parameter labels and added tooltips for `FLY_HOVER`, `FIRE_TRAIL`, `RETURN_TO_SPAWN`, `STALK`, `SWIM_UNDERWATER`, `USE_ABILITY`, and `AMPHIBIOUS`.
+*   **`BestiaryScreen.java` & `RaidEditorScreen.java`**:
+    *   **Localized Raid Reward Tooltips:** Transformed raw item IDs into localized item hover names and added detailed hover tooltip cards for raid reward items and commands.
+
+---
+
 ## [Build 145] - Epic Fight & GeckoLib Resource Pack Loading Crash Fix
 ### Technical Changes (By Class)
 *   **`DynamicMobPackResources.java`**:

@@ -43,6 +43,7 @@ public class MobData {
     public LootData loot = new LootData();
     public List<AIGoalData> aiGoals = new ArrayList<>();
     public EliteData elite = new EliteData();
+    public BossBarData bossBar = new BossBarData();
 
     public static class StatsData {
         public double maxHealth = 20.0;
@@ -132,6 +133,14 @@ public class MobData {
     public static class EliteData {
         public double chance = 5.0; // 0.0 to 100.0
         public List<String> extraAbilities = new ArrayList<>();
+    }
+
+    public static class BossBarData {
+        public boolean enabled = false;
+        public String title = "";
+        public String color = "RED";
+        public String style = "PROGRESS";
+        public int range = 32;
     }
 
     // Transient fields for overall model dimensions

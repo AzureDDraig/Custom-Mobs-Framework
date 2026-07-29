@@ -82,7 +82,8 @@ public class CustomMobsClient {
         NetworkManager.registerReceiver(NetworkManager.s2c(), ModPackets.S2C_OPEN_RAID_EDITOR, (buf, context) -> {
             BlockPos pos = buf.readBlockPos();
             String raidId = buf.readUtf();
-            int radius = buf.readInt();
+            int spawnRadius = buf.readInt();
+            int escapeRadius = buf.readInt();
             int waveCooldown = buf.readInt();
             int raidCooldown = buf.readInt();
             String desc = buf.readUtf(262144);
@@ -91,7 +92,7 @@ public class CustomMobsClient {
 
             context.queue(() -> {
                 Minecraft.getInstance().setScreen(new ddraig.net.custommobs.client.gui.RaidEditorScreen(
-                        pos, raidId, radius, waveCooldown, raidCooldown, desc, wavesJson, rewardsJson
+                        pos, raidId, spawnRadius, escapeRadius, waveCooldown, raidCooldown, desc, wavesJson, rewardsJson
                 ));
             });
         });

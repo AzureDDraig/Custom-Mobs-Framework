@@ -22,7 +22,8 @@ public class RaidBlockEntity extends BlockEntity {
     private static final com.google.gson.Gson GSON = new com.google.gson.Gson();
 
     private String raidId = "";
-    private int radius = 16;
+    private int spawnRadius = 16;
+    private int escapeRadius = 32;
     private int waveCooldown = 10; // seconds
     private int raidCooldown = 60; // seconds
     private String description = "";
@@ -136,7 +137,7 @@ public class RaidBlockEntity extends BlockEntity {
                 spawner.checkCooldown = 0;
 
                 // Check player proximity to avoid despawning/ignoring the raid
-                AABB playerSearchBox = new AABB(pos).inflate(Math.max(32.0, spawner.radius + 16.0));
+                AABB playerSearchBox = new AABB(pos).inflate(Math.max(16.0, spawner.escapeRadius));
                 List<Player> playersInRange = level.getEntitiesOfClass(Player.class, playerSearchBox);
                 if (playersInRange.isEmpty()) {
                     spawner.noPlayersTicks++;
@@ -252,7 +253,7 @@ public class RaidBlockEntity extends BlockEntity {
         spawnedMobUuids.clear();
         participatingPlayers.clear();
         
-        AABB searchBox = new AABB(worldPosition).inflate(Math.max(32.0, radius + 16.0));
+        AABB searchBox = new AABB(worldPosition).inflate(Math.max(16.0, escapeRadius));
         List<Player> players = level.getEntitiesOfClass(Player.class, searchBox);
         for (Player p : players) {
             participatingPlayers.add(p.getGameProfile().getName());
@@ -284,9 +285,9 @@ public class RaidBlockEntity extends BlockEntity {
             int eliteChance = wave.mobEliteChances.getOrDefault(templateId, 0);
 
             for (int i = 0; i < count; i++) {
-                // Find scattered spawn position inside radius (at least 4 blocks away from spawner center)
+                // Find scattered spawn position inside spawnRadius
                 double theta = level.random.nextDouble() * 2.0 * Math.PI;
-                double d = 4.0 + level.random.nextDouble() * (Math.max(6.0, radius) - 4.0);
+                double d = 4.0 + level.random.nextDouble() * (Math.max(6.0, spawnRadius) - 4.0);
                 double rx = worldPosition.getX() + Math.cos(theta) * d;
                 double rz = worldPosition.getZ() + Math.sin(theta) * d;
                 double ry = worldPosition.getY();
@@ -365,7 +366,7 @@ public class RaidBlockEntity extends BlockEntity {
 
         if (level != null && !level.isClientSide) {
             // Final definitive scan of players in range at completion time
-            AABB finalSearchBox = new AABB(worldPosition).inflate(Math.max(32.0, radius + 16.0));
+            AABB finalSearchBox = new AABB(worldPosition).inflate(Math.max(16.0, escapeRadius));
             List<net.minecraft.world.entity.player.Player> playersInRange = level.getEntitiesOfClass(net.minecraft.world.entity.player.Player.class, finalSearchBox);
             for (var p : playersInRange) {
                 participatingPlayers.add(p.getGameProfile().getName());
@@ -556,7 +557,9 @@ public class RaidBlockEntity extends BlockEntity {
     protected void saveAdditional(CompoundTag tag) {
         super.saveAdditional(tag);
         tag.putString("RaidId", this.raidId);
-        tag.putInt("Radius", this.radius);
+        tag.putInt("SpawnRadius", this.spawnRadius);
+        tag.putInt("EscapeRadius", this.escapeRadius);
+        tag.putInt("Radius", this.spawnRadius); // legacy compatibility
         tag.putInt("WaveCooldown", this.waveCooldown);
         tag.putInt("RaidCooldown", this.raidCooldown);
         tag.putString("Description", this.description);
@@ -585,12 +588,22 @@ public class RaidBlockEntity extends BlockEntity {
     public void load(CompoundTag tag) {
         super.load(tag);
         this.raidId = tag.getString("RaidId");
-        this.radius = tag.getInt("Radius");
+        if (tag.contains("SpawnRadius")) {
+            this.spawnRadius = tag.getInt("SpawnRadius");
+        } else if (tag.contains("Radius")) {
+            this.spawnRadius = tag.getInt("Radius");
+        }
+        if (tag.contains("EscapeRadius")) {
+            this.escapeRadius = tag.getInt("EscapeRadius");
+        } else {
+            this.escapeRadius = Math.max(32, this.spawnRadius * 2);
+        }
         this.waveCooldown = tag.getInt("WaveCooldown");
         this.raidCooldown = tag.getInt("RaidCooldown");
         this.description = tag.getString("Description");
 
-        if (this.radius <= 0) this.radius = 16;
+        if (this.spawnRadius <= 0) this.spawnRadius = 16;
+        if (this.escapeRadius <= 0) this.escapeRadius = 32;
         if (!tag.contains("WaveCooldown") || this.waveCooldown < 0) this.waveCooldown = 10;
         if (!tag.contains("RaidCooldown") || this.raidCooldown < 0) this.raidCooldown = 60;
 
@@ -664,8 +677,14 @@ public class RaidBlockEntity extends BlockEntity {
     public int getCurrentWave() { return this.currentWave; }
     public void setRaidId(String raidId) { this.raidId = raidId; setChanged(); }
 
-    public int getRadius() { return radius; }
-    public void setRadius(int radius) { this.radius = radius; setChanged(); }
+    public int getSpawnRadius() { return spawnRadius; }
+    public void setSpawnRadius(int spawnRadius) { this.spawnRadius = spawnRadius; setChanged(); }
+
+    public int getEscapeRadius() { return escapeRadius; }
+    public void setEscapeRadius(int escapeRadius) { this.escapeRadius = escapeRadius; setChanged(); }
+
+    public int getRadius() { return spawnRadius; }
+    public void setRadius(int radius) { this.spawnRadius = radius; setChanged(); }
 
     public int getWaveCooldown() { return waveCooldown; }
     public void setWaveCooldown(int waveCooldown) { this.waveCooldown = waveCooldown; setChanged(); }

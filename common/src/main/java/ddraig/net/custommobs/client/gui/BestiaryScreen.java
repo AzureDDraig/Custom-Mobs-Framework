@@ -180,6 +180,8 @@ public class BestiaryScreen extends Screen {
         // Main beveled obsidian panel
         UIHelper.drawBeveledPanel(graphics, left, top, panelW, panelH, borderC, bgC);
 
+        List<Component> hoveredTooltip = null;
+
         // Sidebar dimensions
         int listX = left + 8;
         int listY = top + 8;
@@ -584,12 +586,31 @@ public class BestiaryScreen extends Screen {
 
             if (isUnlocked) {
                 int rewardCount = 0;
+                int rewardStartY = drawY;
                 for (RaidSystem.RaidReward reward : selectedRaid.rewards) {
                     if (rewardCount >= 6) break;
                     String val = reward.value;
-                    String display = val.startsWith("/") ? "[CMD] " + val.substring(1) : val;
-                    display += " (" + (int)(reward.chance * 100) + "%)";
-                    graphics.drawString(this.font, truncate(display, (statsW - 12) / 6), statsX + 6, drawY, 0xFFCCCCCC, false);
+                    String itemDisplayName = getRewardDisplayName(val);
+                    String display = itemDisplayName + " (" + (int)(reward.chance * 100) + "%)";
+                    int rowY = rewardStartY + rewardCount * 10;
+                    graphics.drawString(this.font, truncate(display, (statsW - 12) / 6), statsX + 6, rowY, 0xFFCCCCCC, false);
+
+                    if (mouseX >= statsX + 4 && mouseX <= statsX + statsW - 4 && mouseY >= rowY && mouseY < rowY + 10) {
+                        List<Component> tooltip = new ArrayList<>();
+                        if (val.startsWith("/")) {
+                            tooltip.add(Component.literal("Command Reward").withStyle(net.minecraft.ChatFormatting.GOLD));
+                            tooltip.add(Component.literal(val).withStyle(net.minecraft.ChatFormatting.YELLOW));
+                        } else {
+                            tooltip.add(Component.literal(itemDisplayName).withStyle(net.minecraft.ChatFormatting.GOLD));
+                            String rawId = val.contains("*") ? val.split("\\*", 2)[0] : val;
+                            tooltip.add(Component.literal("Item ID: " + rawId).withStyle(net.minecraft.ChatFormatting.GRAY));
+                        }
+                        tooltip.add(Component.literal("Drop Chance: " + (int)(reward.chance * 100) + "%").withStyle(net.minecraft.ChatFormatting.GREEN));
+                        if (reward.perPlayer) {
+                            tooltip.add(Component.literal("Per-Player Reward").withStyle(net.minecraft.ChatFormatting.AQUA));
+                        }
+                        hoveredTooltip = tooltip;
+                    }
                     drawY += 10;
                     rewardCount++;
                 }
@@ -599,7 +620,6 @@ public class BestiaryScreen extends Screen {
         }
 
         // Draw hover tooltips for sidebar items
-        List<Component> hoveredTooltip = null;
         for (int i = scrollOffset; i < maxVisible; i++) {
             SidebarItem item = sidebarItems.get(i);
             int drawY = itemY + (i - scrollOffset) * rowH;
@@ -873,5 +893,26 @@ public class BestiaryScreen extends Screen {
         if (text == null) return "";
         if (text.length() <= max) return text;
         return text.substring(0, max - 2) + "..";
+    }
+
+    public static String getRewardDisplayName(String val) {
+        if (val == null || val.isEmpty()) return "";
+        if (val.startsWith("/")) return "[CMD] " + val.substring(1);
+        String itemId = val;
+        int count = 1;
+        if (val.contains("*")) {
+            String[] parts = val.split("\\*", 2);
+            itemId = parts[0];
+            try { count = Integer.parseInt(parts[1]); } catch (Exception ignored) {}
+        }
+        net.minecraft.resources.ResourceLocation loc = net.minecraft.resources.ResourceLocation.tryParse(itemId);
+        if (loc != null && net.minecraft.core.registries.BuiltInRegistries.ITEM.containsKey(loc)) {
+            var item = net.minecraft.core.registries.BuiltInRegistries.ITEM.get(loc);
+            if (item != null && item != net.minecraft.world.item.Items.AIR) {
+                String name = new net.minecraft.world.item.ItemStack(item).getHoverName().getString();
+                return count > 1 ? name + " x" + count : name;
+            }
+        }
+        return val;
     }
 }

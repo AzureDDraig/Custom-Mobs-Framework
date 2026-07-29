@@ -45,11 +45,15 @@ public class RaidEditorScreen extends Screen {
 
     // Textfields
     private EditBox raidIdField;
-    private EditBox radiusField;
+    private EditBox spawnRadiusField;
+    private EditBox escapeRadiusField;
     private EditBox waveCooldownField;
     private EditBox raidCooldownField;
     private EditBox wavesCountField;
     private EditBox descriptionField;
+
+    private int spawnRadius = 16;
+    private int escapeRadius = 32;
 
     // Waves Tab variables
     private int selectedWaveIndex = 0;
@@ -87,11 +91,12 @@ public class RaidEditorScreen extends Screen {
     private EditBox itemSearchField;
     private java.util.function.Consumer<ItemStack> itemSelectionCallback;
 
-    public RaidEditorScreen(BlockPos pos, String raidId, int radius, int waveCooldown, int raidCooldown, String description, String wavesJson, String rewardsJson) {
+    public RaidEditorScreen(BlockPos pos, String raidId, int spawnRadius, int escapeRadius, int waveCooldown, int raidCooldown, String description, String wavesJson, String rewardsJson) {
         super(Component.translatable("gui.custom_mobs.raid_editor.title"));
         this.pos = pos;
         this.raidId = raidId;
-        this.radius = radius;
+        this.spawnRadius = spawnRadius;
+        this.escapeRadius = escapeRadius;
         this.waveCooldown = waveCooldown;
         this.raidCooldown = raidCooldown;
         this.description = description;
@@ -153,38 +158,44 @@ public class RaidEditorScreen extends Screen {
         int top = (this.height - panelH) / 2;
 
         // Raid Info fields
-        this.raidIdField = new EditBox(this.font, left + 145, top + 45, 120, 12, Component.translatable("gui.custom_mobs.raid_editor.id"));
+        this.raidIdField = new EditBox(this.font, left + 145, top + 42, 120, 12, Component.translatable("gui.custom_mobs.raid_editor.id"));
         this.raidIdField.setValue(raidId);
         this.raidIdField.setBordered(false);
         this.raidIdField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.raid_id")));
         this.addRenderableWidget(this.raidIdField);
 
-        this.radiusField = new EditBox(this.font, left + 145, top + 65, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.radius"));
-        this.radiusField.setValue(String.valueOf(radius));
-        this.radiusField.setBordered(false);
-        this.radiusField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.radius")));
-        this.addRenderableWidget(this.radiusField);
+        this.spawnRadiusField = new EditBox(this.font, left + 145, top + 62, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.spawn_radius"));
+        this.spawnRadiusField.setValue(String.valueOf(spawnRadius));
+        this.spawnRadiusField.setBordered(false);
+        this.spawnRadiusField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.spawn_radius")));
+        this.addRenderableWidget(this.spawnRadiusField);
 
-        this.waveCooldownField = new EditBox(this.font, left + 145, top + 85, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.wave_cooldown"));
+        this.escapeRadiusField = new EditBox(this.font, left + 145, top + 82, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.escape_radius"));
+        this.escapeRadiusField.setValue(String.valueOf(escapeRadius));
+        this.escapeRadiusField.setBordered(false);
+        this.escapeRadiusField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.escape_radius")));
+        this.addRenderableWidget(this.escapeRadiusField);
+
+        this.waveCooldownField = new EditBox(this.font, left + 145, top + 102, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.wave_cooldown"));
         this.waveCooldownField.setValue(String.valueOf(waveCooldown));
         this.waveCooldownField.setBordered(false);
         this.waveCooldownField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.wave_cooldown")));
         this.addRenderableWidget(this.waveCooldownField);
 
-        this.raidCooldownField = new EditBox(this.font, left + 145, top + 105, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.raid_cooldown"));
+        this.raidCooldownField = new EditBox(this.font, left + 145, top + 122, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.raid_cooldown"));
         this.raidCooldownField.setValue(String.valueOf(raidCooldown));
         this.raidCooldownField.setBordered(false);
         this.raidCooldownField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.raid_cooldown")));
         this.addRenderableWidget(this.raidCooldownField);
 
-        this.wavesCountField = new EditBox(this.font, left + 145, top + 125, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.waves"));
+        this.wavesCountField = new EditBox(this.font, left + 145, top + 142, 50, 12, Component.translatable("gui.custom_mobs.raid_editor.waves"));
         this.wavesCountField.setValue(String.valueOf(Math.max(1, waves.size())));
         this.wavesCountField.setBordered(false);
         this.wavesCountField.setResponder(this::updateWavesCountFromField);
         this.wavesCountField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.waves_count")));
         this.addRenderableWidget(this.wavesCountField);
 
-        this.descriptionField = new EditBox(this.font, left + 145, top + 145, 200, 12, Component.translatable("gui.custom_mobs.raid_editor.description"));
+        this.descriptionField = new EditBox(this.font, left + 145, top + 162, 200, 12, Component.translatable("gui.custom_mobs.raid_editor.description"));
         this.descriptionField.setValue(description);
         this.descriptionField.setBordered(false);
         this.descriptionField.setMaxLength(2048);
@@ -303,7 +314,8 @@ public class RaidEditorScreen extends Screen {
             FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
             buf.writeBlockPos(pos);
             buf.writeUtf(raidIdField.getValue().trim());
-            buf.writeInt(parseIntSafe(radiusField.getValue(), radius));
+            buf.writeInt(parseIntSafe(spawnRadiusField.getValue(), spawnRadius));
+            buf.writeInt(parseIntSafe(escapeRadiusField.getValue(), escapeRadius));
             buf.writeInt(parseIntSafe(waveCooldownField.getValue(), waveCooldown));
             buf.writeInt(parseIntSafe(raidCooldownField.getValue(), raidCooldown));
             buf.writeUtf(descriptionField.getValue().trim());
@@ -379,7 +391,8 @@ public class RaidEditorScreen extends Screen {
     @Override
     public void tick() {
         this.raidIdField.tick();
-        this.radiusField.tick();
+        this.spawnRadiusField.tick();
+        this.escapeRadiusField.tick();
         this.waveCooldownField.tick();
         this.raidCooldownField.tick();
         this.wavesCountField.tick();
@@ -661,7 +674,8 @@ public class RaidEditorScreen extends Screen {
         saveSettingsBtn.active = !modalOpen;
 
         raidIdField.visible = !modalOpen && activeTab.equals("Raid Info");
-        radiusField.visible = !modalOpen && activeTab.equals("Raid Info");
+        spawnRadiusField.visible = !modalOpen && activeTab.equals("Raid Info");
+        escapeRadiusField.visible = !modalOpen && activeTab.equals("Raid Info");
         waveCooldownField.visible = !modalOpen && activeTab.equals("Raid Info");
         raidCooldownField.visible = !modalOpen && activeTab.equals("Raid Info");
         wavesCountField.visible = !modalOpen && activeTab.equals("Raid Info");
@@ -721,26 +735,29 @@ public class RaidEditorScreen extends Screen {
         drawTab(graphics, Component.translatable("gui.custom_mobs.raid_editor.tab.loot").getString(), left + 165, top + 10, activeTab.equals("Loot"));
 
         if (activeTab.equals("Raid Info")) {
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.raid_name_id"), left + 20, top + 47, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 42, 130, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.raid_name_id"), left + 20, top + 44, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 39, 130, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.raid_radius"), left + 20, top + 67, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 62, 60, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.spawn_radius"), left + 20, top + 64, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 59, 60, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.wave_cooldown"), left + 20, top + 87, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 82, 60, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.escape_radius"), left + 20, top + 84, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 79, 60, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.raid_cooldown"), left + 20, top + 107, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 102, 60, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.wave_cooldown"), left + 20, top + 104, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 99, 60, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.number_of_waves"), left + 20, top + 127, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 122, 60, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.raid_cooldown"), left + 20, top + 124, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 119, 60, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.lore_description"), left + 20, top + 147, 0xFFCCCCCC, false);
-            UIHelper.drawRecessedSlot(graphics, left + 140, top + 142, 215, 16, borderC, slotC);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.number_of_waves"), left + 20, top + 144, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 139, 60, 16, borderC, slotC);
 
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.info1"), left + 20, top + 175, 0xFF888888, false);
-            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.info2"), left + 20, top + 190, 0xFF888888, false);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.lore_description"), left + 20, top + 164, 0xFFCCCCCC, false);
+            UIHelper.drawRecessedSlot(graphics, left + 140, top + 159, 215, 16, borderC, slotC);
+
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.info1"), left + 20, top + 185, 0xFF888888, false);
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.info2"), left + 20, top + 198, 0xFF888888, false);
             graphics.drawString(this.font, Component.translatable("gui.custom_mobs.raid_editor.label.info3"), left + 20, top + 205, 0xFF888888, false);
 
         } else if (activeTab.equals("Waves")) {
@@ -905,6 +922,30 @@ public class RaidEditorScreen extends Screen {
                 // Hover over minus button '-'
                 else if (mouseX >= left + 185 && mouseX <= left + 215 && mouseY >= top + 32 && mouseY <= top + 42) {
                     customTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.remove_mob"));
+                }
+            } else if (activeTab.equals("Loot")) {
+                if (mouseX >= left + 15 && mouseX <= left + 195 && mouseY >= top + 50 && mouseY <= top + 185) {
+                    int clickedRow = (int) ((mouseY - (top + 53)) / 14);
+                    int idx = clickedRow + rewardsScroll;
+                    if (idx >= 0 && idx < rewards.size()) {
+                        RaidSystem.RaidReward reward = rewards.get(idx);
+                        String val = reward.value;
+                        List<Component> list = new ArrayList<>();
+                        if (val.startsWith("/")) {
+                            list.add(Component.literal("Command Reward").withStyle(net.minecraft.ChatFormatting.GOLD));
+                            list.add(Component.literal(val).withStyle(net.minecraft.ChatFormatting.YELLOW));
+                        } else {
+                            String itemDisplayName = BestiaryScreen.getRewardDisplayName(val);
+                            list.add(Component.literal(itemDisplayName).withStyle(net.minecraft.ChatFormatting.GOLD));
+                            String rawId = val.contains("*") ? val.split("\\*", 2)[0] : val;
+                            list.add(Component.literal("Item ID: " + rawId).withStyle(net.minecraft.ChatFormatting.GRAY));
+                        }
+                        list.add(Component.literal("Drop Chance: " + (int)(reward.chance * 100) + "%").withStyle(net.minecraft.ChatFormatting.GREEN));
+                        if (reward.perPlayer) {
+                            list.add(Component.literal("Per-Player Reward").withStyle(net.minecraft.ChatFormatting.AQUA));
+                        }
+                        customTooltip = list;
+                    }
                 }
             }
         }
