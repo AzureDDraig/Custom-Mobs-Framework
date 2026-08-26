@@ -1,11 +1,17 @@
-name: Build Mod Jars
+name: Build and Release Mod Jars
 
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - "v*"
+      - "b*"
   pull_request:
     branches: [ "main" ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -28,6 +34,14 @@ jobs:
       - name: Build Mod Jars with Gradle
         run: ./gradlew build --no-daemon
 
+      - name: Extract Build Number
+        id: build_info
+        if: github.event_name != 'pull_request'
+        run: |
+          BUILD_NUM=$(cat build_number.txt | tr -d '\r\n')
+          echo "tag=b${BUILD_NUM}" >> $GITHUB_OUTPUT
+          echo "title=Build ${BUILD_NUM}" >> $GITHUB_OUTPUT
+
       - name: Upload Fabric Mod Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -45,3 +59,18 @@ jobs:
             forge/build/libs/custom_mobs-forge-*.jar
             !forge/build/libs/*-dev-shadow.jar
           if-no-files-found: warn
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.event_name != 'pull_request'
+        with:
+          tag_name: ${{ steps.build_info.outputs.tag }}
+          name: ${{ steps.build_info.outputs.title }}
+          files: |
+            fabric/build/libs/custom_mobs-fabric-*.jar
+            forge/build/libs/custom_mobs-forge-*.jar
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
