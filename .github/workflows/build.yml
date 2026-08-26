@@ -32,12 +32,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CustomMobs-Fabric-1.20.1
-          path: fabric/build/libs/*.jar
+          path: |
+            fabric/build/libs/custom_mobs-fabric-*.jar
+            !fabric/build/libs/*-dev-shadow.jar
           if-no-files-found: warn
 
       - name: Upload Forge Mod Artifact
         uses: actions/upload-artifact@v4
         with:
           name: CustomMobs-Forge-1.20.1
-          path: forge/build/libs/*.jar
+          path: |
+            forge/build/libs/custom_mobs-forge-*.jar
+            !forge/build/libs/*-dev-shadow.jar
           if-no-files-found: warn
