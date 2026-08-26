@@ -4,6 +4,17 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 148] - Subterranean Vertical Raid Spawning Fix
+### Technical Changes (By Class)
+*   **`RaidBlockEntity.java` & `RaidSystem.java`**:
+    *   **Vertical Bounds Search (`maxDy`):** Constrained candidate mob spawn Y searches to `[spawnerY - maxDy, spawnerY + maxDy]` where `maxDy = Math.min(Math.max(8, spawnRadius), 24)`.
+    *   **Eliminated `getHeightmapPos` Fallback:** Completely removed `level.getHeightmapPos()` calls during wave spawning to prevent subterranean/cave raid mobs (like flying bees, bats, or ground mobs) from teleporting to the Overworld surface 60+ blocks above.
+    *   **Subterranean Air Fallback:** Added local vertical air-block fallback scanning within `maxDy` when no solid floor is detected.
+### Layman's Explanation
+*   **Subterranean & Cave Raid Spawning Fix:** Fixed a bug where raid monsters (especially flying bees or mobs in tall cave chambers) would occasionally spawn on the top surface of the world (60+ blocks above). All raid mobs are now strictly constrained to spawn within the vertical radius of the Raid Block.
+
+---
+
 ## [Build 147] - Dual Raid Radii, Amphibious AI Navigation, Boss Bars & Localized Raid Reward Tooltips
 ### Technical Changes (By Class)
 *   **`RaidBlockEntity.java` & `RaidEditorScreen.java`**:

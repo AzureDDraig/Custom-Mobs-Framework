@@ -294,18 +294,30 @@ public class RaidBlockEntity extends BlockEntity {
 
                 BlockPos candidatePos = BlockPos.containing(rx, ry, rz);
                 BlockPos spawnPos = candidatePos;
-                for (int dy = 8; dy >= -8; dy--) {
+                int maxDy = Math.min(Math.max(8, spawnRadius), 24);
+                boolean foundFloor = false;
+                for (int dy = maxDy; dy >= -maxDy; dy--) {
                     BlockPos check = candidatePos.offset(0, dy, 0);
                     if (!level.getBlockState(check).isAir() && level.getBlockState(check.above()).isAir() && level.getBlockState(check.above(2)).isAir()) {
                         spawnPos = check.above();
+                        foundFloor = true;
                         break;
                     }
                 }
-                if (spawnPos.equals(candidatePos)) {
-                    spawnPos = level.getHeightmapPos(
-                            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                            candidatePos
-                    );
+                if (!foundFloor) {
+                    // Fallback to nearest air block within maxDy range instead of searching surface heightmap
+                    for (int dy = 0; dy <= maxDy; dy++) {
+                        BlockPos checkUp = candidatePos.offset(0, dy, 0);
+                        if (level.getBlockState(checkUp).isAir() && level.getBlockState(checkUp.above()).isAir()) {
+                            spawnPos = checkUp;
+                            break;
+                        }
+                        BlockPos checkDown = candidatePos.offset(0, -dy, 0);
+                        if (level.getBlockState(checkDown).isAir() && level.getBlockState(checkDown.above()).isAir()) {
+                            spawnPos = checkDown;
+                            break;
+                        }
+                    }
                 }
 
                 if (ddraig.net.custommobs.data.MobRegistry.loadedMobs.containsKey(templateId)) {

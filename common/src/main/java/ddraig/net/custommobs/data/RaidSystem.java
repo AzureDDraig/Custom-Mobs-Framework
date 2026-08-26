@@ -260,11 +260,32 @@ public class RaidSystem {
                     double d = 4.0 + level.random.nextDouble() * (Math.max(6.0, definition.radius) - 4.0);
                     double rx = spawnPos.getX() + Math.cos(theta) * d;
                     double rz = spawnPos.getZ() + Math.sin(theta) * d;
-                    
-                    BlockPos targetPos = level.getHeightmapPos(
-                            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                            BlockPos.containing(rx, spawnPos.getY(), rz)
-                    );
+                    BlockPos candidatePos = BlockPos.containing(rx, spawnPos.getY(), rz);
+                    BlockPos targetPos = candidatePos;
+                    int maxDy = Math.min(Math.max(8, definition.radius), 24);
+                    boolean foundFloor = false;
+                    for (int dy = maxDy; dy >= -maxDy; dy--) {
+                        BlockPos check = candidatePos.offset(0, dy, 0);
+                        if (!level.getBlockState(check).isAir() && level.getBlockState(check.above()).isAir() && level.getBlockState(check.above(2)).isAir()) {
+                            targetPos = check.above();
+                            foundFloor = true;
+                            break;
+                        }
+                    }
+                    if (!foundFloor) {
+                        for (int dy = 0; dy <= maxDy; dy++) {
+                            BlockPos checkUp = candidatePos.offset(0, dy, 0);
+                            if (level.getBlockState(checkUp).isAir() && level.getBlockState(checkUp.above()).isAir()) {
+                                targetPos = checkUp;
+                                break;
+                            }
+                            BlockPos checkDown = candidatePos.offset(0, -dy, 0);
+                            if (level.getBlockState(checkDown).isAir() && level.getBlockState(checkDown.above()).isAir()) {
+                                targetPos = checkDown;
+                                break;
+                            }
+                        }
+                    }
                     
                     var entity = ddraig.net.custommobs.registry.ModEntities.CUSTOM_MOB.get().create(level);
                     if (entity != null) {
