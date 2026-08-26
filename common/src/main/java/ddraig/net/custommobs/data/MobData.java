@@ -95,6 +95,9 @@ public class MobData {
         public int maxLight = 15;
         public String allowedStructure = "";
         public int worldwideLimit = 100;
+        public int lifetimeSeconds = 0; // 0 = infinite / standard despawn, >0 = seconds
+        public boolean despawnOnChunkUnload = false;
+        public boolean despawnWhenFarAway = true;
     }
 
     public static class AbilityData {

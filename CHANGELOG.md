@@ -4,6 +4,21 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 149] - Configurable Entity Lifetime, Despawn on Chunk Unload & Despawn Far Away Rules
+### Technical Changes (By Class)
+*   **`MobData.java`**:
+    *   **Spawn Rules Expansion:** Added `lifetimeSeconds` (0 = infinite / standard despawn), `despawnOnChunkUnload` (toggle), and `despawnWhenFarAway` (toggle, default true) to `SpawnRulesData`.
+*   **`CustomMobEntity.java`**:
+    *   **Configurable Lifetime Timer (`activeLifetimeTicks`):** Automatically discards entities when active lifetime exceeds `lifetimeSeconds * 20` ticks. Timer pauses and resets when actively engaged in combat with a player.
+    *   **Chunk Unload Despawning:** Discards non-raid/non-spawner entities when their chunk unloads if `despawnOnChunkUnload` is enabled, preventing entity accumulation in unloaded/reloaded chunks (e.g. Slimes in dungeon corridors).
+    *   **Despawn Far Away Rule (`checkDespawn`):** Respects `despawnWhenFarAway` setting for natural despawning when players move >128 blocks away.
+*   **`MobCreatorScreen.java` & `en_us.json`**:
+    *   **Spawning Tab Controls:** Added **Lifetime (Sec)** edit field, **Despawn On Unload** toggle button, and **Despawn Far Away** toggle button with full tooltips and localization support.
+### Layman's Explanation
+*   **Configurable Mob Lifetime & Performance Despawning:** Added new spawning rules to prevent lag spikes caused by mobs (such as Slimes in dungeons) accumulating over time when chunks unload and reload. Creators can now configure mob lifetime timers in seconds and toggle auto-despawning on chunk unload or when players are far away.
+
+---
+
 ## [Build 148] - Subterranean Vertical Raid Spawning Fix
 ### Technical Changes (By Class)
 *   **`RaidBlockEntity.java` & `RaidSystem.java`**:

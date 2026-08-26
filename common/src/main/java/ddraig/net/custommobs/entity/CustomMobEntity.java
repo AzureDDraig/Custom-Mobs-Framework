@@ -72,6 +72,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     private final Map<String, Integer> abilityCooldowns = new HashMap<>();
     private final Map<String, Integer> goalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
 
+    private int activeLifetimeTicks = 0;
     private final List<String> combatSequence = new ArrayList<>();
     private int currentSequenceIndex = 0;
 
@@ -426,6 +427,26 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             }
 
             MobData data = MobRegistry.loadedMobs.get(getTemplateId());
+            if (data != null && data.spawnRules != null) {
+                if (data.spawnRules.despawnOnChunkUnload && this.activeRaidId == null && this.spawnerPos == null && !this.isSpawnerMob) {
+                    if (!this.level().hasChunkAt(this.blockPosition())) {
+                        this.discard();
+                        return;
+                    }
+                }
+                if (data.spawnRules.lifetimeSeconds > 0) {
+                    if (this.getTarget() == null || !(this.getTarget() instanceof Player)) {
+                        this.activeLifetimeTicks++;
+                        if (this.activeLifetimeTicks >= data.spawnRules.lifetimeSeconds * 20) {
+                            this.discard();
+                            return;
+                        }
+                    } else {
+                        this.activeLifetimeTicks = 0;
+                    }
+                }
+            }
+
             if (data != null && data.stats.regenSpeed > 0 && this.tickCount % 20 == 0) {
                 if (this.getHealth() < this.getMaxHealth()) {
                     this.heal((float) data.stats.regenSpeed);
@@ -1537,7 +1558,23 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob) {
             return false;
         }
+        MobData data = MobRegistry.loadedMobs.get(getTemplateId());
+        if (data != null && data.spawnRules != null && !data.spawnRules.despawnWhenFarAway) {
+            return false;
+        }
         return super.removeWhenFarAway(distanceToClosestPlayer);
+    }
+
+    @Override
+    public void checkDespawn() {
+        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob) {
+            return;
+        }
+        MobData data = MobRegistry.loadedMobs.get(getTemplateId());
+        if (data != null && data.spawnRules != null && !data.spawnRules.despawnWhenFarAway) {
+            return;
+        }
+        super.checkDespawn();
     }
 
     @Override
