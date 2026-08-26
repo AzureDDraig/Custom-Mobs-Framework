@@ -1,0 +1,43 @@
+name: Build Mod Jars
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Make Gradlew Executable
+        run: chmod +x gradlew
+
+      - name: Build Mod Jars with Gradle
+        run: ./gradlew build --no-daemon
+
+      - name: Upload Fabric Mod Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CustomMobs-Fabric-1.20.1
+          path: fabric/build/libs/*.jar
+          if-no-files-found: warn
+
+      - name: Upload Forge Mod Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CustomMobs-Forge-1.20.1
+          path: forge/build/libs/*.jar
+          if-no-files-found: warn
