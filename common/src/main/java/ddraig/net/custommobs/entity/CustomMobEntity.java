@@ -1555,26 +1555,40 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
 
     @Override
     public boolean removeWhenFarAway(double distanceToClosestPlayer) {
-        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob) {
+        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob || this.isTame()) {
             return false;
         }
         MobData data = MobRegistry.loadedMobs.get(getTemplateId());
         if (data != null && data.spawnRules != null && !data.spawnRules.despawnWhenFarAway) {
             return false;
         }
-        return super.removeWhenFarAway(distanceToClosestPlayer);
+        return distanceToClosestPlayer > 16384.0;
     }
 
     @Override
     public void checkDespawn() {
-        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob) {
+        if (this.activeRaidId != null || this.spawnerPos != null || this.isSpawnerMob || this.isTame()) {
             return;
         }
         MobData data = MobRegistry.loadedMobs.get(getTemplateId());
         if (data != null && data.spawnRules != null && !data.spawnRules.despawnWhenFarAway) {
             return;
         }
-        super.checkDespawn();
+        if (this.level().getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL && this.shouldDespawnInPeaceful()) {
+            this.discard();
+            return;
+        }
+        Player player = this.level().getNearestPlayer(this, -1.0D);
+        if (player != null) {
+            double d0 = this.distanceToSqr(player);
+            if (d0 > 16384.0 && this.removeWhenFarAway(d0)) {
+                this.discard();
+            } else if (this.noActionTime > 600 && this.random.nextInt(800) == 0 && d0 > 1024.0 && this.removeWhenFarAway(d0)) {
+                this.discard();
+            } else if (d0 <= 1024.0) {
+                this.noActionTime = 0;
+            }
+        }
     }
 
     @Override
@@ -1621,6 +1635,13 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
         }
         if (tag.contains("ActiveRaidId")) {
             this.activeRaidId = tag.getString("ActiveRaidId");
+        }
+
+        MobData data = MobRegistry.loadedMobs.get(getTemplateId());
+        if (data != null && data.spawnRules != null && data.spawnRules.despawnOnChunkUnload) {
+            if (this.activeRaidId == null && this.spawnerPos == null && !this.isSpawnerMob && !this.isTame()) {
+                this.discard();
+            }
         }
     }
 

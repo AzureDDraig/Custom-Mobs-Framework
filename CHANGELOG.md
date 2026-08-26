@@ -4,6 +4,18 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 150] - Despawning Overhaul & Spawning Tab GUI Layout Fix
+### Technical Changes (By Class)
+*   **`CustomMobEntity.java`**:
+    *   **TamableAnimal Despawn Override:** Fixed `removeWhenFarAway` and `checkDespawn` which were hardcoded to `return false` by `TamableAnimal`. Mobs with `despawnWhenFarAway = true` now despawn naturally when >128 blocks away from all players.
+    *   **Instant Chunk Reload Despawn:** Updated `readAdditionalSaveData` to instantly discard mobs with `despawnOnChunkUnload = true` when their chunk is loaded/reloaded, completely eliminating dungeon entity accumulation.
+*   **`MobCreatorScreen.java`**:
+    *   **Spawning Tab GUI Layout Restructure:** Fixed a layout bug where `lifetimeSeconds`, `despawnOnChunkUnload`, and `despawnWhenFarAway` controls were cut off or overlapped by the Biome filter list. Rearranged all 12 spawning controls into a clean, compact dual-column layout where every box, label, and toggle button is perfectly visible and clickable.
+### Layman's Explanation
+*   **Despawning System & GUI Fixes:** Fixed an issue where despawn options were hidden/cut off at the bottom of the Mob Creator screen or covered by the biome list. Also fixed despawning logic so custom mobs properly despawn when players move far away or when dungeon chunks unload and reload.
+
+---
+
 ## [Build 149] - Configurable Entity Lifetime, Despawn on Chunk Unload & Despawn Far Away Rules
 ### Technical Changes (By Class)
 *   **`MobData.java`**:
