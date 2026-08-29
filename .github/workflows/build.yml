@@ -34,11 +34,15 @@ jobs:
       - name: Build Mod Jars with Gradle
         run: ./gradlew build --no-daemon
 
-      - name: Extract Build Number
+      - name: Extract Build Info and Jar Filenames
         id: build_info
         if: github.event_name != 'pull_request'
         run: |
+          FABRIC_JAR=$(basename $(ls fabric/build/libs/custom_mobs-fabric-*.jar | grep -v "shadow" | grep -v "sources" | head -n 1))
+          FORGE_JAR=$(basename $(ls forge/build/libs/custom_mobs-forge-*.jar | grep -v "shadow" | grep -v "sources" | head -n 1))
           BUILD_NUM=$(cat build_number.txt | tr -d '\r\n')
+          echo "fabric_jar=${FABRIC_JAR}" >> $GITHUB_OUTPUT
+          echo "forge_jar=${FORGE_JAR}" >> $GITHUB_OUTPUT
           echo "build_num=${BUILD_NUM}" >> $GITHUB_OUTPUT
           echo "tag=b${BUILD_NUM}" >> $GITHUB_OUTPUT
           echo "title=Build ${BUILD_NUM}" >> $GITHUB_OUTPUT
@@ -82,7 +86,7 @@ jobs:
         with:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           curseforge-id: 1601972
-          name: Custom Mobs (Fabric 1.20.1) - Build ${{ steps.build_info.outputs.build_num }}
+          name: ${{ steps.build_info.outputs.fabric_jar }}
           version: 1.0.0-b${{ steps.build_info.outputs.build_num }}
           version-type: release
           files: |
@@ -99,7 +103,7 @@ jobs:
         with:
           curseforge-token: ${{ secrets.CURSEFORGE_TOKEN }}
           curseforge-id: 1601972
-          name: Custom Mobs (Forge 1.20.1) - Build ${{ steps.build_info.outputs.build_num }}
+          name: ${{ steps.build_info.outputs.forge_jar }}
           version: 1.0.0-b${{ steps.build_info.outputs.build_num }}
           version-type: release
           files: |
