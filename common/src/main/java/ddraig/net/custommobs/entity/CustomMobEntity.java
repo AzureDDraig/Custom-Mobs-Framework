@@ -17,8 +17,10 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.BossEvent;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -73,6 +75,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     private final Map<String, Integer> goalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
 
     private int activeLifetimeTicks = 0;
+    private ServerBossEvent bossEvent;
     private final List<String> combatSequence = new ArrayList<>();
     private int currentSequenceIndex = 0;
 
@@ -454,6 +457,7 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             }
 
             tickCombatAbilities();
+            updateBossBar(data);
 
             if (this.getTarget() == null || !this.getTarget().isAlive()) {
                 this.currentSequenceIndex = 0;
@@ -1107,6 +1111,10 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
     @Override
     public void die(DamageSource source) {
         super.die(source);
+        if (this.bossEvent != null) {
+            this.bossEvent.removeAllPlayers();
+            this.bossEvent = null;
+        }
         RaidSystem.onMobDeath(this.getUUID());
 
         if (this.level() instanceof ServerLevel serverLevel && source.getEntity() instanceof ServerPlayer player) {
@@ -1642,6 +1650,87 @@ public class CustomMobEntity extends TamableAnimal implements GeoEntity, net.min
             if (this.activeRaidId == null && this.spawnerPos == null && !this.isSpawnerMob && !this.isTame()) {
                 this.discard();
             }
+        }
+    }
+
+    private void updateBossBar(MobData data) {
+        if (this.level().isClientSide) return;
+        if (data != null && data.bossBar != null && data.bossBar.enabled && this.isAlive()) {
+            if (this.bossEvent == null) {
+                Component titleComp = (data.bossBar.title != null && !data.bossBar.title.trim().isEmpty())
+                        ? Component.literal(data.bossBar.title)
+                        : this.getDisplayName();
+                
+                BossEvent.BossBarColor barColor = BossEvent.BossBarColor.RED;
+                try {
+                    barColor = BossEvent.BossBarColor.valueOf(data.bossBar.color.toUpperCase());
+                } catch (Exception ignored) {}
+
+                BossEvent.BossBarOverlay barOverlay = BossEvent.BossBarOverlay.PROGRESS;
+                try {
+                    barOverlay = BossEvent.BossBarOverlay.valueOf(data.bossBar.style.toUpperCase());
+                } catch (Exception ignored) {}
+
+                this.bossEvent = new ServerBossEvent(titleComp, barColor, barOverlay);
+                this.bossEvent.setDarkenScreen(data.bossBar.darkenScreen);
+                this.bossEvent.setCreateWorldFog(data.bossBar.createWorldFog);
+                this.bossEvent.setPlayBossMusic(data.bossBar.playBossMusic);
+            }
+
+            this.bossEvent.setProgress(Math.max(0.0F, Math.min(1.0F, this.getHealth() / this.getMaxHealth())));
+            
+            Component currentTitle = (data.bossBar.title != null && !data.bossBar.title.trim().isEmpty())
+                    ? Component.literal(data.bossBar.title)
+                    : this.getDisplayName();
+            this.bossEvent.setName(currentTitle);
+
+            double rangeSq = (double) data.bossBar.range * data.bossBar.range;
+            if (rangeSq <= 0) rangeSq = 32.0 * 32.0;
+
+            if (this.level() instanceof ServerLevel serverLevel) {
+                Set<ServerPlayer> playersInRange = new HashSet<>();
+                for (ServerPlayer player : serverLevel.players()) {
+                    if (player.distanceToSqr(this) <= rangeSq) {
+                        playersInRange.add(player);
+                    }
+                }
+                
+                for (ServerPlayer player : new ArrayList<>(this.bossEvent.getPlayers())) {
+                    if (!playersInRange.contains(player)) {
+                        this.bossEvent.removePlayer(player);
+                    }
+                }
+                for (ServerPlayer player : playersInRange) {
+                    if (!this.bossEvent.getPlayers().contains(player)) {
+                        this.bossEvent.addPlayer(player);
+                    }
+                }
+            }
+        } else if (this.bossEvent != null) {
+            this.bossEvent.removeAllPlayers();
+            this.bossEvent = null;
+        }
+    }
+
+    @Override
+    public void startSeenByPlayer(ServerPlayer player) {
+        super.startSeenByPlayer(player);
+        if (this.bossEvent != null) {
+            MobData data = MobRegistry.loadedMobs.get(getTemplateId());
+            if (data != null && data.bossBar != null && data.bossBar.enabled) {
+                double rangeSq = (double) data.bossBar.range * data.bossBar.range;
+                if (player.distanceToSqr(this) <= rangeSq) {
+                    this.bossEvent.addPlayer(player);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void stopSeenByPlayer(ServerPlayer player) {
+        super.stopSeenByPlayer(player);
+        if (this.bossEvent != null) {
+            this.bossEvent.removePlayer(player);
         }
     }
 

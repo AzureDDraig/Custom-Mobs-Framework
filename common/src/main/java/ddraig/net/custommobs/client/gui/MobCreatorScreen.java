@@ -101,6 +101,10 @@ public class MobCreatorScreen extends Screen {
     private EditBox worldwideLimitField;
     private EditBox lifetimeField;
 
+    // Boss Bar edit fields
+    private EditBox bossBarTitleField;
+    private EditBox bossBarRangeField;
+
     // Edit fields for selected Loot drop
     private EditBox lootChanceField;
     private EditBox lootMinField;
@@ -675,6 +679,15 @@ public class MobCreatorScreen extends Screen {
         this.lifetimeField.setValue(String.valueOf(selectedMob.spawnRules.lifetimeSeconds));
         this.lifetimeField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.lifetime_seconds")));
 
+        // Boss Bar fields
+        this.bossBarTitleField = new EditBox(this.font, formX + 110, formY + 47, formW - 120, 10, Component.literal("Boss Title"));
+        this.bossBarTitleField.setValue(selectedMob.bossBar != null && selectedMob.bossBar.title != null ? selectedMob.bossBar.title : "");
+        this.bossBarTitleField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.creator.boss_title")));
+
+        this.bossBarRangeField = new EditBox(this.font, formX + 110, formY + 81, 50, 10, Component.literal("Boss Range"));
+        this.bossBarRangeField.setValue(String.valueOf(selectedMob.bossBar != null ? selectedMob.bossBar.range : 32));
+        this.bossBarRangeField.setTooltip(Tooltip.create(Component.translatable("gui.custom_mobs.tooltip.creator.boss_range")));
+
         // Goal mapping (aligned in left column)
         this.goalAnimationField = new EditBox(this.font, formX + 9, formY + 148, leftW - 18, 10, Component.literal("Animation"));
         this.goalAnimationField.setValue("");
@@ -856,6 +869,8 @@ public class MobCreatorScreen extends Screen {
         worldwideLimitField.setMaxLength(1024);
         applyBorderless(lifetimeField);
         lifetimeField.setMaxLength(1024);
+        applyBorderless(bossBarTitleField);
+        applyBorderless(bossBarRangeField);
         applyBorderless(goalAnimationField);
         applyBorderless(goalGroupField);
         applyBorderless(goalDelayField);
@@ -913,6 +928,9 @@ public class MobCreatorScreen extends Screen {
                 this.addRenderableWidget(this.stepHeightField);
                 this.addRenderableWidget(this.fallResField);
                 this.addRenderableWidget(this.reflectionChanceField);
+            } else if (activeTab.equals("Boss")) {
+                this.addRenderableWidget(this.bossBarTitleField);
+                this.addRenderableWidget(this.bossBarRangeField);
             } else if (activeTab.equals("Sounds")) {
                 this.addRenderableWidget(this.ambientSoundField);
                 this.addRenderableWidget(this.stepSoundField);
@@ -1078,6 +1096,8 @@ public class MobCreatorScreen extends Screen {
         structureField.tick();
         worldwideLimitField.tick();
         lifetimeField.tick();
+        bossBarTitleField.tick();
+        bossBarRangeField.tick();
         behaviorSearchField.tick();
         goalAnimationField.tick();
         goalGroupField.tick();
@@ -1417,6 +1437,10 @@ public class MobCreatorScreen extends Screen {
         stepHeightField.visible = stats; stepHeightField.active = stats;
         fallResField.visible = stats; fallResField.active = stats;
         reflectionChanceField.visible = stats; reflectionChanceField.active = stats;
+
+        boolean boss = activeTab.equals("Boss");
+        bossBarTitleField.visible = boss; bossBarTitleField.active = boss;
+        bossBarRangeField.visible = boss; bossBarRangeField.active = boss;
 
         boolean sounds = activeTab.equals("Sounds");
         ambientSoundField.visible = sounds; ambientSoundField.active = sounds;
@@ -1901,6 +1925,8 @@ public class MobCreatorScreen extends Screen {
         structureField.setVisible(false);
         worldwideLimitField.setVisible(false);
         lifetimeField.setVisible(false);
+        bossBarTitleField.setVisible(false);
+        bossBarRangeField.setVisible(false);
         goalAnimationField.setVisible(false);
         goalGroupField.setVisible(false);
         goalDelayField.setVisible(false);
@@ -2014,6 +2040,13 @@ public class MobCreatorScreen extends Screen {
         selectedMob.sounds.hurt = hurtSoundField.getValue();
         selectedMob.sounds.death = deathSoundField.getValue();
         selectedMob.sounds.attack = attackSoundField.getValue();
+
+        if (bossBarTitleField != null) {
+            selectedMob.bossBar.title = bossBarTitleField.getValue();
+        }
+        if (bossBarRangeField != null) {
+            try { selectedMob.bossBar.range = Integer.parseInt(bossBarRangeField.getValue()); } catch (Exception ignored) {}
+        }
 
         if (activeTab.equals("AI") && selectedGoalIndex >= 0) {
             var goal = selectedMob.aiGoals.get(selectedGoalIndex);
@@ -2284,7 +2317,7 @@ public class MobCreatorScreen extends Screen {
         if (selectedMob != null && (selectedMob.modelType.equals("geckolib") || selectedMob.modelType.equals("java"))) {
             tabIds.add("Animations");
         }
-        tabIds.addAll(List.of("AI", "Stats", "Abilities", "Sounds", "Loot", "Spawning"));
+        tabIds.addAll(List.of("AI", "Stats", "Boss", "Abilities", "Sounds", "Loot", "Spawning"));
 
         List<List<TabBounds>> rows = new ArrayList<>();
         List<TabBounds> currentRow = new ArrayList<>();
@@ -2526,6 +2559,8 @@ public class MobCreatorScreen extends Screen {
         drawEditBoxBackground(graphics, structureField, borderC, slotC);
         drawEditBoxBackground(graphics, worldwideLimitField, borderC, slotC);
         drawEditBoxBackground(graphics, lifetimeField, borderC, slotC);
+        drawEditBoxBackground(graphics, bossBarTitleField, borderC, slotC);
+        drawEditBoxBackground(graphics, bossBarRangeField, borderC, slotC);
         drawEditBoxBackground(graphics, goalAnimationField, borderC, slotC);
         drawEditBoxBackground(graphics, goalGroupField, borderC, slotC);
         drawEditBoxBackground(graphics, goalDelayField, borderC, slotC);
@@ -2886,6 +2921,116 @@ public class MobCreatorScreen extends Screen {
             renderStatField(graphics, Component.translatable("gui.custom_mobs.creator.label.step_height").getString(), stepHeightField, "stepHeight", formX + 10, statsY + ySpacing * 10 + 3, mouseX, mouseY);
             renderStatField(graphics, Component.translatable("gui.custom_mobs.creator.label.fall_res").getString(), fallResField, "fallDamageResistance", formX + 10, statsY + ySpacing * 11 + 3, mouseX, mouseY);
             renderStatField(graphics, Component.translatable("gui.custom_mobs.creator.label.reflection_chance").getString(), reflectionChanceField, "projectileReflectionChance", formX + 10, statsY + ySpacing * 12 + 3, mouseX, mouseY);
+
+        } else if (activeTab.equals("Boss")) {
+            graphics.drawString(this.font, Component.translatable("gui.custom_mobs.creator.label.boss_settings"), formX + 10, formY + 4, labelC);
+
+            // Live Boss Bar Preview
+            int previewBarX = formX + 10;
+            int previewBarY = formY + 16;
+            int previewBarW = formW - 20;
+            int previewBarH = 10;
+            
+            // Draw boss bar background
+            graphics.fill(previewBarX, previewBarY, previewBarX + previewBarW, previewBarY + previewBarH, 0xFF111111);
+            
+            // Determine boss bar color
+            int barColor = 0xFFFF5555; // Default RED
+            String colorStr = selectedMob.bossBar.color != null ? selectedMob.bossBar.color.toUpperCase() : "RED";
+            switch (colorStr) {
+                case "PINK" -> barColor = 0xFFFF55FF;
+                case "BLUE" -> barColor = 0xFF55FFFF;
+                case "RED" -> barColor = 0xFFFF5555;
+                case "GREEN" -> barColor = 0xFF55FF55;
+                case "YELLOW" -> barColor = 0xFFFFFF55;
+                case "PURPLE" -> barColor = 0xFFAA00AA;
+                case "WHITE" -> barColor = 0xFFFFFFFF;
+            }
+            
+            // Draw filled preview bar (75% health)
+            if (selectedMob.bossBar.enabled) {
+                graphics.fill(previewBarX + 1, previewBarY + 1, previewBarX + (int)(previewBarW * 0.75f), previewBarY + previewBarH - 1, barColor);
+                
+                // Draw notches if style has notches
+                String styleStr = selectedMob.bossBar.style != null ? selectedMob.bossBar.style.toUpperCase() : "PROGRESS";
+                int notches = 0;
+                if (styleStr.equals("NOTCHED_6")) notches = 6;
+                else if (styleStr.equals("NOTCHED_10")) notches = 10;
+                else if (styleStr.equals("NOTCHED_12")) notches = 12;
+                else if (styleStr.equals("NOTCHED_20")) notches = 20;
+
+                if (notches > 0) {
+                    float step = (float) previewBarW / (float) notches;
+                    for (int n = 1; n < notches; n++) {
+                        int notchX = previewBarX + (int)(step * n);
+                        graphics.fill(notchX, previewBarY, notchX + 1, previewBarY + previewBarH, 0xFF000000);
+                    }
+                }
+            } else {
+                graphics.fill(previewBarX + 1, previewBarY + 1, previewBarX + previewBarW - 1, previewBarY + previewBarH - 1, 0xFF333333);
+            }
+
+            // Draw Boss Bar Title centered on the bar preview
+            String previewTitle = (selectedMob.bossBar.title != null && !selectedMob.bossBar.title.trim().isEmpty())
+                    ? selectedMob.bossBar.title
+                    : (!selectedMob.name.isEmpty() ? selectedMob.name : "Boss Mob");
+            int titleW = this.font.width(previewTitle);
+            graphics.drawString(this.font, previewTitle, previewBarX + (previewBarW - titleW) / 2, previewBarY + 1, selectedMob.bossBar.enabled ? 0xFFFFFFFF : 0xFF888888, true);
+
+            // Row 1: Enable Boss Bar (formY + 31)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.enable_boss_bar"), formX + 10, formY + 33, 95, textC);
+            boolean hoverBossEnable = mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 31 && mouseY <= formY + 41;
+            graphics.fill(formX + 110, formY + 31, formX + 120, formY + 41, selectedMob.bossBar.enabled ? 0xFF00FF00 : 0xFFFF0000);
+            if (hoverBossEnable) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.enable_boss_bar"));
+            }
+
+            // Row 2: Title Override (formY + 48)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_title"), formX + 10, formY + 48, 95, labelC);
+
+            // Row 3: Color and Style Buttons (formY + 65)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_color"), formX + 10, formY + 65, 45, labelC);
+            boolean hoverColor = mouseX >= formX + 58 && mouseX <= formX + 125 && mouseY >= formY + 63 && mouseY <= formY + 75;
+            UIHelper.drawShadedButton(graphics, formX + 58, formY + 63, 67, 12, hoverColor, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.bossBar.color.toUpperCase(), formX + 62, formY + 65, barColor, false);
+            if (hoverColor) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.boss_color"));
+            }
+
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_style"), formX + 133, formY + 65, 38, labelC);
+            boolean hoverStyle = mouseX >= formX + 173 && mouseX <= formX + 265 && mouseY >= formY + 63 && mouseY <= formY + 75;
+            UIHelper.drawShadedButton(graphics, formX + 173, formY + 63, 92, 12, hoverStyle, 0xFF3C3C3C);
+            graphics.drawString(this.font, selectedMob.bossBar.style.toUpperCase(), formX + 177, formY + 65, 0xFFFFFFFF, false);
+            if (hoverStyle) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.boss_style"));
+            }
+
+            // Row 4: Tracking Range (formY + 82)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_range"), formX + 10, formY + 82, 95, labelC);
+
+            // Row 5: Darken Screen (formY + 98)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_darken_screen"), formX + 10, formY + 99, 95, textC);
+            boolean hoverDarken = mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 97 && mouseY <= formY + 107;
+            graphics.fill(formX + 110, formY + 97, formX + 120, formY + 107, selectedMob.bossBar.darkenScreen ? 0xFF00FF00 : 0xFFFF0000);
+            if (hoverDarken) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.boss_darken_screen"));
+            }
+
+            // Row 6: Create World Fog (formY + 113)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_fog"), formX + 10, formY + 114, 95, textC);
+            boolean hoverFog = mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 112 && mouseY <= formY + 122;
+            graphics.fill(formX + 110, formY + 112, formX + 120, formY + 122, selectedMob.bossBar.createWorldFog ? 0xFF00FF00 : 0xFFFF0000);
+            if (hoverFog) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.boss_fog"));
+            }
+
+            // Row 7: Play Boss Music (formY + 128)
+            drawScrollingText(graphics, Component.translatable("gui.custom_mobs.creator.label.boss_music"), formX + 10, formY + 129, 95, textC);
+            boolean hoverMusic = mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 127 && mouseY <= formY + 137;
+            graphics.fill(formX + 110, formY + 127, formX + 120, formY + 137, selectedMob.bossBar.playBossMusic ? 0xFF00FF00 : 0xFFFF0000);
+            if (hoverMusic) {
+                this.hoveredTooltip = List.of(Component.translatable("gui.custom_mobs.tooltip.creator.boss_music"));
+            }
 
         } else if (activeTab.equals("Abilities")) {
             // Draw Sub-tabs: "Active" and "Passive"
@@ -3734,6 +3879,50 @@ public class MobCreatorScreen extends Screen {
             int hbShowY = formY + 160;
             if (mouseX >= formX + 130 && mouseX <= formX + 140 && mouseY >= hbShowY && mouseY <= hbShowY + 10) {
                 ddraig.net.custommobs.client.renderer.CustomMobRenderer.showHitboxDebug = !ddraig.net.custommobs.client.renderer.CustomMobRenderer.showHitboxDebug;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+
+        } else if (activeTab.equals("Boss")) {
+            // Enable toggle
+            if (mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 31 && mouseY <= formY + 41) {
+                selectedMob.bossBar.enabled = !selectedMob.bossBar.enabled;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            // Color cycler
+            if (mouseX >= formX + 58 && mouseX <= formX + 125 && mouseY >= formY + 63 && mouseY <= formY + 75) {
+                List<String> colors = List.of("RED", "PINK", "BLUE", "GREEN", "YELLOW", "PURPLE", "WHITE");
+                int idx = colors.indexOf(selectedMob.bossBar.color != null ? selectedMob.bossBar.color.toUpperCase() : "RED");
+                if (idx < 0) idx = 0;
+                selectedMob.bossBar.color = colors.get((idx + 1) % colors.size());
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            // Style cycler
+            if (mouseX >= formX + 173 && mouseX <= formX + 265 && mouseY >= formY + 63 && mouseY <= formY + 75) {
+                List<String> styles = List.of("PROGRESS", "NOTCHED_6", "NOTCHED_10", "NOTCHED_12", "NOTCHED_20");
+                int idx = styles.indexOf(selectedMob.bossBar.style != null ? selectedMob.bossBar.style.toUpperCase() : "PROGRESS");
+                if (idx < 0) idx = 0;
+                selectedMob.bossBar.style = styles.get((idx + 1) % styles.size());
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            // Darken Screen toggle
+            if (mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 97 && mouseY <= formY + 107) {
+                selectedMob.bossBar.darkenScreen = !selectedMob.bossBar.darkenScreen;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            // Create Fog toggle
+            if (mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 112 && mouseY <= formY + 122) {
+                selectedMob.bossBar.createWorldFog = !selectedMob.bossBar.createWorldFog;
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
+                return true;
+            }
+            // Play Music toggle
+            if (mouseX >= formX + 110 && mouseX <= formX + 120 && mouseY >= formY + 127 && mouseY <= formY + 137) {
+                selectedMob.bossBar.playBossMusic = !selectedMob.bossBar.playBossMusic;
                 Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0F));
                 return true;
             }

@@ -144,6 +144,9 @@ public class MobData {
         public String color = "RED";
         public String style = "PROGRESS";
         public int range = 32;
+        public boolean darkenScreen = false;
+        public boolean createWorldFog = false;
+        public boolean playBossMusic = false;
     }
 
     // Transient fields for overall model dimensions

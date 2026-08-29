@@ -4,6 +4,26 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 151] - Configurable Boss Bar System & Dedicated Boss Tab Editor
+### Technical Changes (By Class)
+*   **`MobData.java`**:
+    *   **BossBarData Expansion:** Added `darkenScreen`, `createWorldFog`, and `playBossMusic` flags alongside `enabled`, `title`, `color`, `style`, and `range`.
+*   **`CustomMobEntity.java`**:
+    *   **ServerBossEvent Lifecycle Integration:** Added server-side `ServerBossEvent` management. Automatically creates, dynamically updates health/title/color/style, adds players within `range` distance, removes players outside range, and cleans up when the boss dies or is removed.
+*   **`MobCreatorScreen.java` & `en_us.json`**:
+    *   **Dedicated "Boss" Tab:** Added a new **Boss** tab to the Mob Creator GUI featuring:
+        *   **Live Boss Bar Preview:** Real-time in-GUI rendering of the boss bar with active health fill, color themes, and notch overlays.
+        *   **Enable Boss Bar Toggle:** Turns the boss bar on or off.
+        *   **Custom Title Field:** Edit box to set a custom title override (or blank to use the mob's name).
+        *   **Color Cycler:** Interactive button cycling `RED`, `PINK`, `BLUE`, `GREEN`, `YELLOW`, `PURPLE`, `WHITE` with live text color.
+        *   **Style Cycler:** Interactive button cycling `PROGRESS`, `NOTCHED_6`, `NOTCHED_10`, `NOTCHED_12`, `NOTCHED_20`.
+        *   **Tracking Range Field:** Configures player distance threshold (in blocks).
+        *   **Atmosphere Toggles:** Darken Sky, World Fog, and Boss Music toggle buttons.
+### Layman's Explanation
+*   **Boss Bar System & In-Game Editor:** Any custom mob can now be turned into an epic boss! Added a new "Boss" tab in the Mob Creator GUI with live preview, custom title, colors, styles (segmented notches), tracking range, and atmosphere effects (dark sky, fog, boss music) that display directly on players' screens in-game.
+
+---
+
 ## [Build 150] - Despawning Overhaul & Spawning Tab GUI Layout Fix
 ### Technical Changes (By Class)
 *   **`CustomMobEntity.java`**:
