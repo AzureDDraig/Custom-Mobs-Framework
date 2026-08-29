@@ -34,13 +34,17 @@ jobs:
       - name: Build Mod Jars with Gradle
         run: ./gradlew build --no-daemon
 
-      - name: Extract Build Info and Jar Filenames
+      - name: Extract Build Info and Production Jar Paths
         id: build_info
         if: github.event_name != 'pull_request'
         run: |
-          FABRIC_JAR=$(basename $(ls fabric/build/libs/custom_mobs-fabric-*.jar | grep -v "shadow" | grep -v "sources" | head -n 1))
-          FORGE_JAR=$(basename $(ls forge/build/libs/custom_mobs-forge-*.jar | grep -v "shadow" | grep -v "sources" | head -n 1))
+          FABRIC_PATH=$(find fabric/build/libs -maxdepth 1 -name "custom_mobs-fabric-*.jar" ! -name "*-dev*" ! -name "*-sources*" ! -name "*-shadow*" | head -n 1)
+          FORGE_PATH=$(find forge/build/libs -maxdepth 1 -name "custom_mobs-forge-*.jar" ! -name "*-dev*" ! -name "*-sources*" ! -name "*-shadow*" | head -n 1)
+          FABRIC_JAR=$(basename "${FABRIC_PATH}")
+          FORGE_JAR=$(basename "${FORGE_PATH}")
           BUILD_NUM=$(cat build_number.txt | tr -d '\r\n')
+          echo "fabric_path=${FABRIC_PATH}" >> $GITHUB_OUTPUT
+          echo "forge_path=${FORGE_PATH}" >> $GITHUB_OUTPUT
           echo "fabric_jar=${FABRIC_JAR}" >> $GITHUB_OUTPUT
           echo "forge_jar=${FORGE_JAR}" >> $GITHUB_OUTPUT
           echo "build_num=${BUILD_NUM}" >> $GITHUB_OUTPUT
@@ -51,18 +55,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: CustomMobs-Fabric-1.20.1
-          path: |
-            fabric/build/libs/custom_mobs-fabric-*.jar
-            !fabric/build/libs/*-dev-shadow.jar
+          path: ${{ steps.build_info.outputs.fabric_path }}
           if-no-files-found: warn
 
       - name: Upload Forge Mod Artifact
         uses: actions/upload-artifact@v4
         with:
           name: CustomMobs-Forge-1.20.1
-          path: |
-            forge/build/libs/custom_mobs-forge-*.jar
-            !forge/build/libs/*-dev-shadow.jar
+          path: ${{ steps.build_info.outputs.forge_path }}
           if-no-files-found: warn
 
       - name: Publish GitHub Release
@@ -72,8 +72,8 @@ jobs:
           tag_name: ${{ steps.build_info.outputs.tag }}
           name: ${{ steps.build_info.outputs.title }}
           files: |
-            fabric/build/libs/custom_mobs-fabric-*.jar
-            forge/build/libs/custom_mobs-forge-*.jar
+            ${{ steps.build_info.outputs.fabric_path }}
+            ${{ steps.build_info.outputs.forge_path }}
           draft: false
           prerelease: false
           generate_release_notes: true
@@ -89,9 +89,7 @@ jobs:
           name: ${{ steps.build_info.outputs.fabric_jar }}
           version: 1.0.0-b${{ steps.build_info.outputs.build_num }}
           version-type: release
-          files: |
-            fabric/build/libs/custom_mobs-fabric-*.jar
-            !fabric/build/libs/*-dev-shadow.jar
+          files: ${{ steps.build_info.outputs.fabric_path }}
           loaders: |
             fabric
           game-versions: |
@@ -106,9 +104,7 @@ jobs:
           name: ${{ steps.build_info.outputs.forge_jar }}
           version: 1.0.0-b${{ steps.build_info.outputs.build_num }}
           version-type: release
-          files: |
-            forge/build/libs/custom_mobs-forge-*.jar
-            !forge/build/libs/*-dev-shadow.jar
+          files: ${{ steps.build_info.outputs.forge_path }}
           loaders: |
             forge
           game-versions: |
