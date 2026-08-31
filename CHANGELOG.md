@@ -4,6 +4,11 @@ All notable changes to the Custom Mobs Framework project are documented in this 
 
 ---
 
+## [Build 152] - Mob Lifetime Text Box Display Fix
+* **Lifetime Input Box Restored:** Fixed an issue where the "Lifetime (Sec)" text box in the Spawning tab was hidden in the Mob Creator menu. The box is now visible, clickable, and editable.
+
+---
+
 ## [Build 151] - Custom Boss Bars & Dedicated Boss Tab
 * **In-Game Boss Bars:** Any custom mob can now have an on-screen boss health bar with customizable colors, styles, titles, and activation ranges.
 * **Dedicated Boss Tab:** Added a "Boss" tab in the Mob Creator menu with a live visual preview, custom title box, color switcher, style switcher, range setting, and atmosphere toggles (dark sky, fog, boss music).

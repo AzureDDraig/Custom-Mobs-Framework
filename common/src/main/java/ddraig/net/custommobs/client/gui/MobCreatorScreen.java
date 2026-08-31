@@ -1479,6 +1479,7 @@ public class MobCreatorScreen extends Screen {
         biomeSearchField.visible = spawn; biomeSearchField.active = spawn;
         structureField.visible = spawn; structureField.active = spawn;
         worldwideLimitField.visible = spawn; worldwideLimitField.active = spawn;
+        lifetimeField.visible = spawn; lifetimeField.active = spawn;
 
         boolean aiGoalSelected = activeTab.equals("AI") && selectedGoalIndex >= 0;
         goalAnimationField.visible = aiGoalSelected; goalAnimationField.active = aiGoalSelected;
